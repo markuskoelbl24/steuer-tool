@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steuer-Tool 2025/2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Apple-style light theme */
+  --bg:#f5f5f7;
+  --card:#ffffff;
+  --card-2:#f5f5f7;
+  --inset:#ffffff;
+  --border:#e3e3e6;
+  --border-2:#d2d2d7;
+  --txt:#1d1d1f;
+  --txt-2:#6e6e73;
+  --txt-3:#a1a1a6;
+  --green:#1a7f37;
+  --green-bg:#e7f6ec;
+  --green-bd:#a8dcb7;
+  --red:#c9252d;
+  --red-bg:#fdecec;
+  --red-bd:#f0b8ba;
+  --blue:#0071e3;
+  --blue-bg:#e8f1fd;
+  --orange:#9a5a00;
+  --orange-bg:#fbf0dc;
+  --accent:#0071e3;
+  --accent-hover:#0077ed;
+  --accent-soft:#e8f1fd;
+  --radius:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--font);-webkit-font-smoothing:antialiased;letter-spacing:-0.01em;}
+.app{max-width:980px;margin:0 auto;padding:1rem 1rem 4rem;}
+
+.topbar{display:flex;align-items:baseline;justify-content:space-between;padding:0.4rem 0.25rem 1rem;}
+.topbar h1{font-size:21px;font-weight:600;letter-spacing:-0.02em;}
+.topbar .year{font-size:12px;color:var(--txt-2);}
+.year-sel{width:auto;font-size:14px;font-weight:600;padding:7px 30px 7px 12px;border-radius:var(--radius-sm);}
+
+.tabs{display:flex;gap:2px;margin-bottom:1.25rem;background:#e9e9ec;border-radius:10px;padding:3px;position:sticky;top:8px;z-index:30;}
+.tab{flex:1;padding:8px 4px;font-size:13px;border:none;background:transparent;border-radius:7px;cursor:pointer;color:var(--txt-2);font-weight:500;font-family:inherit;transition:all .15s;}
+.tab.active{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+.section{display:none;}
+.section.active{display:block;}
+
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:0.85rem;}
+
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0.85rem;}
+.metric-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.metric-grid.three .metric-value{font-size:19px;}
+@media(max-width:560px){ .metric-grid.three{grid-template-columns:1fr 1fr;} }
+.metric{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.1rem;}
+.metric-label{font-size:11px;color:var(--txt-2);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.03em;font-weight:500;}
+.metric-value{font-size:23px;font-weight:600;letter-spacing:-0.02em;}
+.metric-value.green{color:var(--green);}
+.metric-value.red{color:var(--red);}
+
+.section-title{font-size:16px;font-weight:600;margin-bottom:0.9rem;letter-spacing:-0.02em;}
+
+.form-row{margin-bottom:0.7rem;}
+.form-row label{display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;}
+input,select,textarea{width:100%;font-size:16px;font-family:inherit;background:var(--inset);border:0.5px solid var(--border-2);border-radius:var(--radius-sm);padding:10px 12px;color:var(--txt);outline:none;transition:border-color .12s,box-shadow .12s;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+input[readonly]{background:var(--card-2);color:var(--txt-2);}
+select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+.btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:500;cursor:pointer;margin-top:0.4rem;font-family:inherit;transition:background .12s;}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-primary:active{opacity:.9;}
+.btn-ghost{padding:9px 14px;background:var(--card);border:0.5px solid var(--border-2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;color:var(--txt);font-family:inherit;font-weight:500;}
+.btn-ghost:active{background:var(--card-2);}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:0.7rem;background:#e9e9ec;border-radius:9px;padding:3px;}
+.seg button{padding:9px;border:none;border-radius:6px;font-size:14px;cursor:pointer;background:transparent;color:var(--txt-2);font-weight:500;font-family:inherit;}
+.seg button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.seg.ein button.on{color:var(--green);}
+.seg.aus button.on{color:var(--red);}
+
+.bewirtung-fields{display:none;border-top:0.5px solid var(--border);margin-top:0.3rem;padding-top:0.7rem;}
+.bewirtung-fields.visible{display:block;}
+.hint{font-size:11px;color:var(--txt-2);margin-top:5px;line-height:1.45;}
+
+.ea-grid{display:block;}
+@media(min-width:880px){
+  .ea-grid{display:grid;grid-template-columns:370px 1fr;gap:14px;align-items:start;}
+  .ea-grid .form-col{position:sticky;top:68px;}
+}
+
+.filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.filter-btn{padding:6px 12px;border:0.5px solid var(--border-2);border-radius:20px;font-size:12px;cursor:pointer;background:var(--card);color:var(--txt-2);white-space:nowrap;font-family:inherit;font-weight:500;}
+.filter-btn.active{background:var(--txt);color:#fff;border-color:var(--txt);}
+.list-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;gap:10px;flex-wrap:wrap;}
+.expand-toggle{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500;padding:4px;}
+
+/* Monatskopf (nur noch Fahrt-Tab) */
+.month-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card-2);border-radius:var(--radius-sm);}
+.month-name{font-weight:600;font-size:14px;flex:1;}
+.month-sums{display:flex;gap:10px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;}
+
+/* E/A Ledger – zwei Geldspalten, flache Liste mit Monatstrennern */
+.led-row{display:grid;grid-template-columns:28px minmax(0,1fr) 92px 92px 22px;align-items:center;gap:8px;}
+@media(max-width:520px){ .led-row{grid-template-columns:24px minmax(0,1fr) 76px 76px 18px;gap:6px;} }
+.led-head{font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--txt-3);font-weight:600;padding:0 0 6px;border-bottom:0.5px solid var(--border);}
+.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.e{color:var(--green);}
+.a{color:var(--red);}
+.q-head{background:var(--accent-soft);border-radius:var(--radius-sm);padding:9px 0;margin:16px 0 2px;}
+.q-head:first-of-type{margin-top:4px;}
+.q-head .qn{font-weight:700;font-size:13px;color:var(--accent);}
+.q-head .r{font-weight:700;font-size:12px;}
+.month-div{cursor:pointer;padding:9px 0 4px;margin-top:4px;border-top:0.5px solid var(--border);}
+.month-div:hover{background:var(--card-2);}
+.month-div .mtog{color:var(--txt-3);font-size:10px;text-align:center;}
+.month-div .mn{font-weight:600;font-size:12px;color:var(--txt-2);}
+.month-div .r{font-size:12px;font-weight:600;}
+.amt-edit{cursor:pointer;border-radius:4px;padding:1px 3px;margin:-1px -3px;}
+.amt-edit:hover{background:var(--card-2);box-shadow:inset 0 0 0 1px var(--border-2);}
+.amt-input{width:84px;font-size:13px;padding:3px 5px;text-align:right;}
+.entry{padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;}
+.entry:hover{background:var(--card-2);}
+.entry.editing{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);}
+#ea-form.editing{box-shadow:0 0 0 2px var(--accent);border-color:var(--accent);}
+.entry:last-child{border-bottom:none;}
+.badge{font-size:10px;padding:2px 0;border-radius:5px;font-weight:600;white-space:nowrap;line-height:1.4;text-align:center;}
+.b-B{background:var(--blue-bg);color:var(--blue);}
+.b-K{background:var(--orange-bg);color:var(--orange);}
+.entry-main{min-width:0;}
+.entry-main .desc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.entry-main .sub{font-size:11px;color:var(--txt-2);margin-top:1px;}
+.beleg{font-family:var(--mono);font-size:11px;color:var(--txt-3);}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--txt-3);font-size:17px;line-height:1;padding:0;}
+.del-btn:hover{color:var(--red);}
+.empty{text-align:center;color:var(--txt-2);font-size:13px;padding:2rem 0.5rem;}
+
+/* Datum-Feld mit Kalender-Button (Tab überspringt den Button) */
+.date-field{position:relative;}
+.date-field input[type=text]{padding-right:42px;}
+.cal-btn{position:absolute;right:3px;top:3px;bottom:3px;width:36px;border:none;background:transparent;cursor:pointer;font-size:16px;border-radius:6px;color:var(--txt-2);}
+.cal-btn:hover{background:var(--card-2);}
+.date-native{position:absolute;right:8px;top:50%;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none;}
+
+.preview-box{background:var(--accent-soft);border:0.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;margin-top:0.3rem;color:var(--accent);font-weight:500;}
+.preview-box strong{font-size:18px;font-weight:700;}
+.fahrt-entry{padding:10px 0;border-bottom:0.5px solid var(--border);}
+.fahrt-entry:last-child{border-bottom:none;}
+.fahrt-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.fahrt-route{font-weight:600;font-size:14px;}
+.fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fahrt-sub{font-size:11px;color:var(--txt-2);margin-top:2px;}
+.fahrt-del{font-size:11px;color:var(--txt-3);background:none;border:none;cursor:pointer;margin-top:4px;padding:0;font-family:inherit;}
+
+.sync-card{display:flex;align-items:center;gap:10px;}
+.sync-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sync-dot.off{background:var(--red);}
+.sync-dot.on{background:var(--green);}
+.sync-info{flex:1;min-width:0;}
+.sync-info .t{font-size:13px;font-weight:600;}
+.sync-info .s{font-size:11px;color:var(--txt-2);margin-top:1px;}
+.sync-fields{display:none;margin-top:0.85rem;border-top:0.5px solid var(--border);padding-top:0.85rem;}
+.sync-fields.visible{display:block;}
+.sync-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0.3rem;}
+
+.afa-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:0.85rem;}
+.afa-toolbar label{font-size:12px;color:var(--txt-2);}
+.afa-toolbar select{width:auto;}
+.afa{display:flex;justify-content:space-between;align-items:flex-start;padding:11px 0;border-bottom:0.5px solid var(--border);gap:10px;}
+.afa:last-child{border-bottom:none;}
+.afa-name{font-weight:600;font-size:14px;}
+.afa-meta{font-size:11px;color:var(--txt-2);margin-top:2px;}
+.afa-right{text-align:right;white-space:nowrap;}
+.afa-amt{font-weight:600;color:var(--red);font-variant-numeric:tabular-nums;}
+.afa-pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-top:3px;}
+.afa-pill.on{background:var(--green-bg);color:var(--green);}
+.afa-pill.off{background:var(--card-2);color:var(--txt-3);}
+
+.jblock{background:var(--card-2);border-radius:var(--radius-md);padding:0.85rem 1rem;margin-bottom:0.6rem;}
+.jblock-title{font-size:11px;color:var(--txt-2);font-weight:600;letter-spacing:0.04em;margin-bottom:8px;}
+.jrow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;gap:12px;}
+.jrow span:last-child{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.jrow.total{font-weight:700;border-top:0.5px solid var(--border-2);padding-top:7px;margin-top:5px;}
+.jrow .ein{color:var(--green);}
+.jrow .aus{color:var(--red);}
+.jresult{background:var(--card);border:0.5px solid var(--border-2);}
+.jresult .jrow{font-size:16px;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1d1d1f;color:#fff;padding:11px 22px;border-radius:var(--radius-md);font-size:13px;font-weight:500;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.2);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--red);}
+
+.banner{display:none;background:#fff4d6;border:0.5px solid #e6cf86;color:#7a5b00;border-radius:var(--radius-md);padding:9px 12px;font-size:12px;margin-bottom:0.85rem;}
+.banner.show{display:block;}
+
+/* Handy: nur Fahrt-Bereich, übrige Tabs ausblenden (Desktop bleibt unverändert) */
+@media(max-width:600px){
+  .tabs{display:none;}
+  #tab-ea,#tab-afa,#tab-jahres,#tab-lehramt{display:none!important;}
+  #tab-fahrt{display:block!important;}
+  .topbar h1::after{content:' · Fahrtkosten';font-weight:400;color:var(--txt-2);font-size:13px;}
+}
+@media print{
+  :root{--bg:#fff;--card:#fff;--card-2:#fff;--inset:#fff;--txt:#000;--txt-2:#333;--txt-3:#555;--border:#bbb;--border-2:#999;}
+  html,body{background:#fff;color:#000;}
+  .tabs,.no-print,.del-btn,.fahrt-del,.expand-toggle,.banner{display:none!important;}
+  .section{display:block!important;margin-bottom:1.5rem;}
+  /* Reihenfolge fürs Steuerbüro: Zusammenfassung zuerst, dann Buchungen */
+  .app{display:flex;flex-direction:column;}
+  .topbar{order:0;} #tab-jahres{order:1;} #tab-ea{order:2;} #tab-lehramt{order:3;} #tab-fahrt{order:4;} #tab-afa{order:5;}
+  .ea-grid{display:block!important;}
+  .month-body{display:block!important;}
+  .month-head{position:static;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .card,.metric{box-shadow:none;border:1px solid #999;}
+  .badge,.afa-pill{border:0.5px solid #999;background:#fff!important;color:#000!important;}
+  .jblock,.jresult,.preview-box{background:#fff;border:1px solid #999;color:#000;}
+  .app{max-width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <h1>Steuer-Tool</h1>
+    <select id="year-sel" class="year-sel no-print" onchange="setYear()">
+      <option>2024</option><option selected>2025</option><option>2026</option><option>2027</option><option>2028</option>
+    </select>
+  </div>
+
+  <div id="storage-banner" class="banner no-print">⚠️ Browser-Speicher ist hier blockiert (z. B. Vorschau-Fenster). Das Tool funktioniert, aber Eingaben werden <b>nicht dauerhaft gespeichert</b>. Datei direkt im Browser öffnen für echte Speicherung.</div>
+
+  <div class="tabs no-print">
+    <button class="tab active" data-tab="ea" onclick="switchTab('ea')">E/A</button>
+    <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrt</button>
+    <button class="tab" data-tab="afa" onclick="switchTab('afa')">AfA</button>
+    <button class="tab" data-tab="jahres" onclick="switchTab('jahres')">Jahres</button>
+    <button class="tab" data-tab="lehramt" onclick="switchTab('lehramt')">Lehramt</button>
+  </div>
+
+  <!-- ============ E/A ============ -->
+  <section id="tab-ea" class="section active">
+    <div class="metric-grid three">
+      <div class="metric"><div class="metric-label" id="m-ein-lbl">Einnahmen 2025</div><div class="metric-value green" id="m-ein">0,00 €</div></div>
+      <div class="metric"><div class="metric-label" id="m-aus-lbl">Ausgaben 2025</div><div class="metric-value red" id="m-aus">0,00 €</div></div>
+      <div class="metric"><div class="metric-label" id="m-saldo-lbl">Saldo E/A 2025</div><div class="metric-value" id="m-saldo">0,00 €</div></div>
+    </div>
+
+    <div class="ea-grid">
+      <div class="form-col">
+        <div class="card no-print" id="ea-form">
+          <div class="section-title" id="ea-form-title">Neuer Eintrag</div>
+          <div class="seg ein" id="seg-type">
+            <button id="btn-ein" class="on" onclick="setType('ein')">+ Einnahme</button>
+            <button id="btn-aus" onclick="setType('aus')">− Ausgabe</button>
+          </div>
+          <div class="seg" id="seg-konto">
+            <button id="btn-B" class="on" onclick="setKonto('B')">B · Bank</button>
+            <button id="btn-K" onclick="setKonto('K')">K · Kasse</button>
+          </div>
+          <div class="row2">
+            <div class="form-row"><label>Datum</label>
+              <div class="date-field">
+                <input type="text" id="ea-datum-txt" inputmode="numeric" placeholder="TT.MM.JJJJ" autocomplete="off" onchange="normEADate()" onblur="normEADate()">
+                <button type="button" class="cal-btn" tabindex="-1" title="Kalender" onclick="openEADatePicker()">📅</button>
+                <input type="date" id="ea-datum" class="date-native" tabindex="-1" onchange="dateFromPicker()">
+              </div>
+            </div>
+            <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="ea-betrag" placeholder="0,00" oninput="updateAnteilHint()" onblur="fmtField(this)"></div>
+          </div>
+          <div class="form-row"><label>Beschreibung</label><input type="text" id="ea-text" placeholder="z.B. Philipp Allar Gage" oninput="suggestKategorie()"></div>
+          <div class="row2" id="kat-row">
+            <div class="form-row"><label>Kategorie</label><select id="ea-kategorie" onchange="userPickedKat()"></select></div>
+            <div class="form-row" id="anteil-row"><label>Absetzbar %</label><input type="number" id="ea-anteil" value="100" min="1" max="100" inputmode="numeric" oninput="anteilManual=true;updateAnteilHint()"></div>
+          </div>
+          <div class="hint" id="anteil-hint" style="margin-top:-2px;"></div>
+          <div class="hint" id="gwg-hint" style="color:var(--orange);font-weight:500;"></div>
+          <div class="form-row" id="newcat-row" style="display:none;"><label>Neue Kategorie</label>
+            <div style="display:flex;gap:6px;"><input type="text" id="newcat-input" placeholder="Name" onkeydown="if(event.key==='Enter'){event.preventDefault();addNewCat();}"><button type="button" class="btn-ghost" onclick="addNewCat()">OK</button></div>
+          </div>
+          <div class="form-row" id="beleg-row" style="display:none;"><label>Belegnr. (Gage)</label><input type="text" id="ea-belegnr" placeholder="—"></div>
+          <div class="bewirtung-fields" id="bew-extra">
+            <div class="form-row"><label>Anlass (Pflicht)</label><input type="text" id="bew-anlass" placeholder="z.B. Probenbesprechung"></div>
+            <div class="form-row"><label>Personen (Pflicht)</label><input type="text" id="bew-personen" placeholder="z.B. M. Kölbl, J. Müller"></div>
+          </div>
+          <button class="btn-primary" id="save-btn" onclick="addEintrag()">Eintrag speichern</button>
+          <button class="btn-ghost" id="cancel-edit" style="display:none;width:100%;margin-top:8px;" onclick="cancelEdit()">Abbrechen</button>
+          <div class="hint" style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <span style="flex:1;min-width:120px;">Enter speichert · Kategorie & % gelernt. <span id="backup-info" style="color:var(--txt-3);"></span></span>
+            <button class="expand-toggle" style="color:var(--txt-3);" onclick="exportData()">⤓ Backup</button>
+            <label class="expand-toggle" style="color:var(--txt-3);cursor:pointer;margin:0;">⤴ Import<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label>
+            <button class="expand-toggle" style="color:var(--txt-3);" onclick="resetData()">↺ Testdaten</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-col">
+        <div class="card">
+          <div class="list-head no-print">
+            <div class="filter-row">
+              <button class="filter-btn active" data-f="alle" onclick="setFilter('alle')">Alle</button>
+              <button class="filter-btn" data-f="ein" onclick="setFilter('ein')">Einnahmen</button>
+              <button class="filter-btn" data-f="aus" onclick="setFilter('aus')">Ausgaben</button>
+            </div>
+            <input type="search" id="ea-search" placeholder="🔍 Suchen…" autocomplete="off" oninput="setSearch(this.value)" style="max-width:190px;font-size:14px;padding:7px 11px;">
+          </div>
+          <div id="ea-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAHRT ============ -->
+  <section id="tab-fahrt" class="section">
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label" id="m-fcount-lbl">Fahrten 2026</div><div class="metric-value" id="m-fcount">0</div></div>
+      <div class="metric"><div class="metric-label">Summe abzugsfähig</div><div class="metric-value red" id="m-fsum">0,00 €</div></div>
+    </div>
+
+    <div class="card no-print">
+      <div class="sync-card">
+        <span class="sync-dot off" id="sync-dot"></span>
+        <div class="sync-info">
+          <div class="t" id="sync-title">Nicht verbunden</div>
+          <div class="s" id="sync-sub">Fahrtkosten lokal — kein GitHub-Sync</div>
+        </div>
+        <button class="btn-ghost" id="sync-btn" onclick="toggleSyncFields()">Verbinden</button>
+      </div>
+      <div class="sync-fields" id="sync-fields">
+        <div class="form-row"><label>GitHub Fine-Grained Token</label><input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off"></div>
+        <div class="form-row"><label>Repository (benutzer/repo)</label><input type="text" id="gh-repo" placeholder="markuskoelbl/steuer-sync" autocomplete="off"></div>
+        <div class="form-row"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
+        <div class="sync-actions">
+          <button class="btn-ghost" onclick="ghPull()">↓ Laden (Pull)</button>
+          <button class="btn-ghost" onclick="ghPush()">↑ Hochladen (Push)</button>
+        </div>
+        <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="saveToken()">Einstellungen speichern</button>
+        <button class="btn-ghost" style="width:100%;margin-top:8px;color:var(--red);" onclick="clearToken()">Verbindung trennen</button>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <div class="sync-card">
+        <div class="sync-info" style="flex:1;">
+          <div class="t">km-Abrechnung</div>
+          <div class="s" id="kfz-status">Pauschale 0,30 €/km</div>
+        </div>
+        <button class="btn-ghost" onclick="toggleKfz()">Einstellungen</button>
+      </div>
+      <div id="kfz-fields" style="display:none;margin-top:0.85rem;border-top:0.5px solid var(--border);padding-top:0.85rem;">
+        <div class="form-row"><label>Standard-km-Satz (€/km)</label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
+        <div class="hint" style="margin:-2px 0 10px;">Falls sich der gesetzliche Satz ändert (z. B. auf 0,38 €), hier anpassen.</div>
+        <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span></label>
+        <div class="seg" id="seg-method">
+          <button id="btn-pausch" class="on" onclick="setMethod('pauschal')">Pauschale</button>
+          <button id="btn-einzel" onclick="setMethod('einzel')">Einzelnachweis</button>
+        </div>
+        <div id="einzel-sheet" style="display:none;">
+          <div class="hint" style="margin-bottom:0.6rem;">Belege <b>einzeln</b> erfassen — das Tool summiert automatisch. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km kommen aus den Fahrten; privat ergibt sich aus dem km-Stand.</div>
+          <div class="row2">
+            <div class="form-row"><label>Datum</label><input type="date" id="kb-datum"></div>
+            <div class="form-row"><label>Kostenart</label><select id="kb-kat"><option>Sprit</option><option>Versicherung</option><option>Kfz-Steuer</option><option>Reparatur</option><option>AfA/Leasing</option><option>Sonstiges</option></select></div>
+          </div>
+          <div class="row2">
+            <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="kb-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
+            <div class="form-row"><label>Notiz</label><input type="text" id="kb-note" placeholder="optional"></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:0.5rem;">
+            <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center;">📷 Beleg scannen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanBeleg(this)"></label>
+            <button type="button" class="btn-ghost" style="flex:1;" onclick="addKfzBeleg()">+ Beleg hinzufügen</button>
+          </div>
+          <div id="kb-list" style="margin-bottom:0.6rem;"></div>
+          <div style="border-top:0.5px dashed var(--border-2);margin:0.2rem 0 0.6rem;padding-top:0.6rem;">
+            <div class="hint" style="margin-bottom:0.5rem;">Auto-AfA berechnen (Neuwagen 6 J., Gebraucht = Restnutzungsdauer) und als Jahres-Beleg „AfA/Leasing" übernehmen:</div>
+            <div class="row3">
+              <div class="form-row"><label>Kaufpreis (€)</label><input type="text" inputmode="decimal" id="car-preis" oninput="updateCarAfa()" onblur="fmtField(this)"></div>
+              <div class="form-row"><label>Kaufdatum</label><input type="date" id="car-datum" oninput="updateCarAfa()"></div>
+              <div class="form-row"><label>Jahre</label><input type="text" inputmode="numeric" id="car-jahre" placeholder="6" oninput="updateCarAfa()"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="hint" id="car-afa-hint" style="flex:1;margin:0;"></div>
+              <button type="button" class="btn-ghost" onclick="addCarAfaBeleg()">AfA übernehmen</button>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="form-row"><label>km-Stand 01.01.</label><input type="text" inputmode="decimal" id="kfz-kmstart" oninput="updateKfz()"></div>
+            <div class="form-row"><label>km-Stand 31.12.</label><input type="text" inputmode="decimal" id="kfz-kmend" oninput="updateKfz()"></div>
+          </div>
+          <div class="jblock" style="margin-top:8px;">
+            <div class="jrow"><span>Gesamtkosten</span><span id="kfz-r-kosten">—</span></div>
+            <div class="jrow"><span>Gesamt-km</span><span id="kfz-r-gkm">—</span></div>
+            <div class="jrow"><span>davon dienstlich (aus Fahrten)</span><span id="kfz-r-dienst">—</span></div>
+            <div class="jrow"><span>privat (errechnet)</span><span id="kfz-r-privat">—</span></div>
+            <div class="jrow total"><span>dein km-Satz</span><span id="kfz-r-satz">—</span></div>
+            <div class="jrow total"><span>absetzbar (dienstl. km × Satz)</span><span id="kfz-r-absetz">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <div class="section-title">Fahrt erfassen</div>
+      <div class="row2">
+        <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
+        <div class="form-row"><label>Zweck / Band</label><input type="text" id="f-zweck" placeholder="z.B. MATS Gig"></div>
+      </div>
+      <div class="row3">
+        <div class="form-row"><label>Start</label><input type="text" id="f-start" placeholder="Heimatort" onchange="suggestRouteKm()"></div>
+        <div class="form-row"><label>Ziel</label><input type="text" id="f-ziel" placeholder="Auftrittsort" onchange="suggestRouteKm()"></div>
+        <div class="form-row"><label>Rückkehr</label><input type="text" id="f-rueckort" placeholder="Heimatort" onchange="suggestRouteKm()"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.5rem;">
+        <button type="button" class="btn-ghost" onclick="gpsTo('f-start')">📍 Start</button>
+        <button type="button" class="btn-ghost" onclick="gpsTo('f-ziel')">📍 Ziel</button>
+        <button type="button" class="btn-ghost" onclick="openMaps()">🗺️ km in Maps</button>
+      </div>
+      <div class="row2">
+        <div class="form-row"><label>Gefahrene km</label><input type="text" inputmode="decimal" id="f-km" placeholder="160" oninput="calcFahrt()"></div>
+        <div class="form-row"><label>Satz</label><input type="text" id="f-satz-info" readonly value="0,30 €/km" title="In Einstellungen änderbar"></div>
+      </div>
+
+      <div class="form-row"><label>Verpflegung</label>
+        <div class="seg" id="seg-trip" style="margin-bottom:0;">
+          <button id="btn-eintag" class="on" onclick="setTrip('ein')">Eintägig</button>
+          <button id="btn-mehrtag" onclick="setTrip('mehr')">Mit Übernachtung</button>
+        </div>
+      </div>
+      <div class="row2" id="trip-ein">
+        <div class="form-row"><label>Abfahrt (Uhr)</label><input type="number" inputmode="numeric" id="f-ab" placeholder="16" min="0" max="24" oninput="calcPauschale()"></div>
+        <div class="form-row"><label>Rückkehr (Uhr)</label><input type="number" inputmode="numeric" id="f-rueck" placeholder="2" min="0" max="24" oninput="calcPauschale()"></div>
+      </div>
+      <div id="trip-mehr" style="display:none;">
+        <div class="form-row"><label>Rückkehr-Datum (Ankunft zuhause)</label><input type="date" id="f-enddatum" onchange="calcPauschale()"></div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:0.4rem;font-size:12px;color:var(--txt-2);"><input type="checkbox" id="f-anreise-nacht" onchange="calcPauschale()" style="width:auto;margin-top:2px;flex-shrink:0;"><label for="f-anreise-nacht" style="margin:0;">Anreise über Nacht — Abfahrt abends, Ankunft am Ziel erst am Folgetag</label></div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:0.2rem;font-size:12px;color:var(--txt-2);"><input type="checkbox" id="f-heim-mitternacht" onchange="calcPauschale()" style="width:auto;margin-top:2px;flex-shrink:0;"><label for="f-heim-mitternacht" style="margin:0;">Heimkunft nach Mitternacht — daheim erst am Folgetag der Abreise</label></div>
+      </div>
+      <div class="hint" id="f-pausch-hint">Verpflegungspauschale: —</div>
+
+      <div class="row2" style="margin-top:0.5rem;">
+        <div class="form-row"><label>Parkkosten (€)</label><input type="text" inputmode="decimal" id="f-park" placeholder="0" value="0" oninput="calcFahrt()" onblur="fmtField(this)"></div>
+        <div class="form-row"><label>Zugticket (€)</label><input type="text" inputmode="decimal" id="f-zug" placeholder="0" value="0" oninput="calcFahrt()" onblur="fmtField(this)"></div>
+      </div>
+      <div class="preview-box"><span>Abzugsfähig gesamt</span><strong id="f-preview">0,00 €</strong></div>
+      <button class="btn-primary" onclick="addFahrt()">Fahrt speichern</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title" id="fahrt-list-title">Fahrten 2026</div>
+      <div id="fahrt-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ AfA ============ -->
+  <section id="tab-afa" class="section">
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">AfA anteilig</div><div class="metric-value red" id="m-afa">0,00 €</div></div>
+      <div class="metric"><div class="metric-label">Objekte aktiv</div><div class="metric-value" id="m-afa-n">0</div></div>
+    </div>
+    <div class="card">
+      <div class="afa-toolbar no-print">
+        <span class="hint" style="margin:0;">Steuerjahr <b id="afa-jahr-lbl">2025</b> (oben umschaltbar) · pro rata temporis · Anschaffungsmonat zählt voll</span>
+      </div>
+      <div id="afa-list"></div>
+      <div class="no-print" style="border-top:0.5px solid var(--border);margin-top:12px;padding-top:12px;">
+        <div class="section-title" style="font-size:14px;margin-bottom:0.7rem;">Neues Objekt abschreiben</div>
+        <div class="form-row"><label>Bezeichnung</label><input id="afa-name" placeholder="z.B. PA-Anlage"></div>
+        <div class="row3">
+          <div class="form-row"><label>Kaufdatum</label><input type="date" id="afa-datum"></div>
+          <div class="form-row"><label>Preis (€)</label><input type="text" inputmode="decimal" id="afa-betrag" placeholder="0,00" oninput="updateAfaHint()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Jahre (Nutzung)</label><input type="number" inputmode="numeric" id="afa-jahre" min="1" placeholder="5" oninput="updateAfaHint()"></div>
+        </div>
+        <div class="hint" id="afa-add-hint"></div>
+        <button class="btn-ghost" style="width:100%;margin-top:4px;" onclick="addAfa()">+ AfA-Objekt hinzufügen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ JAHRES ============ -->
+  <section id="tab-jahres" class="section">
+    <div class="card">
+      <div class="section-title" id="jahres-title">Jahresübersicht 2025</div>
+      <div class="jblock">
+        <div class="jblock-title">EINNAHMEN</div>
+        <div class="jrow"><span>Musikergagen</span><span class="ein" id="j-gagen">—</span></div>
+        <div class="jrow"><span>Sonstige Einnahmen</span><span class="ein" id="j-sonstein">—</span></div>
+        <div class="jrow total"><span>Gesamt Einnahmen</span><span class="ein" id="j-eintotal">—</span></div>
+      </div>
+      <div class="jblock">
+        <div class="jblock-title">AUSGABEN LAUFEND</div>
+        <div class="jrow"><span>KV / Versicherungen</span><span class="aus" id="j-kv">—</span></div>
+        <div class="jrow"><span>Equipment / Noten</span><span class="aus" id="j-equip">—</span></div>
+        <div class="jrow"><span>Büro / Homeoffice / Handy / Software / Fortbildung</span><span class="aus" id="j-buero">—</span></div>
+        <div class="jrow"><span>Bewirtung</span><span class="aus" id="j-bew">—</span></div>
+        <div class="jrow"><span>Sonstiges</span><span class="aus" id="j-sonstaus">—</span></div>
+        <div class="jrow"><span>Aus Lehramt verschoben</span><span class="aus" id="j-lehrversch">—</span></div>
+        <div class="jrow total"><span>Gesamt Ausgaben</span><span class="aus" id="j-austotal">—</span></div>
+      </div>
+      <div class="jblock">
+        <div class="jblock-title" id="j-fahrt-title">FAHRTKOSTEN 2026</div>
+        <div class="jrow"><span>KM-Geld</span><span class="aus" id="j-km30">—</span></div>
+        <div class="jrow"><span>Verpflegungspauschalen</span><span class="aus" id="j-verpfl">—</span></div>
+        <div class="jrow"><span>Parkkosten / Tickets</span><span class="aus" id="j-park">—</span></div>
+        <div class="jrow total"><span>Fahrtkosten gesamt</span><span class="aus" id="j-fahrttotal">—</span></div>
+      </div>
+      <div class="jblock">
+        <div class="jblock-title">ABSCHREIBUNGEN (gesondert ausgewiesen)</div>
+        <div class="jrow"><span>AfA anteilig <span id="j-afa-jahr" style="color:var(--txt-2)"></span></span><span class="aus" id="j-afa">—</span></div>
+      </div>
+      <div class="jblock jresult">
+        <div class="jrow total"><span>Überschuss / Verlust (Selbständigkeit)</span><span id="j-ergebnis">—</span></div>
+        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">(Einnahmen − Ausgaben − Fahrtkosten − AfA · Anlage EÜR/S)</span><span></span></div>
+      </div>
+      <div class="jblock">
+        <div class="jblock-title">LEHRAMT · WERBUNGSKOSTEN (Anlage N, separat)</div>
+        <div class="jrow"><span>Werbungskosten gesamt</span><span id="j-l-wk">—</span></div>
+        <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="j-l-pb">—</span></div>
+        <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="j-l-eff">—</span></div>
+      </div>
+      <div class="jblock" style="border:0.5px solid #e6cf86;background:#fffaf0;">
+        <div class="jblock-title" style="color:#7a5b00;">⚠️ HINWEISE &amp; RISIKEN — bitte beachten</div>
+        <ul style="font-size:11px;color:#5a4a20;margin:0;padding-left:18px;line-height:1.6;">
+          <li>Selbständigkeit (EÜR) und Lehramt (Werbungskosten) sind <b>getrennte Anlagen</b> — nicht denselben Posten doppelt absetzen.</li>
+          <li><b>Bewirtung</b> nur zu 70 % absetzbar (Tool rechnet das automatisch).</li>
+          <li>Anschaffungen <b>über 800 €</b> gehören in die AfA (über die Nutzungsdauer), nicht voll als Ausgabe.</li>
+          <li><b>Homeoffice-Pauschale</b> ist auf 1.260 €/Jahr (210 Tage) gedeckelt — pro Tag nur einmal über alle Tätigkeiten.</li>
+          <li><b>Verpflegungspauschale</b>: Sonderfall-Auslegung laut deinem Steuerberater (weicht bewusst von vielen Online-Quellen ab).</li>
+          <li><b>Belege aufbewahren</b> (Fahrten, Einzelnachweis, Bewirtung mit Anlass + Personen).</li>
+          <li>Dieses Tool ist eine Arbeitshilfe und <b>ersetzt keine Steuerberatung</b>.</li>
+        </ul>
+      </div>
+    </div>
+    <button class="btn-primary no-print" onclick="window.print()">Druckansicht / PDF für Steuerberater</button>
+    <button class="btn-ghost no-print" style="width:100%;margin-top:8px;" onclick="exportCSV()">CSV-Export der Buchungen (<span id="csv-year">2025</span>)</button>
+  </section>
+
+  <!-- ============ LEHRAMT (Werbungskosten) ============ -->
+  <section id="tab-lehramt" class="section">
+    <div class="metric-grid three">
+      <div class="metric"><div class="metric-label" id="l-wk-lbl">Werbungskosten 2024</div><div class="metric-value" id="l-wk">0,00 €</div></div>
+      <div class="metric"><div class="metric-label">Pauschbetrag</div><div class="metric-value" id="l-pb">1.230,00 €</div></div>
+      <div class="metric"><div class="metric-label">über Pauschbetrag</div><div class="metric-value" id="l-ueber">0,00 €</div></div>
+    </div>
+
+    <div class="card no-print">
+      <div class="section-title">Homeoffice & Fahrt zur Schule</div>
+      <div class="row2">
+        <div class="form-row"><label>Homeoffice-Tage (max <span id="l-homax">210</span>)</label><input type="text" inputmode="numeric" id="l-hotage" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>Homeoffice-Pauschale</label><input type="text" id="l-ho-betrag" readonly></div>
+      </div>
+      <div class="row3">
+        <div class="form-row"><label>km zur Schule (einfach)</label><input type="text" inputmode="numeric" id="l-km" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>Arbeitstage (Fahrt)</label><input type="text" inputmode="numeric" id="l-tage" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>Entfernungspauschale</label><input type="text" id="l-entf-betrag" readonly></div>
+      </div>
+      <div class="hint">Homeoffice 6 €/Tag (max 210 = 1.260 €). Entfernung: 0,30 €/km bis 20 km, 0,38 €/km ab km 21, × Arbeitstage.</div>
+    </div>
+
+    <div class="card no-print">
+      <div class="section-title">Weitere Posten</div>
+      <div class="row2">
+        <div class="form-row"><label>Bezeichnung</label><input type="text" id="lp-name" placeholder="z.B. Fachliteratur"></div>
+        <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="lp-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
+      </div>
+      <button class="btn-ghost" style="width:100%;" onclick="addLehramtPos()">+ Posten hinzufügen</button>
+      <div class="hint" style="margin-top:6px;">Tipp auf <b>L / S</b> verschiebt einen Posten zwischen Lehramt (Werbungskosten) und Selbständigkeit (Betriebsausgabe).</div>
+      <div id="lp-list" style="margin-top:0.4rem;"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Übersicht <span id="l-ov-year" style="color:var(--txt-2);font-weight:400;"></span></div>
+      <div class="jblock">
+        <div class="jrow"><span>Homeoffice-Pauschale</span><span class="aus" id="l-r-ho">—</span></div>
+        <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="l-r-entf">—</span></div>
+        <div class="jrow"><span>Weitere Posten (Lehramt)</span><span class="aus" id="l-r-pos">—</span></div>
+        <div class="jrow total"><span>Werbungskosten gesamt</span><span class="aus" id="l-r-wk">—</span></div>
+        <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="l-r-pb">—</span></div>
+        <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="l-r-eff">—</span></div>
+        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">davon auf Selbständigkeit verschoben (→ E/A-Ausgabe)</span><span id="l-r-selbst" style="font-size:11px;">—</span></div>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <div class="afa-toolbar" style="margin-bottom:0.7rem;"><span class="hint" style="margin:0;">2024 dient als Vorlage; neue Jahre übernehmen die Werte und sind editierbar. Bei Gesetzesänderung anpassbar:</span></div>
+      <div class="row2">
+        <div class="form-row"><label>Arbeitnehmer-Pauschbetrag (€)</label><input type="text" inputmode="decimal" id="set-pb" oninput="updateLehrSettings()" onblur="fmtField(this)"></div>
+        <div class="form-row"><label>Homeoffice-Satz (€/Tag)</label><input type="text" inputmode="decimal" id="set-hosatz" oninput="updateLehrSettings()" onblur="fmtField(this)"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ====== Sicherer Speicher (fällt auf In-Memory zurück, wenn localStorage blockiert ist) ====== */
+let storageOK=true; const _mem={};
+try{ const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k); }catch(e){ storageOK=false; }
+const store={
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return (k in _mem)?_mem[k]:null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _mem[k]=v; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){ delete _mem[k]; } }
+};
+
+/* ====== Seed-Daten 2025 ====== */
+const SEED_DATA_2025 = [
+  {id:1,typ:'aus',konto:'B',datum:'2025-01-02',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:2,typ:'aus',konto:'B',datum:'2025-01-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:3,typ:'aus',konto:'B',datum:'2025-01-10',betrag:30.00,kategorie:'Software/Abo',text:'Strato WebDomain',belegnr:''},
+  {id:4,typ:'aus',konto:'K',datum:'2025-01-10',betrag:3.95,kategorie:'Equipment',text:'Batterie',belegnr:''},
+  {id:5,typ:'aus',konto:'K',datum:'2025-01-13',betrag:23.00,kategorie:'Bewirtung',text:'Geschäftsessen',belegnr:''},
+  {id:6,typ:'aus',konto:'K',datum:'2025-01-16',betrag:0.99,kategorie:'Software/Abo',text:'Apple iCloud',belegnr:''},
+  {id:7,typ:'aus',konto:'B',datum:'2025-01-20',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:8,typ:'aus',konto:'B',datum:'2025-01-15',betrag:108.60,kategorie:'Bürobedarf',text:'Bürobedarf',belegnr:''},
+  {id:9,typ:'ein',konto:'B',datum:'2025-01-27',betrag:850.00,kategorie:'Gage',text:'Philipp Allar Gage',belegnr:'25001'},
+  {id:10,typ:'aus',konto:'B',datum:'2025-02-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:11,typ:'aus',konto:'B',datum:'2025-02-03',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:12,typ:'aus',konto:'B',datum:'2025-02-07',betrag:5.06,kategorie:'Noten',text:'Noten',belegnr:''},
+  {id:13,typ:'aus',konto:'B',datum:'2025-02-09',betrag:154.30,kategorie:'Fortbildung',text:'Fortbildung Katherl',belegnr:''},
+  {id:14,typ:'aus',konto:'B',datum:'2025-02-12',betrag:22.63,kategorie:'Fortbildung',text:'Weiterbildung Konzert',belegnr:''},
+  {id:15,typ:'aus',konto:'K',datum:'2025-02-12',betrag:39.30,kategorie:'Equipment',text:'Gitarrensaiten',belegnr:''},
+  {id:16,typ:'aus',konto:'B',datum:'2025-02-14',betrag:66.06,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
+  {id:17,typ:'ein',konto:'K',datum:'2025-02-14',betrag:400.00,kategorie:'Gage',text:'Piano Solo Gage',belegnr:'25002'},
+  {id:18,typ:'aus',konto:'B',datum:'2025-02-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:19,typ:'aus',konto:'B',datum:'2025-03-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:20,typ:'aus',konto:'B',datum:'2025-03-03',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:21,typ:'aus',konto:'B',datum:'2025-03-07',betrag:46.30,kategorie:'Fortbildung',text:'Weiterbildung Konzert',belegnr:''},
+  {id:22,typ:'aus',konto:'B',datum:'2025-03-12',betrag:13.99,kategorie:'Equipment',text:'Audio-Kabel',belegnr:''},
+  {id:23,typ:'aus',konto:'B',datum:'2025-03-12',betrag:16.14,kategorie:'Bürobedarf',text:'Handyorganizer Klassenzimmer',belegnr:''},
+  {id:24,typ:'aus',konto:'B',datum:'2025-03-12',betrag:14.99,kategorie:'Equipment',text:'USB Kabel',belegnr:''},
+  {id:25,typ:'aus',konto:'B',datum:'2025-03-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:26,typ:'ein',konto:'B',datum:'2025-03-21',betrag:800.00,kategorie:'Gage',text:'Keyz2Voice Gage',belegnr:'25003'},
+  {id:27,typ:'aus',konto:'B',datum:'2025-03-26',betrag:29.00,kategorie:'Equipment',text:'Audio-Entstörfilter',belegnr:''},
+  {id:28,typ:'aus',konto:'B',datum:'2025-03-28',betrag:11.98,kategorie:'Equipment',text:'USB Hub',belegnr:''},
+  {id:29,typ:'aus',konto:'B',datum:'2025-04-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:30,typ:'aus',konto:'B',datum:'2025-04-01',betrag:3.30,kategorie:'Bürobedarf',text:'DHL Versand',belegnr:''},
+  {id:31,typ:'aus',konto:'B',datum:'2025-04-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:32,typ:'aus',konto:'B',datum:'2025-04-16',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:33,typ:'aus',konto:'B',datum:'2025-04-29',betrag:336.00,kategorie:'Homeoffice',text:'Kaffeemühle Homeoffice 58%',belegnr:''},
+  {id:34,typ:'aus',konto:'B',datum:'2025-05-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:35,typ:'ein',konto:'B',datum:'2025-05-06',betrag:400.00,kategorie:'Gage',text:'Trio Haipt Gage',belegnr:'25004'},
+  {id:36,typ:'aus',konto:'B',datum:'2025-05-12',betrag:13.40,kategorie:'Bürobedarf',text:'Lehrerkalender',belegnr:''},
+  {id:37,typ:'aus',konto:'B',datum:'2025-05-15',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
+  {id:38,typ:'aus',konto:'B',datum:'2025-05-19',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:39,typ:'aus',konto:'B',datum:'2025-05-22',betrag:15.99,kategorie:'Equipment',text:'iPad Schutzfolie',belegnr:''},
+  {id:40,typ:'ein',konto:'B',datum:'2025-05-22',betrag:700.00,kategorie:'Gage',text:'TS Band Gage',belegnr:'25005'},
+  {id:41,typ:'ein',konto:'K',datum:'2025-05-27',betrag:1150.00,kategorie:'Gage',text:'Abba99 Gage',belegnr:'25006'},
+  {id:42,typ:'aus',konto:'B',datum:'2025-06-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:43,typ:'aus',konto:'B',datum:'2025-06-02',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:44,typ:'ein',konto:'B',datum:'2025-06-11',betrag:1560.00,kategorie:'Gage',text:'MATS Bandgage',belegnr:'25007'},
+  {id:45,typ:'aus',konto:'B',datum:'2025-06-11',betrag:4.15,kategorie:'Bürobedarf',text:'Post Versand',belegnr:''},
+  {id:46,typ:'aus',konto:'B',datum:'2025-06-16',betrag:275.00,kategorie:'Sonstiges',text:'MATS Drummer Gage (Weitergabe)',belegnr:''},
+  {id:47,typ:'aus',konto:'B',datum:'2025-06-16',betrag:321.00,kategorie:'Sonstiges',text:'MATS Bassist Gage (Weitergabe)',belegnr:''},
+  {id:48,typ:'aus',konto:'B',datum:'2025-06-17',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:49,typ:'aus',konto:'B',datum:'2025-06-23',betrag:275.00,kategorie:'Sonstiges',text:'MATS Gitarrist Gage (Weitergabe)',belegnr:''},
+  {id:50,typ:'aus',konto:'B',datum:'2025-07-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:51,typ:'aus',konto:'B',datum:'2025-07-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:52,typ:'aus',konto:'B',datum:'2025-07-02',betrag:30.00,kategorie:'Software/Abo',text:'Strato WebDomain',belegnr:''},
+  {id:53,typ:'aus',konto:'B',datum:'2025-07-03',betrag:26.80,kategorie:'Equipment',text:'Akkordeon Hülle',belegnr:''},
+  {id:54,typ:'ein',konto:'B',datum:'2025-07-03',betrag:530.00,kategorie:'Gage',text:'MATS Gage',belegnr:'25009'},
+  {id:55,typ:'aus',konto:'B',datum:'2025-07-04',betrag:326.89,kategorie:'Sonstiges',text:'Steuerbüro',belegnr:''},
+  {id:56,typ:'aus',konto:'B',datum:'2025-07-08',betrag:190.00,kategorie:'Equipment',text:'Roland GoKeys Keyboard',belegnr:''},
+  {id:57,typ:'aus',konto:'B',datum:'2025-07-08',betrag:300.00,kategorie:'Sonstiges',text:'MATS Sängerin Gage (Weitergabe)',belegnr:''},
+  {id:58,typ:'aus',konto:'B',datum:'2025-07-14',betrag:39.00,kategorie:'Equipment',text:'Keyboard Netzteil',belegnr:''},
+  {id:59,typ:'ein',konto:'B',datum:'2025-07-14',betrag:580.00,kategorie:'Gage',text:'RockAntenne Gage',belegnr:'25010'},
+  {id:60,typ:'ein',konto:'B',datum:'2025-07-18',betrag:550.00,kategorie:'Gage',text:'Abba99 Gage',belegnr:''},
+  {id:61,typ:'aus',konto:'B',datum:'2025-07-22',betrag:7.99,kategorie:'Fortbildung',text:'Musikfilm Unterricht',belegnr:''},
+  {id:62,typ:'aus',konto:'B',datum:'2025-08-01',betrag:11.50,kategorie:'KV/Versicherung',text:'Auslands-KV',belegnr:''},
+  {id:63,typ:'aus',konto:'B',datum:'2025-08-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:64,typ:'aus',konto:'B',datum:'2025-08-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:65,typ:'aus',konto:'B',datum:'2025-08-14',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
+  {id:66,typ:'ein',konto:'B',datum:'2025-08-14',betrag:333.33,kategorie:'Sonstiges',text:'KV Rückerstattung 2024',belegnr:''},
+  {id:67,typ:'aus',konto:'B',datum:'2025-08-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:68,typ:'aus',konto:'K',datum:'2025-08-24',betrag:800.00,kategorie:'Bürobedarf',text:'Reisekoffer',belegnr:''},
+  {id:69,typ:'aus',konto:'B',datum:'2025-08-26',betrag:56.96,kategorie:'Bürobedarf',text:'Kalenderhülle',belegnr:''},
+  {id:70,typ:'ein',konto:'B',datum:'2025-08-16',betrag:500.00,kategorie:'Gage',text:'CandyTunes Gage',belegnr:'25012'},
+  {id:71,typ:'aus',konto:'B',datum:'2025-09-01',betrag:10.78,kategorie:'Equipment',text:'Handy Schutzfolie',belegnr:''},
+  {id:72,typ:'aus',konto:'B',datum:'2025-09-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:73,typ:'aus',konto:'B',datum:'2025-09-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:74,typ:'aus',konto:'B',datum:'2025-09-16',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:75,typ:'ein',konto:'B',datum:'2025-09-16',betrag:825.00,kategorie:'Gage',text:'CandyTunes Gage',belegnr:'25013'},
+  {id:76,typ:'aus',konto:'B',datum:'2025-10-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:77,typ:'aus',konto:'B',datum:'2025-10-01',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:78,typ:'aus',konto:'B',datum:'2025-10-17',betrag:19.50,kategorie:'Noten',text:'Noten',belegnr:''},
+  {id:79,typ:'aus',konto:'B',datum:'2025-10-20',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:80,typ:'ein',konto:'B',datum:'2025-10-23',betrag:375.00,kategorie:'Gage',text:'TSB Gage',belegnr:''},
+  {id:81,typ:'aus',konto:'B',datum:'2025-10-24',betrag:45.00,kategorie:'Bürobedarf',text:'Mülleimer Bürobedarf',belegnr:''},
+  {id:82,typ:'aus',konto:'K',datum:'2025-10-27',betrag:7.99,kategorie:'Software/Abo',text:'Vocal Painting App',belegnr:''},
+  {id:83,typ:'aus',konto:'B',datum:'2025-10-27',betrag:16.14,kategorie:'Equipment',text:'USB C Verlängerung',belegnr:''},
+  {id:84,typ:'aus',konto:'B',datum:'2025-11-03',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:85,typ:'aus',konto:'B',datum:'2025-11-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:86,typ:'aus',konto:'B',datum:'2025-11-12',betrag:8.98,kategorie:'Equipment',text:'Batterien',belegnr:''},
+  {id:87,typ:'aus',konto:'B',datum:'2025-11-13',betrag:17.59,kategorie:'Equipment',text:'Schlüsselanhänger',belegnr:''},
+  {id:88,typ:'aus',konto:'B',datum:'2025-11-13',betrag:49.80,kategorie:'Bewirtung',text:'Geschäftsessen JazzWorks',belegnr:''},
+  {id:89,typ:'aus',konto:'B',datum:'2025-11-17',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
+  {id:90,typ:'aus',konto:'B',datum:'2025-11-18',betrag:20.19,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:91,typ:'aus',konto:'B',datum:'2025-11-25',betrag:4.50,kategorie:'Noten',text:'Noten',belegnr:''},
+  {id:92,typ:'aus',konto:'B',datum:'2025-12-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
+  {id:93,typ:'aus',konto:'B',datum:'2025-12-01',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
+  {id:94,typ:'aus',konto:'B',datum:'2025-12-09',betrag:29.80,kategorie:'Bewirtung',text:'Probentage Geschäftsessen',belegnr:''},
+  {id:95,typ:'aus',konto:'B',datum:'2025-12-15',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
+  {id:96,typ:'aus',konto:'B',datum:'2025-12-16',betrag:80.00,kategorie:'Equipment',text:'Apple TV (Kleinanzeige)',belegnr:''},
+  {id:97,typ:'aus',konto:'K',datum:'2025-12-18',betrag:131.00,kategorie:'Equipment',text:'Apple TV',belegnr:''},
+];
+
+const ABSCHREIBUNGEN = [
+  { name:'MacBook Air M2', datum:'2022-10-04', betrag:2421.90, jahre:3, jahresbetrag:807.30 },
+  { name:'Nord Stage 4',   datum:'2023-03-20', betrag:3233.34, jahre:5, jahresbetrag:646.67 },
+  { name:'Keyboard Case',  datum:'2020-06-12', betrag:259.00,  jahre:5, jahresbetrag:51.80  },
+  { name:'iPhone 14 Pro',  datum:'2022-10-10', betrag:1056.90, jahre:2, jahresbetrag:528.45 },
+];
+
+const DEFAULT_CATS=['Gage','KV/Versicherung','Equipment','Bürobedarf','Bewirtung','Homeoffice','Fortbildung','Noten','Handy','Software/Abo','Sonstiges'];
+const CAT_DEFAULT_PCT={Bewirtung:70};
+
+/* ====== Laden (Seed write-once) ====== */
+if(!store.get('steuer_ea')) store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
+let eintraege  = JSON.parse(store.get('steuer_ea') || '[]');
+let fahrten    = JSON.parse(store.get('steuer_fahrt') || '[]');
+let customCats = JSON.parse(store.get('steuer_cats') || '[]');
+let learnMap   = JSON.parse(store.get('steuer_learn') || '{}');
+let learnPct   = JSON.parse(store.get('steuer_learnpct') || '{}');
+let belegCats  = new Set(JSON.parse(store.get('steuer_belegcats') || '["Gage"]'));
+let baseLearn  = {};
+let baseLearnPct = {};
+let homeOrt    = JSON.parse(store.get('steuer_fahrt_home') || '{"start":"","rueckort":""}');
+let routeKm    = JSON.parse(store.get('steuer_routekm') || '{}');
+let currentYear=2025, shownMonthSums=new Set(), anteilManual=false, editId=null, eaSearch='';
+let userAfa = JSON.parse(store.get('steuer_afa') || '[]');
+let kfzData = JSON.parse(store.get('steuer_kfz') || '{}');
+let settings = JSON.parse(store.get('steuer_settings') || '{"standardSatz":0.30}');
+let lehramtData = JSON.parse(store.get('steuer_lehramt') || '{}');
+if(!lehramtData['2024']){
+  lehramtData['2024']={hoTage:0,kmSchule:0,arbeitstage:0,positions:[
+    {id:'l1',name:'Arbeitsmittelpauschale',betrag:110,ziel:'lehramt'},
+    {id:'l2',name:'Kontoführungsgebühr',betrag:16,ziel:'lehramt'},
+    {id:'l3',name:'BU/DU',betrag:76.60,ziel:'lehramt'}
+  ]};
+}
+
+let nextId      = eintraege.length ? Math.max(...eintraege.map(e=>e.id))+1 : 1;
+let nextFahrtId = fahrten.length ? Math.max(...fahrten.map(f=>f.id))+1 : 1;
+
+const saveEA    = ()=>store.set('steuer_ea', JSON.stringify(eintraege));
+const saveFahrt = ()=>store.set('steuer_fahrt', JSON.stringify(fahrten));
+const saveCats  = ()=>store.set('steuer_cats', JSON.stringify(customCats));
+const saveLearn = ()=>store.set('steuer_learn', JSON.stringify(learnMap));
+const saveLearnPct = ()=>store.set('steuer_learnpct', JSON.stringify(learnPct));
+const saveBelegCats = ()=>store.set('steuer_belegcats', JSON.stringify([...belegCats]));
+const saveHome  = ()=>store.set('steuer_fahrt_home', JSON.stringify(homeOrt));
+const saveRouteKm = ()=>store.set('steuer_routekm', JSON.stringify(routeKm));
+const saveUserAfa = ()=>store.set('steuer_afa', JSON.stringify(userAfa));
+const saveKfz = ()=>store.set('steuer_kfz', JSON.stringify(kfzData));
+const saveSettings = ()=>store.set('steuer_settings', JSON.stringify(settings));
+const saveLehramt = ()=>store.set('steuer_lehramt', JSON.stringify(lehramtData));
+
+/* ====== Helpers ====== */
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const today=new Date().toISOString().slice(0,10);
+function eaDefaultDate(){ return currentYear+'-'+today.slice(5); }
+const num=v=>{ let s=String(v).trim().replace(/\s/g,''); if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.'); return parseFloat(s)||0; };
+const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',')+' €';
+const deNum=n=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtField(el){ const t=el.value.trim(); if(!t) return; const v=num(t); el.value = v>0 ? deNum(v) : t; }
+const fmtDate=d=>{ if(!d) return ''; const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; };
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const monthKey=d=>d.slice(0,7);
+const monthLabel=k=>{ const a=k.split('-'); return MONTHS[+a[1]-1]+' '+a[0]; };
+const normTxt=s=>s.toLowerCase().replace(/\s+/g,' ').replace(/[0-9%.,]/g,'').trim();
+function toast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(err?' err':''); clearTimeout(t._t); t._t=setTimeout(()=>{t.className='toast'+(err?' err':'');},2200); }
+function allCats(){ return DEFAULT_CATS.concat(customCats.filter(c=>!DEFAULT_CATS.includes(c))); }
+
+/* ====== Tabs ====== */
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='afa') renderAfA();
+  if(t==='jahres') renderJahres();
+  if(t==='lehramt') renderLehramt();
+  window.scrollTo(0,0);
+}
+
+/* ====== E/A ====== */
+let curType='ein', curKonto='B', eaFilter='alle', katManual=false;
+
+function buildCatOptions(selected){
+  const sel=document.getElementById('ea-kategorie');
+  sel.innerHTML = allCats().map(c=>'<option'+(c===selected?' selected':'')+'>'+esc(c)+'</option>').join('')
+    + '<option value="__new__">➕ Neue Kategorie…</option>';
+}
+function setType(t){
+  curType=t; katManual=false;
+  document.getElementById('seg-type').className='seg '+(t==='ein'?'ein':'aus');
+  document.getElementById('btn-ein').classList.toggle('on',t==='ein');
+  document.getElementById('btn-aus').classList.toggle('on',t==='aus');
+  const inc=(t==='ein');
+  document.getElementById('anteil-row').style.display=inc?'none':'block';
+  document.getElementById('kat-row').style.gridTemplateColumns=inc?'1fr':'1fr 1fr';
+  if(inc){ document.getElementById('ea-anteil').value='100'; anteilManual=false; }
+  buildCatOptions(inc?'Gage':'Sonstiges');
+  refreshKat();
+}
+function setKonto(k){
+  curKonto=k;
+  document.getElementById('btn-B').classList.toggle('on',k==='B');
+  document.getElementById('btn-K').classList.toggle('on',k==='K');
+}
+function userPickedKat(){
+  const sel=document.getElementById('ea-kategorie');
+  if(sel.value==='__new__'){
+    document.getElementById('newcat-row').style.display='block';
+    document.getElementById('newcat-input').focus();
+    return;
+  }
+  document.getElementById('newcat-row').style.display='none';
+  katManual=true; refreshKat();
+}
+function addNewCat(){
+  const inp=document.getElementById('newcat-input');
+  const name=inp.value.trim();
+  if(!name){ toast('Name eingeben',true); inp.focus(); return; }
+  if(!allCats().includes(name)){ customCats.push(name); saveCats(); }
+  inp.value=''; document.getElementById('newcat-row').style.display='none';
+  buildCatOptions(name); katManual=true; refreshKat();
+  toast('Kategorie „'+name+'" hinzugefügt');
+}
+function refreshKat(){
+  const v=document.getElementById('ea-kategorie').value;
+  document.getElementById('bew-extra').classList.toggle('visible', v==='Bewirtung');
+  const showBeleg=belegCats.has(v);
+  document.getElementById('beleg-row').style.display=showBeleg?'block':'none';
+  const beleg=document.getElementById('ea-belegnr');
+  if(showBeleg){ if(!beleg.value) beleg.value=nextBeleg(); } else beleg.value='';
+  applyPctSuggestion();
+}
+function applyPctSuggestion(){
+  if(anteilManual) return;
+  const n=normTxt(document.getElementById('ea-text').value);
+  let pct=null;
+  if(n.length>=3){
+    pct=learnPct[n]; if(pct==null) pct=baseLearnPct[n];
+    if(pct==null){ let best=''; [learnPct,baseLearnPct].forEach(mp=>{ for(const k in mp){ if(k.length>=4 && (n.includes(k)||k.includes(n)) && k.length>best.length){ best=k; pct=mp[k]; } } }); }
+  }
+  if(pct==null){ const v=document.getElementById('ea-kategorie').value; if(CAT_DEFAULT_PCT[v]!=null) pct=CAT_DEFAULT_PCT[v]; }
+  document.getElementById('ea-anteil').value = pct!=null?pct:100;
+  updateAnteilHint();
+}
+/* Datum: Freitext mit smarter Erkennung; 2-stellige Jahre → 20xx */
+function parseDate(str){
+  if(!str) return null;
+  const p=String(str).trim().split(/[.\-\/ ]+/).filter(Boolean);
+  const now=new Date(); let d,m,y;
+  if(p.length===1){ d=+p[0]; m=now.getMonth()+1; y=now.getFullYear(); }
+  else if(p.length===2){ d=+p[0]; m=+p[1]; y=now.getFullYear(); }
+  else { d=+p[0]; m=+p[1]; y=+p[2]; if(y<100) y+=2000; }
+  if(!Number.isInteger(d)||!Number.isInteger(m)||!Number.isInteger(y)) return null;
+  if(d<1||d>31||m<1||m>12||y<2000||y>2100) return null;
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function normEADate(){
+  const t=document.getElementById('ea-datum-txt');
+  const iso=parseDate(t.value);
+  if(iso){ document.getElementById('ea-datum').value=iso; t.value=fmtDate(iso); }
+  return iso;
+}
+function dateFromPicker(){
+  const iso=document.getElementById('ea-datum').value;
+  if(iso) document.getElementById('ea-datum-txt').value=fmtDate(iso);
+}
+function openEADatePicker(){
+  const el=document.getElementById('ea-datum');
+  if(el.showPicker){ try{ el.showPicker(); return; }catch(e){} }
+  el.focus(); el.click();
+}
+function suggestKategorie(){
+  const n=normTxt(document.getElementById('ea-text').value);
+  if(!katManual){
+    let hit=null;
+    if(n.length>=3){
+      hit=learnMap[n]||baseLearn[n];
+      if(!hit){ let best=''; [learnMap,baseLearn].forEach(mp=>{ for(const k in mp){ if(k.length>=4 && (n.includes(k)||k.includes(n)) && k.length>best.length){ best=k; hit=mp[k]; } } }); }
+    }
+    let target=hit;
+    if(!target && n.length>=3 && curType==='aus') target='Sonstiges';
+    if(target && allCats().includes(target) && document.getElementById('ea-kategorie').value!==target){ buildCatOptions(target); refreshKat(); }
+  }
+  applyPctSuggestion();
+}
+function updateAnteilHint(){
+  const voll=num(document.getElementById('ea-betrag').value);
+  let anteil=Math.min(100,Math.max(1,Math.round(num(document.getElementById('ea-anteil').value))||100));
+  document.getElementById('anteil-hint').textContent=(anteil<100 && voll>0)?('→ '+fmt(voll*anteil/100)+' absetzbar ('+anteil+'% von '+fmt(voll)+')'):'';
+  checkGWG();
+}
+function checkGWG(){
+  const voll=num(document.getElementById('ea-betrag').value);
+  const v=document.getElementById('ea-kategorie').value;
+  const assetCats=['Equipment','Homeoffice','Bürobedarf'];
+  const show=(curType==='aus' && voll>800 && assetCats.includes(v));
+  document.getElementById('gwg-hint').textContent=show?'⚠️ Über 800 € — größere Anschaffung ggf. über die Nutzungsdauer abschreiben (AfA-Tab) statt voll absetzen.':'';
+}
+function setYear(){
+  currentYear=parseInt(document.getElementById('year-sel').value,10)||2025;
+  shownMonthSums.clear();
+  if(editId==null){ const dd=eaDefaultDate(); document.getElementById('ea-datum').value=dd; document.getElementById('ea-datum-txt').value=fmtDate(dd); document.getElementById('ea-belegnr').value=''; refreshKat(); }
+  fillKfz();
+  renderEA(); renderFahrten(); renderAfA(); renderLehramt();
+  if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
+}
+function setSearch(v){ eaSearch=(v||'').trim().toLowerCase(); renderEA(); }
+function toggleMonthSum(mk){ shownMonthSums.has(mk)?shownMonthSums.delete(mk):shownMonthSums.add(mk); renderEA(); }
+function startAmountEdit(cell,id){
+  const ent=eintraege.find(x=>x.id===id); if(!ent) return;
+  const inp=document.createElement('input');
+  inp.type='number'; inp.step='0.01'; inp.className='amt-input r'; inp.value=ent.betrag.toFixed(2);
+  cell.replaceWith(inp); inp.focus(); inp.select();
+  let done=false;
+  const commit=ok=>{ if(done) return; done=true; if(ok){ const v=num(inp.value); if(v>0){ ent.betrag=v; delete ent.voll; delete ent.anteil; saveEA(); } } renderEA(); };
+  inp.addEventListener('blur',()=>commit(true));
+  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ev.preventDefault();commit(true);} else if(ev.key==='Escape'){commit(false);} });
+}
+function nextBeleg(){
+  const isoY=(parseDate(document.getElementById('ea-datum-txt').value)||'').slice(0,4);
+  const yr=isoY?+isoY:currentYear;
+  const base=(yr%100)*1000;
+  const used=new Set(eintraege.map(e=>parseInt(e.belegnr,10)).filter(x=>!isNaN(x)));
+  let i=base+1; while(used.has(i)) i++; return String(i);
+}
+function addEintrag(){
+  const datum=normEADate();
+  const voll=num(document.getElementById('ea-betrag').value);
+  const text=document.getElementById('ea-text').value.trim();
+  const kategorie=document.getElementById('ea-kategorie').value;
+  const belegnr=document.getElementById('ea-belegnr').value.trim();
+  let anteil=Math.min(100,Math.max(1,Math.round(num(document.getElementById('ea-anteil').value))||100));
+  if(!datum){ toast('Datum ungültig — Format TT.MM.JJJJ',true); return; }
+  if(voll<=0||!text){ toast('Betrag und Beschreibung nötig',true); return; }
+  if(kategorie==='__new__'){ toast('Bitte Kategorie wählen',true); return; }
+  let bewA,bewP;
+  if(kategorie==='Bewirtung'){
+    bewA=document.getElementById('bew-anlass').value.trim(); bewP=document.getElementById('bew-personen').value.trim();
+    if(!bewA||!bewP){ toast('Bewirtung: Anlass + Personen Pflicht',true); return; }
+  }
+  if(belegnr && eintraege.some(e=>e.id!==editId && e.belegnr===belegnr)){
+    if(!confirm('Belegnummer '+belegnr+' gibt es schon. Trotzdem speichern?')) return;
+  }
+  const betrag=Math.round(voll*anteil/100*100)/100;
+  const isEdit=editId!=null;
+  const entry={id:isEdit?editId:nextId++,typ:curType,konto:curKonto,datum,betrag,kategorie,text,belegnr};
+  if(anteil<100){ entry.voll=voll; entry.anteil=anteil; }
+  if(kategorie==='Bewirtung'){ entry.bew_anlass=bewA; entry.bew_personen=bewP; }
+  if(isEdit){ const i=eintraege.findIndex(x=>x.id===editId); if(i>=0) eintraege[i]=entry; }
+  else eintraege.push(entry);
+  saveEA();
+  const nk=normTxt(text); if(nk.length>=3){ learnMap[nk]=kategorie; saveLearn(); learnPct[nk]=anteil; saveLearnPct(); }
+  if(belegnr){ belegCats.add(kategorie); saveBelegCats(); }
+  resetForm();
+  renderEA(); toast(isEdit?'Eintrag aktualisiert':'Eintrag gespeichert');
+  document.getElementById('ea-text').focus();
+}
+function resetForm(){
+  editId=null; editUI(false);
+  ['ea-betrag','ea-text','ea-belegnr'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ea-anteil').value='100'; anteilManual=false; document.getElementById('anteil-hint').textContent='';
+  const ba=document.getElementById('bew-anlass'), bp=document.getElementById('bew-personen');
+  if(ba) ba.value=''; if(bp) bp.value='';
+  const dd=eaDefaultDate();
+  document.getElementById('ea-datum').value=dd;
+  document.getElementById('ea-datum-txt').value=fmtDate(dd);
+  katManual=false; buildCatOptions(curType==='ein'?'Gage':'Sonstiges'); refreshKat();
+}
+function editUI(on){
+  document.getElementById('ea-form-title').textContent=on?'Eintrag bearbeiten':'Neuer Eintrag';
+  document.getElementById('save-btn').textContent=on?'Eintrag aktualisieren':'Eintrag speichern';
+  document.getElementById('cancel-edit').style.display=on?'block':'none';
+  document.getElementById('ea-form').classList.toggle('editing',on);
+}
+function editEintrag(id){
+  const e=eintraege.find(x=>x.id===id); if(!e) return;
+  editId=id;
+  setType(e.typ); setKonto(e.konto);
+  document.getElementById('ea-datum').value=e.datum;
+  document.getElementById('ea-datum-txt').value=fmtDate(e.datum);
+  document.getElementById('ea-betrag').value=deNum(e.voll!=null?e.voll:e.betrag);
+  document.getElementById('ea-text').value=e.text;
+  katManual=true; buildCatOptions(e.kategorie);
+  document.getElementById('ea-anteil').value=(e.anteil!=null?e.anteil:100); anteilManual=true;
+  refreshKat();
+  document.getElementById('ea-belegnr').value=e.belegnr||'';
+  if(e.kategorie==='Bewirtung'){ document.getElementById('bew-anlass').value=e.bew_anlass||''; document.getElementById('bew-personen').value=e.bew_personen||''; }
+  updateAnteilHint(); editUI(true); renderEA();
+}
+function cancelEdit(){ resetForm(); renderEA(); }
+function deleteEintrag(id){
+  const e=eintraege.find(x=>x.id===id);
+  if(e && !confirm('Eintrag „'+e.text+'" löschen?')) return;
+  eintraege=eintraege.filter(x=>x.id!==id); saveEA();
+  if(editId===id) resetForm();
+  renderEA();
+}
+function setFilter(f){
+  eaFilter=f;
+  document.querySelectorAll('#tab-ea .filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===f));
+  renderEA();
+}
+function renderEA(){
+  const yStr=String(currentYear);
+  document.getElementById('m-ein-lbl').textContent='Einnahmen '+currentYear;
+  document.getElementById('m-aus-lbl').textContent='Ausgaben '+currentYear;
+  document.getElementById('m-saldo-lbl').textContent='Saldo E/A '+currentYear;
+  const yearItems=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
+  const sumEin=yearItems.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
+  const sumAus=yearItems.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
+  document.getElementById('m-ein').textContent=fmt(sumEin);
+  document.getElementById('m-aus').textContent=fmt(sumAus);
+  const saldo=sumEin-sumAus, sEl=document.getElementById('m-saldo');
+  sEl.textContent=(saldo>=0?'+':'')+fmt(saldo); sEl.className='metric-value '+(saldo>=0?'green':'red');
+  let list=yearItems.filter(e=> eaFilter==='alle'?true:e.typ===eaFilter);
+  if(eaSearch) list=list.filter(e=>((e.text||'')+' '+(e.kategorie||'')+' '+(e.belegnr||'')).toLowerCase().includes(eaSearch));
+  const el=document.getElementById('ea-list');
+  if(!list.length){ el.innerHTML='<div class="empty">'+(eaSearch?'Keine Treffer für „'+esc(eaSearch)+'"':'Keine Einträge für '+currentYear)+'</div>'; return; }
+  const quarters={};
+  list.forEach(e=>{ const m=+e.datum.slice(5,7), q=Math.ceil(m/3); (quarters[q]=quarters[q]||{}); (quarters[q][m]=quarters[q][m]||[]).push(e); });
+  let html='<div class="led-row led-head"><span></span><span>Beschreibung</span><span class="r">Einnahme</span><span class="r">Ausgabe</span><span></span></div>';
+  Object.keys(quarters).map(Number).sort((a,b)=>a-b).forEach(q=>{
+    const months=quarters[q]; let qe=0,qa=0;
+    Object.keys(months).forEach(m=>months[m].forEach(e=>{ if(e.typ==='ein')qe+=e.betrag; else qa+=e.betrag; }));
+    html+='<div class="led-row q-head"><span></span><span class="qn">'+q+'. Quartal '+currentYear+'</span>'
+      +'<span class="r e">'+(qe>0?'+'+fmt(qe):'')+'</span><span class="r a">'+(qa>0?'−'+fmt(qa):'')+'</span><span></span></div>';
+    Object.keys(months).map(Number).sort((a,b)=>a-b).forEach(m=>{
+      const mk=yStr+'-'+String(m).padStart(2,'0');
+      const items=months[m].slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+      const show=shownMonthSums.has(mk); let me=0,ma=0;
+      items.forEach(e=>{ if(e.typ==='ein')me+=e.betrag; else ma+=e.betrag; });
+      html+='<div class="led-row month-div" onclick="toggleMonthSum(\''+mk+'\')"><span class="mtog">'+(show?'▾':'▸')+'</span><span class="mn">'+MONTHS[m-1]+'</span>'
+        +'<span class="r e">'+(show&&me>0?'+'+fmt(me):'')+'</span><span class="r a">'+(show&&ma>0?'−'+fmt(ma):'')+'</span><span></span></div>';
+      items.forEach(e=>{
+        const bew=e.bew_anlass?(' · '+esc(e.bew_anlass)+' ('+esc(e.bew_personen||'')+')'):'';
+        const ant=(e.anteil&&e.anteil<100)?(' · '+e.anteil+'% von '+fmt(e.voll||e.betrag)):'';
+        html+='<div class="led-row entry'+(e.id===editId?' editing':'')+'" data-id="'+e.id+'">'
+          +'<span class="badge b-'+e.konto+'">'+e.konto+'</span>'
+          +'<div class="entry-main"><div class="desc">'+esc(e.text)+(e.belegnr?(' <span class="beleg">#'+esc(e.belegnr)+'</span>'):'')+'</div>'
+          +'<div class="sub">'+fmtDate(e.datum)+' · '+esc(e.kategorie)+ant+bew+'</div></div>'
+          +'<span class="r e'+(e.typ==='ein'?' amt-edit':'')+'" data-id="'+e.id+'">'+(e.typ==='ein'?'+'+fmt(e.betrag):'')+'</span>'
+          +'<span class="r a'+(e.typ==='aus'?' amt-edit':'')+'" data-id="'+e.id+'">'+(e.typ==='aus'?'−'+fmt(e.betrag):'')+'</span>'
+          +'<button class="del-btn no-print" onclick="deleteEintrag('+e.id+')" aria-label="Löschen">×</button></div>';
+      });
+    });
+  });
+  el.innerHTML=html;
+}
+function resetData(){
+  if(!confirm('Alle E/A-Einträge löschen und Seed-Daten 2025 neu laden? (Gelernte Kategorien bleiben.)')) return;
+  store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
+  eintraege=JSON.parse(JSON.stringify(SEED_DATA_2025));
+  nextId=Math.max(...eintraege.map(e=>e.id))+1;
+  renderEA(); toast('Testdaten 2025 geladen');
+}
+function exportCSV(){
+  const yStr=String(currentYear);
+  const rows=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice()
+    .sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const dec=n=>n!=null?(Math.round(n*100)/100).toFixed(2).replace('.',','):'';
+  const lines=[['Datum','Beleg','Konto','Kategorie','Beschreibung','Einnahme','Ausgabe','Anteil %','Bruttobetrag'].map(q).join(';')];
+  rows.forEach(e=>{
+    lines.push([fmtDate(e.datum),e.belegnr||'',e.konto,e.kategorie,e.text,
+      e.typ==='ein'?dec(e.betrag):'', e.typ==='aus'?dec(e.betrag):'',
+      e.anteil!=null?e.anteil:'', e.voll!=null?dec(e.voll):''].map(q).join(';'));
+  });
+  const se=rows.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
+  const sa=rows.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
+  lines.push(''); lines.push([q('SUMME '+currentYear),'','','','',q(dec(se)),q(dec(sa)),'',''].join(';'));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='steuer-EA-'+currentYear+'.csv'; a.click(); URL.revokeObjectURL(a.href);
+  toast('CSV exportiert');
+}
+function exportData(){
+  const data={version:1,exported:new Date().toISOString(),eintraege,fahrten,customCats,learnMap,learnPct,belegCats:[...belegCats],homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='steuer-backup-'+today+'.json'; a.click(); URL.revokeObjectURL(a.href);
+  store.set('steuer_lastbackup',today); updateBackupInfo();
+  toast('Backup heruntergeladen');
+}
+function updateBackupInfo(){
+  const d=store.get('steuer_lastbackup');
+  const el=document.getElementById('backup-info');
+  if(el) el.textContent=d?('· gesichert '+fmtDate(d)):'· noch kein Backup';
+}
+function importData(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+    const d=JSON.parse(r.result);
+    if(!confirm('Backup importieren? Ersetzt die aktuellen E/A- und Fahrt-Daten.')){ input.value=''; return; }
+    if(Array.isArray(d.eintraege)) eintraege=d.eintraege;
+    if(Array.isArray(d.fahrten)) fahrten=d.fahrten;
+    if(Array.isArray(d.customCats)) customCats=d.customCats;
+    if(d.learnMap) learnMap=d.learnMap;
+    if(d.learnPct) learnPct=d.learnPct;
+    if(Array.isArray(d.belegCats)) belegCats=new Set(d.belegCats);
+    if(d.homeOrt) homeOrt=d.homeOrt;
+    if(d.routeKm) routeKm=d.routeKm;
+    if(Array.isArray(d.userAfa)) userAfa=d.userAfa;
+    if(d.kfzData) kfzData=d.kfzData;
+    if(d.settings) settings=d.settings;
+    if(d.lehramtData) lehramtData=d.lehramtData;
+    saveEA(); saveFahrt(); saveCats(); saveLearn(); saveLearnPct(); saveBelegCats(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
+    nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
+    nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
+    renderEA(); renderFahrten(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
+  }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
+  r.readAsText(f);
+}
+
+/* ====== Fahrt ====== */
+let curTrip='ein';
+function setTrip(t){
+  curTrip=t;
+  document.getElementById('btn-eintag').classList.toggle('on',t==='ein');
+  document.getElementById('btn-mehrtag').classList.toggle('on',t==='mehr');
+  document.getElementById('trip-ein').style.display=t==='ein'?'grid':'none';
+  document.getElementById('trip-mehr').style.display=t==='mehr'?'block':'none';
+  calcPauschale();
+}
+/* ===== Verpflegungspauschale =====
+   Diese Berechnungslogik wurde vom STEUERBERATER BESTÄTIGT. Achtung: die beiden
+   Sonderfälle (Anreise über Nacht / Heimkunft nach Mitternacht) weichen bewusst
+   von den meisten Online-Quellen ab – diese Auslegung ist mit dem Steuerberater
+   abgestimmt und ausdrücklich so gewollt.
+
+   Fall 1 – eintägig (keine Übernachtung):  < 8 h = 0 €,  ab 8 h = 14 €.
+   Fall 2 – mehrtägig (Normalfall):
+       Anreisetag 14 €  ·  jeder volle Zwischentag (0–24 Uhr abwesend) 28 €  ·  Abreisetag 14 €.
+   Fall 3 – Sonderfall Anreise über Nacht (Abfahrt abends, Ankunft am Ziel erst am Folgetag):
+       Abfahrtstag zählt NICHT (0 €); der Ankunftstag am Ziel ist 0–24 Uhr abwesend → 28 € statt 14 €.
+   Fall 4 – Sonderfall Heimkunft nach Mitternacht (Abreise tagsüber, daheim erst am Folgetag):
+       Abreisetag ist 0–24 Uhr abwesend → 28 € statt 14 €; der Ankunftstag zuhause zählt NICHT (0 €).
+
+   Umsetzung mehrtägig: pro Kalendertag der Reise (Abfahrtsdatum … Rückkehr-/Ankunftsdatum):
+       erster Tag  = 14 €  (oder 0 €, wenn "Anreise über Nacht")
+       letzter Tag = 14 €  (oder 0 €, wenn "Heimkunft nach Mitternacht")
+       alle Tage dazwischen = 28 €
+*/
+function pauschalValue(){
+  if(curTrip==='mehr'){
+    const s=document.getElementById('f-datum').value, e=document.getElementById('f-enddatum').value;
+    if(!s||!e) return {v:0,days:0,parts:[]};
+    const days=Math.round((new Date(e)-new Date(s))/86400000)+1;
+    if(days<2) return {v:0,days,parts:[]};
+    const bA=document.getElementById('f-anreise-nacht').checked;   // Fall 3
+    const bH=document.getElementById('f-heim-mitternacht').checked; // Fall 4
+    const parts=[];
+    for(let i=0;i<days;i++){
+      if(i===0) parts.push(bA?0:14);
+      else if(i===days-1) parts.push(bH?0:14);
+      else parts.push(28);
+    }
+    return {v:parts.reduce((a,b)=>a+b,0), days, parts, bA, bH};
+  }
+  const ab=parseFloat(document.getElementById('f-ab').value), ru=parseFloat(document.getElementById('f-rueck').value);
+  if(isNaN(ab)||isNaN(ru)) return {v:0,std:null};
+  const std=ru>=ab?ru-ab:(24-ab)+ru;
+  return {v: std>=8?14:0, std};
+}
+function calcPauschale(){
+  const p=pauschalValue();
+  let h='Verpflegungspauschale: '+(p.v>0?fmt(p.v):'0,00 €');
+  if(curTrip==='mehr'){
+    if(p.parts && p.parts.length) h='Verpflegung: '+p.parts.map(x=>x+' €').join(' + ')+' = '+fmt(p.v)+'  ('+p.days+' Tage)';
+    else h='Verpflegung: gültiges Rückkehr-Datum (nach dem Abfahrtsdatum) wählen';
+  } else if(p.std!=null){
+    h='Verpflegung: Abwesenheit '+p.std+' h → '+(p.std>=8?'14 € (ab 8 h)':'0 € (unter 8 h, nicht abzugsfähig)');
+  }
+  document.getElementById('f-pausch-hint').textContent=h;
+  calcFahrt();
+}
+/* km-Satz & Methode. Standard-Satz global (bei Gesetzesänderung anpassbar), Methode pro Jahr.
+   Einzelnachweis: Satz = Gesamtkosten / Gesamt-km; absetzbar = dienstliche km × Satz.
+   Dienstliche km werden automatisch aus den erfassten Fahrten gezogen. */
+let _scanImg=null;
+function kfzKosten(year){ const d=kfzData[year]; return (d&&d.belege)?d.belege.reduce((s,b)=>s+(b.betrag||0),0):0; }
+function einzelRate(year){ const d=kfzData[year]; if(!d) return 0; const gkm=(d.kmEnd||0)-(d.kmStart||0); return gkm>0 ? kfzKosten(year)/gkm : 0; }
+function activeSatz(year){ const d=kfzData[year]; if(d && d.method==='einzel') return einzelRate(year); return settings.standardSatz||0.30; }
+function resolveSatz(){ return activeSatz(currentYear); }
+function dienstKm(year){ return fahrten.filter(f=>f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.km||0),0); }
+function setMethod(m){ const d=kfzData[currentYear]||{}; d.method=m; kfzData[currentYear]=d; saveKfz(); fillKfz(); calcFahrt(); }
+function updateSettings(){ const s=num(document.getElementById('set-satz').value); settings.standardSatz=s>0?s:0.30; saveSettings(); fillKfzResults(); calcFahrt(); }
+function updateKfz(){
+  const d=kfzData[currentYear]||{};
+  d.kmStart=num(document.getElementById('kfz-kmstart').value);
+  d.kmEnd=num(document.getElementById('kfz-kmend').value);
+  kfzData[currentYear]=d; saveKfz(); fillKfzResults(); calcFahrt();
+}
+function addKfzBeleg(){
+  const datum=document.getElementById('kb-datum').value;
+  const kat=document.getElementById('kb-kat').value;
+  const betrag=num(document.getElementById('kb-betrag').value);
+  const note=document.getElementById('kb-note').value.trim();
+  if(!datum||betrag<=0){ toast('Datum und Betrag nötig',true); return; }
+  const d=kfzData[currentYear]||{}; d.belege=d.belege||[];
+  d.belege.push({id:'b'+Date.now(),datum,kat,betrag,note,img:_scanImg||null});
+  kfzData[currentYear]=d; saveKfz(); _scanImg=null;
+  document.getElementById('kb-betrag').value=''; document.getElementById('kb-note').value='';
+  renderKfzBelege(); fillKfzResults(); calcFahrt(); toast('Beleg hinzugefügt');
+}
+function delKfzBeleg(id){
+  const d=kfzData[currentYear]; if(!d||!d.belege) return;
+  d.belege=d.belege.filter(b=>b.id!==id); saveKfz();
+  renderKfzBelege(); fillKfzResults(); calcFahrt();
+}
+function renderKfzBelege(){
+  const el=document.getElementById('kb-list'); if(!el) return;
+  const d=kfzData[currentYear]||{}; const bel=(d.belege||[]).slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  if(!bel.length){ el.innerHTML='<div class="hint">Noch keine Belege erfasst.</div>'; return; }
+  el.innerHTML=bel.map(b=>'<div class="entry" style="cursor:default;display:flex;align-items:center;gap:8px;padding:6px 0;">'
+    +(b.img?('<img src="'+b.img+'" alt="" style="width:30px;height:30px;object-fit:cover;border-radius:5px;border:0.5px solid var(--border);">'):'<span style="width:30px;text-align:center;color:var(--txt-3);font-size:11px;">—</span>')
+    +'<div class="entry-main"><div class="desc">'+esc(b.kat)+(b.note?(' · '+esc(b.note)):'')+'</div><div class="sub">'+fmtDate(b.datum)+'</div></div>'
+    +'<span style="font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;">'+fmt(b.betrag)+'</span>'
+    +'<button class="del-btn" onclick="delKfzBeleg(\''+b.id+'\')" aria-label="Löschen">×</button></div>').join('');
+}
+function fillKfz(){
+  document.getElementById('set-satz').value=deNum(settings.standardSatz||0.30);
+  const d=kfzData[currentYear]||{}; const m=d.method||'pauschal';
+  document.getElementById('btn-pausch').classList.toggle('on',m==='pauschal');
+  document.getElementById('btn-einzel').classList.toggle('on',m==='einzel');
+  document.getElementById('einzel-sheet').style.display = m==='einzel'?'block':'none';
+  document.getElementById('kfz-year2').textContent=currentYear;
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  set('kfz-kmstart', d.kmStart?String(d.kmStart):''); set('kfz-kmend', d.kmEnd?String(d.kmEnd):'');
+  const kbd=document.getElementById('kb-datum'); if(kbd && !kbd.value) kbd.value=eaDefaultDate();
+  renderKfzBelege(); fillKfzResults(); updateCarAfa();
+}
+function fillKfzResults(){
+  const d=kfzData[currentYear]||{};
+  const kosten=kfzKosten(currentYear);
+  const gkm=(d.kmEnd||0)-(d.kmStart||0);
+  const dienst=dienstKm(currentYear), privat=gkm-dienst, rate=einzelRate(currentYear);
+  const setT=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  setT('kfz-r-kosten', fmt(kosten));
+  setT('kfz-r-gkm', gkm>0?gkm+' km':'—');
+  setT('kfz-r-dienst', dienst+' km');
+  setT('kfz-r-privat', gkm>0?(privat>=0?privat+' km':'⚠️ km-Stand prüfen'):'—');
+  setT('kfz-r-satz', rate>0?deNum(rate)+' €/km':'—');
+  setT('kfz-r-absetz', rate>0?fmt(dienst*rate):'—');
+  const aSatz=activeSatz(currentYear), isEin=(d.method==='einzel');
+  document.getElementById('kfz-status').textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+deNum(settings.standardSatz||0.30)+' €/km');
+  const info=document.getElementById('f-satz-info'); if(info) info.value=deNum(aSatz)+' €/km';
+}
+function toggleKfz(){
+  const el=document.getElementById('kfz-fields');
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+  if(el.style.display!=='none') fillKfz();
+}
+/* ---- Beleg-Foto OCR (optional; lädt Tesseract.js bei Bedarf aus dem Netz, Bild bleibt lokal) ---- */
+function compressImage(file,maxDim,quality){
+  return new Promise(function(res){
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){ let w=img.width,h=img.height; const sc=Math.min(1,maxDim/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc); const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',quality)); };
+    img.onerror=function(){ URL.revokeObjectURL(url); res(null); };
+    img.src=url;
+  });
+}
+function extractAmount(text){
+  const nums=(text.match(/\d{1,4}[.,]\d{2}/g)||[]).map(function(s){return num(s);}).filter(function(n){return n>0 && n<100000;});
+  return nums.length?Math.max.apply(null,nums):0;
+}
+function loadTess(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  return new Promise(function(res,rej){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'; s.onload=function(){res(window.Tesseract);}; s.onerror=function(){rej(new Error('OCR nicht ladbar (Internet?)'));}; document.head.appendChild(s); });
+}
+async function scanBeleg(input){
+  const f=input.files&&input.files[0]; if(!f) return; input.value='';
+  try{
+    toast('Beleg wird gelesen … (einen Moment)');
+    const ocrImg=await compressImage(f,1400,0.7);
+    const T=await loadTess();
+    const out=await T.recognize(ocrImg,'deu');
+    const amt=extractAmount((out&&out.data&&out.data.text)||'');
+    if(amt>0){ document.getElementById('kb-betrag').value=deNum(amt); toast('Betrag erkannt: '+deNum(amt)+' € – bitte prüfen'); }
+    else toast('Kein Betrag erkannt – bitte manuell',true);
+    _scanImg=await compressImage(f,640,0.5);
+  }catch(e){ toast('Scan: '+e.message,true); }
+}
+/* ---- Auto-AfA-Helfer (Privat-Pkw: Jahres-AfA als Kfz-Kostenbeleg) ---- */
+function carAfaForYear(){
+  const preis=num(document.getElementById('car-preis').value);
+  const datum=document.getElementById('car-datum').value;
+  const jahre=Math.round(num(document.getElementById('car-jahre').value))||6;
+  if(preis<=0||!datum) return {betrag:0,jahre,preis,datum,monate:0};
+  const r=afaForYear({datum,jahre,jahresbetrag:preis/jahre},currentYear);
+  return {betrag:r.betrag,monate:r.months,jahre,preis,datum};
+}
+function updateCarAfa(){
+  const r=carAfaForYear(), el=document.getElementById('car-afa-hint'); if(!el) return;
+  el.textContent=(r.preis>0&&r.datum)?('AfA '+currentYear+': '+fmt(r.betrag)+'  ('+r.monate+'/12 Monate · '+fmt(r.preis/r.jahre)+'/Jahr voll)'):'';
+}
+function addCarAfaBeleg(){
+  const r=carAfaForYear();
+  if(r.preis<=0||!r.datum){ toast('Kaufpreis und Kaufdatum nötig',true); return; }
+  if(r.betrag<=0){ toast('In '+currentYear+' keine AfA (Zeitraum prüfen)',true); return; }
+  const d=kfzData[currentYear]||{}; d.belege=d.belege||[];
+  d.belege.push({id:'b'+Date.now(),datum:currentYear+'-12-31',kat:'AfA/Leasing',betrag:Math.round(r.betrag*100)/100,note:'Auto-AfA',img:null});
+  kfzData[currentYear]=d; saveKfz();
+  renderKfzBelege(); fillKfzResults(); calcFahrt(); toast('Auto-AfA als Beleg übernommen');
+}
+function calcFahrt(){
+  const km=num(document.getElementById('f-km').value);
+  const satz=resolveSatz();
+  const park=num(document.getElementById('f-park').value);
+  const zug=num(document.getElementById('f-zug').value);
+  document.getElementById('f-preview').textContent=fmt(km*satz+park+zug+pauschalValue().v);
+}
+function addFahrt(){
+  const datum=document.getElementById('f-datum').value;
+  const start=document.getElementById('f-start').value.trim();
+  const ziel=document.getElementById('f-ziel').value.trim();
+  let rueckort=document.getElementById('f-rueckort').value.trim();
+  const zweck=document.getElementById('f-zweck').value.trim();
+  const km=num(document.getElementById('f-km').value);
+  const satz=resolveSatz();
+  const park=num(document.getElementById('f-park').value);
+  const zug=num(document.getElementById('f-zug').value);
+  const pObj=pauschalValue(), pausch=pObj.v;
+  const enddatum=document.getElementById('f-enddatum').value;
+  if(!datum||!start||!ziel||!zweck||!km){ toast('Datum, Start, Ziel, Zweck und km nötig',true); return; }
+  if(curTrip==='mehr' && (!enddatum || pObj.days<2)){ toast('Mehrtägig: gültiges Rückkehr-Datum nötig',true); return; }
+  if(kfzData[currentYear] && kfzData[currentYear].method==='einzel' && satz<=0){ toast('Einzelnachweis: erst Kfz-Kosten + km-Stand erfassen',true); return; }
+  if(!rueckort) rueckort=start;
+  routeKm[routeKeyFrom(start,ziel,rueckort)]=km; saveRouteKm();
+  const route=start+' → '+ziel+(rueckort?(' → '+rueckort):'');
+  const kmgeld=km*satz+park+zug+pausch;
+  fahrten.push({id:nextFahrtId++,datum,enddatum,route,start,ziel,rueckort,zweck,km,satz,park,zug,pausch,mehr:curTrip==='mehr',tage:pObj.days||1,anreiseNacht:!!pObj.bA,heimMitternacht:!!pObj.bH,kmgeld,updated:Date.now()});
+  saveFahrt();
+  homeOrt={start,rueckort}; saveHome();
+  ['f-ziel','f-zweck','f-km','f-ab','f-rueck','f-enddatum'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-park').value='0'; document.getElementById('f-zug').value='0';
+  document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
+  document.getElementById('f-datum').value=today;
+  prefillHome(); setTrip('ein');
+  document.getElementById('f-preview').textContent='0,00 €';
+  renderFahrten(); toast('Fahrt gespeichert');
+}
+function prefillHome(){
+  if(homeOrt.start) document.getElementById('f-start').value=homeOrt.start;
+  if(homeOrt.rueckort) document.getElementById('f-rueckort').value=homeOrt.rueckort;
+}
+function routeKeyFrom(s,z,r){ return (s+'|'+z+'|'+(r||s)).toLowerCase().replace(/\s+/g,' ').trim(); }
+function suggestRouteKm(){
+  const s=document.getElementById('f-start').value.trim();
+  const z=document.getElementById('f-ziel').value.trim();
+  const r=document.getElementById('f-rueckort').value.trim();
+  if(!s||!z) return;
+  const km=routeKm[routeKeyFrom(s,z,r)];
+  const kmField=document.getElementById('f-km');
+  if(km!=null && !kmField.value){ kmField.value=km; calcFahrt(); toast('km aus Routen-Gedächtnis'); }
+}
+function openMaps(){
+  const s=document.getElementById('f-start').value.trim();
+  const z=document.getElementById('f-ziel').value.trim();
+  const r=document.getElementById('f-rueckort').value.trim()||s;
+  if(!s||!z){ toast('Start und Ziel eingeben',true); return; }
+  window.open('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(s)+'&destination='+encodeURIComponent(r)+'&waypoints='+encodeURIComponent(z)+'&travelmode=driving','_blank');
+}
+function gpsTo(fieldId){
+  if(!navigator.geolocation){ toast('GPS nicht verfügbar',true); return; }
+  toast('Standort wird ermittelt…');
+  navigator.geolocation.getCurrentPosition(function(p){
+    document.getElementById(fieldId).value=p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5);
+    suggestRouteKm();
+  }, function(e){ toast('GPS-Fehler: '+e.message,true); }, {enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+function deleteFahrt(id){
+  const f=fahrten.find(x=>x.id===id);
+  if(f && !confirm('Fahrt „'+f.route+'" löschen?')) return;
+  fahrten=fahrten.filter(x=>x.id!==id); saveFahrt(); renderFahrten();
+}
+function renderFahrten(){
+  document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
+  document.getElementById('fahrt-list-title').textContent='Fahrten '+currentYear;
+  fillKfzResults();
+  const fy=fahrten.filter(f=>f.datum.slice(0,4)===String(currentYear));
+  const total=fy.reduce((s,f)=>s+f.kmgeld,0);
+  document.getElementById('m-fcount').textContent=fy.length;
+  document.getElementById('m-fsum').textContent=fmt(total);
+  const el=document.getElementById('fahrt-list');
+  if(!fy.length){ el.innerHTML='<div class="empty">Keine Fahrten für '+currentYear+' — direkt nach dem Gig eintragen.</div>'; return; }
+  const groups={}; fy.forEach(f=>{ (groups[monthKey(f.datum)]=groups[monthKey(f.datum)]||[]).push(f); });
+  const keys=Object.keys(groups).sort().reverse();
+  el.innerHTML=keys.map(k=>{
+    const items=groups[k].slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+    const sum=items.reduce((s,f)=>s+f.kmgeld,0);
+    const rows=items.map(f=>{
+      const meta=[fmtDate(f.datum),f.zweck,f.km+' km × '+(f.satz*100).toFixed(0)+' ct'];
+      if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
+      if(f.park>0) meta.push('Park '+fmt(f.park));
+      if(f.zug>0) meta.push('Zug '+fmt(f.zug));
+      return '<div class="fahrt-entry"><div class="fahrt-top"><span class="fahrt-route">'+esc(f.route)+'</span><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span></div>'
+        +'<div class="fahrt-sub">'+meta.map(esc).join(' · ')+'</div>'
+        +'<button class="fahrt-del no-print" onclick="deleteFahrt('+f.id+')">× löschen</button></div>';
+    }).join('');
+    return '<div style="margin-bottom:0.75rem;"><div class="month-head" style="position:static;border-radius:var(--radius-sm);margin-bottom:4px;">'
+      +'<span class="month-name">'+monthLabel(k)+'</span><span class="month-sums"><span class="a">−'+fmt(sum)+'</span></span></div>'+rows+'</div>';
+  }).join('');
+}
+
+/* ====== AfA (pro rata temporis, Anschaffungsmonat voll) ====== */
+function afaForYear(a,year){
+  const ky=+a.datum.slice(0,4), km=+a.datum.slice(5,7);
+  const start=ky*12+(km-1), end=start+a.jahre*12;
+  const ys=year*12, ye=ys+12;
+  const months=Math.max(0, Math.min(end,ye)-Math.max(start,ys));
+  return { months, betrag:a.jahresbetrag*months/12 };
+}
+function afaYear(){ return currentYear; }
+function allAfa(){ return ABSCHREIBUNGEN.concat(userAfa); }
+function renderAfA(){
+  const year=afaYear(); let total=0,n=0;
+  document.getElementById('afa-jahr-lbl').textContent=year;
+  document.getElementById('afa-list').innerHTML=allAfa().map(a=>{
+    const r=afaForYear(a,year), aktiv=r.months>0;
+    const ky=+a.datum.slice(0,4), km=+a.datum.slice(5,7);
+    const endD=new Date(ky,(km-1)+a.jahre,0);
+    const span=String(km).padStart(2,'0')+'/'+ky+' – '+String(endD.getMonth()+1).padStart(2,'0')+'/'+endD.getFullYear();
+    if(aktiv){ total+=r.betrag; n++; }
+    let pillTxt,pillCls;
+    if(aktiv){ pillTxt=r.months+'/12 Monate'; pillCls='on'; }
+    else if(year<ky){ pillTxt='ab '+ky; pillCls='off'; }
+    else { pillTxt='fertig'; pillCls='off'; }
+    const del=a.user?' <button class="del-btn no-print" onclick="delAfa(\''+a.id+'\')" aria-label="Löschen">×</button>':'';
+    return '<div class="afa"><div><div class="afa-name">'+esc(a.name)+del+'</div>'
+      +'<div class="afa-meta">'+fmtDate(a.datum)+' · '+fmt(a.betrag)+' · '+a.jahre+' J. · voll '+fmt(a.jahresbetrag)+'/J.</div>'
+      +'<div class="afa-meta">Zeitraum '+span+'</div></div>'
+      +'<div class="afa-right"><div class="afa-amt">'+(aktiv?'−'+fmt(r.betrag):'—')+'</div>'
+      +'<span class="afa-pill '+pillCls+'">'+pillTxt+'</span></div></div>';
+  }).join('');
+  document.getElementById('m-afa').textContent=fmt(total);
+  document.getElementById('m-afa-n').textContent=n;
+}
+function updateAfaHint(){
+  const b=num(document.getElementById('afa-betrag').value);
+  const j=parseInt(document.getElementById('afa-jahre').value,10)||0;
+  document.getElementById('afa-add-hint').textContent=(b>0&&j>0)?('= '+fmt(b/j)+' pro Jahr (linear)'):'';
+}
+function addAfa(){
+  const name=document.getElementById('afa-name').value.trim();
+  const datum=document.getElementById('afa-datum').value;
+  const betrag=num(document.getElementById('afa-betrag').value);
+  const jahre=parseInt(document.getElementById('afa-jahre').value,10)||0;
+  if(!name||!datum||betrag<=0||jahre<=0){ toast('Name, Datum, Preis und Jahre nötig',true); return; }
+  userAfa.push({id:'u'+Date.now(),name,datum,betrag,jahre,jahresbetrag:Math.round(betrag/jahre*100)/100,user:true});
+  saveUserAfa();
+  ['afa-name','afa-datum','afa-betrag','afa-jahre'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('afa-add-hint').textContent='';
+  renderAfA(); toast('AfA-Objekt hinzugefügt');
+}
+function delAfa(id){
+  const a=userAfa.find(x=>x.id===id);
+  if(a && !confirm('„'+a.name+'" löschen?')) return;
+  userAfa=userAfa.filter(x=>x.id!==id); saveUserAfa(); renderAfA();
+}
+
+/* ====== Jahres ====== */
+const BUERO_KATS=['Bürobedarf','Homeoffice','Handy','Software/Abo','Fortbildung'];
+const FIX_KATS=['Gage','KV/Versicherung','Equipment','Noten','Bewirtung','Sonstiges'].concat(BUERO_KATS);
+/* read-only Lehramt-Daten für ein Jahr (ohne Vorlagen-Materialisierung/Speichern) */
+function lehrDataFor(year){ return lehramtData[year] || lehramtData[year-1] || {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]}; }
+function renderJahres(){
+  const year=afaYear(), yStr=String(year);
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
+  const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr);
+  const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)).reduce((s,e)=>s+e.betrag,0);
+  const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
+  const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage').reduce((s,e)=>s+e.betrag,0);
+  const eintotal=gagen+sonstEin;
+  const kv=sA(['KV/Versicherung']);
+  const equip=sA(['Equipment','Noten']);
+  const buero=sA(BUERO_KATS);
+  const bew=sA(['Bewirtung']);
+  const sonst=ey.filter(e=>e.typ==='aus'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
+  const lehrV=lehrSelbst(year);
+  const austotal=kv+equip+buero+bew+sonst+lehrV;
+  const km30=fyr.reduce((s,f)=>s+f.km*f.satz,0);
+  const verpfl=fyr.reduce((s,f)=>s+(f.pausch||0),0);
+  const parkzug=fyr.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
+  const fahrttotal=fyr.reduce((s,f)=>s+f.kmgeld,0);
+  const afa=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
+  const ergebnis=eintotal-austotal-fahrttotal-afa;
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set('jahres-title','Jahresübersicht '+year);
+  set('csv-year',year);
+  set('j-fahrt-title','FAHRTKOSTEN '+year);
+  set('j-gagen',fmt(gagen)); set('j-sonstein',fmt(sonstEin)); set('j-eintotal',fmt(eintotal));
+  set('j-kv',fmt(kv)); set('j-equip',fmt(equip)); set('j-buero',fmt(buero)); set('j-bew',fmt(bew));
+  set('j-sonstaus',fmt(sonst)); set('j-lehrversch',fmt(lehrV)); set('j-austotal',fmt(austotal));
+  set('j-km30',fmt(km30)); set('j-verpfl',fmt(verpfl)); set('j-park',fmt(parkzug)); set('j-fahrttotal',fmt(fahrttotal));
+  set('j-afa',fmt(afa)); set('j-afa-jahr','('+year+')');
+  const ld=lehrDataFor(year), lwk=werbungskosten(ld), lpb=lehrPB();
+  set('j-l-wk',fmt(lwk)); set('j-l-pb',fmt(lpb)); set('j-l-eff',fmt(Math.max(lwk,lpb)));
+  const er=document.getElementById('j-ergebnis');
+  er.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis);
+  er.style.color=ergebnis>=0?'var(--green)':'var(--red)'; er.style.fontWeight='700';
+}
+
+/* ====== Lehramt (Werbungskosten / Anlage N) ======
+   Homeoffice-Pauschale (6 €/Tag, max 210) und Entfernungspauschale (0,30 €/km bis 20 km,
+   0,38 €/km ab km 21 × Arbeitstage) sind Lehramt-spezifisch. Weitere Posten sind per Schalter
+   zwischen Lehramt (Werbungskosten) und Selbständigkeit (Betriebsausgabe in E/A) verschiebbar.
+   Angesetzt wird der höhere Wert aus Werbungskosten und Arbeitnehmer-Pauschbetrag. */
+const ENF1=0.30, ENF2=0.38, HO_MAX=210;
+function lehrPB(){ return settings.pauschbetrag||1230; }
+function lehrHoSatz(){ return settings.hoSatz||6; }
+function lehrGet(){
+  if(!lehramtData[currentYear]){
+    const prev=lehramtData[currentYear-1];
+    lehramtData[currentYear]= prev? JSON.parse(JSON.stringify(prev)) : {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]};
+    saveLehramt();
+  }
+  return lehramtData[currentYear];
+}
+function lehrHoBetrag(d){ return Math.min(d.hoTage||0, HO_MAX)*lehrHoSatz(); }
+function lehrEntfBetrag(d){ const km=d.kmSchule||0; return (d.arbeitstage||0)*(ENF1*Math.min(km,20)+ENF2*Math.max(km-20,0)); }
+function lehrPosSum(d,ziel){ return (d.positions||[]).filter(p=>p.ziel===ziel).reduce((s,p)=>s+(p.betrag||0),0); }
+function lehrSelbst(year){ const d=lehramtData[year]; return d?lehrPosSum(d,'selbst'):0; }
+function updateLehramt(){
+  const d=lehrGet();
+  d.hoTage=Math.round(num(document.getElementById('l-hotage').value));
+  d.kmSchule=Math.round(num(document.getElementById('l-km').value));
+  d.arbeitstage=Math.round(num(document.getElementById('l-tage').value));
+  saveLehramt(); renderLehramt();
+}
+function updateLehrSettings(){
+  const pb=num(document.getElementById('set-pb').value); settings.pauschbetrag=pb>0?pb:1230;
+  const hs=num(document.getElementById('set-hosatz').value); settings.hoSatz=hs>0?hs:6;
+  saveSettings(); renderLehramt();
+}
+function addLehramtPos(){
+  const name=document.getElementById('lp-name').value.trim();
+  const betrag=num(document.getElementById('lp-betrag').value);
+  if(!name||betrag<=0){ toast('Bezeichnung und Betrag nötig',true); return; }
+  const d=lehrGet(); d.positions=d.positions||[];
+  d.positions.push({id:'p'+Date.now(),name,betrag,ziel:'lehramt'});
+  saveLehramt();
+  document.getElementById('lp-name').value=''; document.getElementById('lp-betrag').value='';
+  renderLehramt(); document.getElementById('lp-name').focus();
+}
+function delLehramtPos(id){ const d=lehrGet(); d.positions=(d.positions||[]).filter(p=>p.id!==id); saveLehramt(); renderLehramt(); }
+function toggleLehramtPos(id){ const d=lehrGet(); const p=(d.positions||[]).find(x=>x.id===id); if(p){ p.ziel=p.ziel==='lehramt'?'selbst':'lehramt'; saveLehramt(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); } }
+function renderLehramtPos(d){
+  const el=document.getElementById('lp-list'); if(!el) return;
+  const pos=(d.positions||[]).slice();
+  if(!pos.length){ el.innerHTML='<div class="hint">Noch keine Posten.</div>'; return; }
+  el.innerHTML=pos.map(p=>{
+    const isL=p.ziel==='lehramt';
+    return '<div class="entry" style="cursor:default;display:flex;align-items:center;gap:8px;padding:7px 0;">'
+      +'<button class="filter-btn'+(isL?' active':'')+'" style="min-width:34px;padding:4px 8px;" onclick="toggleLehramtPos(\''+p.id+'\')" title="umschalten">'+(isL?'L':'S')+'</button>'
+      +'<div class="entry-main"><div class="desc">'+esc(p.name)+'</div><div class="sub">'+(isL?'Lehramt (Werbungskosten)':'Selbständig (Betriebsausgabe)')+'</div></div>'
+      +'<span style="font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;">'+fmt(p.betrag)+'</span>'
+      +'<button class="del-btn" onclick="delLehramtPos(\''+p.id+'\')" aria-label="Löschen">×</button></div>';
+  }).join('');
+}
+function renderLehramt(){
+  const d=lehrGet();
+  document.getElementById('l-wk-lbl').textContent='Werbungskosten '+currentYear;
+  document.getElementById('l-ov-year').textContent=currentYear;
+  document.getElementById('l-homax').textContent=HO_MAX;
+  const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  setV('l-hotage', d.hoTage?String(d.hoTage):'');
+  setV('l-km', d.kmSchule?String(d.kmSchule):'');
+  setV('l-tage', d.arbeitstage?String(d.arbeitstage):'');
+  setV('set-pb', deNum(lehrPB())); setV('set-hosatz', deNum(lehrHoSatz()));
+  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), wk=ho+entf+posL, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
+  setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>HO_MAX?'  (max '+HO_MAX+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
+  document.getElementById('l-wk').textContent=fmt(wk);
+  document.getElementById('l-pb').textContent=fmt(pb);
+  const ueber=wk-pb, ue=document.getElementById('l-ueber');
+  ue.textContent=(ueber>=0?'+':'')+fmt(ueber); ue.className='metric-value '+(ueber>=0?'green':'red');
+  const setT=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL));
+  setT('l-r-wk', fmt(wk)); setT('l-r-pb', fmt(pb)); setT('l-r-eff', fmt(Math.max(wk,pb))); setT('l-r-selbst', fmt(selbst));
+  renderLehramtPos(d);
+}
+
+/* ====== GitHub-Sync (nur Fahrt, privates Repo, Contents-API, manuell) ======
+   Fine-Grained-Token mit Recht „Contents: read & write" auf NUR dieses eine Repo.
+   Eine Datei wird in-place aktualisiert; Git-Historie dient als Backup-Verlauf. */
+function ghCfg(){ return {tok:store.get('steuer_gh_token'), repo:store.get('steuer_gh_repo'), path:(store.get('steuer_gh_path')||'fahrten.json')}; }
+function ghUrl(c){ return 'https://api.github.com/repos/'+c.repo+'/contents/'+c.path.split('/').map(encodeURIComponent).join('/'); }
+function b64encode(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64decode(b){ return decodeURIComponent(escape(atob((b||'').replace(/\s/g,'')))); }
+function syncState(){
+  const c=ghCfg(), on=!!(c.tok&&c.repo);
+  document.getElementById('sync-dot').className='sync-dot '+(on?'on':'off');
+  document.getElementById('sync-title').textContent=on?'Verbunden':'Nicht verbunden';
+  document.getElementById('sync-sub').textContent=on?(c.repo+' · '+c.path+' · manuell'):'Fahrtkosten lokal — kein GitHub-Sync';
+  document.getElementById('sync-btn').textContent=on?'Einstellungen':'Verbinden';
+}
+function toggleSyncFields(){
+  const f=document.getElementById('sync-fields'); f.classList.toggle('visible');
+  if(f.classList.contains('visible')){
+    document.getElementById('gh-token').value=store.get('steuer_gh_token')||'';
+    document.getElementById('gh-repo').value=store.get('steuer_gh_repo')||'';
+    document.getElementById('gh-path').value=store.get('steuer_gh_path')||'fahrten.json';
+  }
+}
+function saveToken(){
+  const tok=document.getElementById('gh-token').value.trim();
+  const repo=document.getElementById('gh-repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/^\/+|\/+$/g,'');
+  const path=(document.getElementById('gh-path').value.trim()||'fahrten.json').replace(/^\/+/,'');
+  tok?store.set('steuer_gh_token',tok):store.del('steuer_gh_token');
+  repo?store.set('steuer_gh_repo',repo):store.del('steuer_gh_repo');
+  store.set('steuer_gh_path',path);
+  syncState(); toast('Gespeichert');
+}
+function clearToken(){
+  if(!confirm('GitHub-Verbindung trennen? Fahrtdaten bleiben lokal.')) return;
+  store.del('steuer_gh_token'); store.del('steuer_gh_repo'); store.del('steuer_gh_sha');
+  document.getElementById('gh-token').value=''; document.getElementById('gh-repo').value='';
+  syncState(); toast('Verbindung getrennt');
+}
+function mergeFahrten(remote){
+  const byId={}; fahrten.forEach(f=>byId[f.id]=f);
+  remote.forEach(r=>{ const c=byId[r.id]; if(!c||(r.updated||0)>(c.updated||0)) byId[r.id]=r; });
+  fahrten=Object.values(byId);
+  nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
+  saveFahrt(); renderFahrten();
+}
+async function ghGet(){
+  const c=ghCfg();
+  const r=await fetch(ghUrl(c),{headers:{Authorization:'Bearer '+c.tok,Accept:'application/vnd.github+json'}});
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?' (Token?)':r.status===403?' (Recht „Contents"?)':''));
+  return r.json();
+}
+async function ghPull(){
+  const c=ghCfg();
+  if(!c.tok||!c.repo){ toast('Erst Token + Repo speichern',true); return; }
+  try{
+    const data=await ghGet();
+    if(!data){ toast('Datei noch nicht vorhanden — erst hochladen',true); return; }
+    store.set('steuer_gh_sha',data.sha);
+    mergeFahrten(JSON.parse(b64decode(data.content)));
+    toast('Geladen & zusammengeführt'); syncState();
+  }catch(e){ toast('Pull fehlgeschlagen: '+e.message,true); }
+}
+async function ghPush(){
+  const c=ghCfg();
+  if(!c.tok||!c.repo){ toast('Erst Token + Repo speichern',true); return; }
+  try{
+    let sha=null;
+    try{ const cur=await ghGet(); if(cur) sha=cur.sha; }catch(_){ sha=store.get('steuer_gh_sha')||null; }
+    const body={message:'Fahrtkosten '+new Date().toISOString().slice(0,10),content:b64encode(JSON.stringify(fahrten,null,2))};
+    if(sha) body.sha=sha;
+    const r=await fetch(ghUrl(c),{method:'PUT',headers:{Authorization:'Bearer '+c.tok,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?' (Token?)':r.status===403?' (Recht „Contents: write"?)':r.status===409?' (erst „Laden" – Konflikt)':''));
+    const data=await r.json();
+    if(data.content&&data.content.sha) store.set('steuer_gh_sha',data.content.sha);
+    toast('Hochgeladen ✓'); syncState();
+  }catch(e){ toast('Push fehlgeschlagen: '+e.message,true); }
+}
+
+/* ====== Init ====== */
+if(!storageOK) document.getElementById('storage-banner').classList.add('show');
+SEED_DATA_2025.forEach(e=>{
+  const k=normTxt(e.text);
+  if(k.length>=3 && !(k in baseLearn)) baseLearn[k]=e.kategorie;
+  const mm=e.text.match(/(\d{1,3})\s*%/);
+  if(mm){ const p=+mm[1]; if(p>0 && p<100 && !(k in baseLearnPct)) baseLearnPct[k]=p; }
+});
+document.getElementById('year-sel').value=String(currentYear);
+document.getElementById('ea-list').addEventListener('click',function(ev){
+  const cell=ev.target.closest('.amt-edit');
+  if(cell){ ev.stopPropagation(); startAmountEdit(cell, parseInt(cell.dataset.id,10)); return; }
+  if(ev.target.closest('.del-btn')) return;
+  const row=ev.target.closest('.entry');
+  if(row && row.dataset.id) editEintrag(parseInt(row.dataset.id,10));
+});
+document.getElementById('ea-form').addEventListener('keydown',function(ev){
+  if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
+});
+const eaDD=eaDefaultDate();
+document.getElementById('ea-datum').value=eaDD;
+document.getElementById('ea-datum-txt').value=fmtDate(eaDD);
+document.getElementById('f-datum').value=today;
+setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz();
+renderEA(); renderFahrten(); renderAfA(); renderLehramt(); syncState(); updateBackupInfo();
+if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
+
+/* Druck: Such-/Filter ignorieren, alle Monatssummen zeigen, danach Zustand wiederherstellen */
+let _printBackup=null;
+window.addEventListener('beforeprint',function(){
+  _printBackup={filter:eaFilter,search:eaSearch,months:new Set(shownMonthSums),editId:editId};
+  eaFilter='alle'; eaSearch=''; editId=null;
+  const ss=document.getElementById('ea-search'); if(ss) ss.value='';
+  shownMonthSums=new Set(eintraege.filter(e=>e.datum.slice(0,4)===String(currentYear)).map(e=>monthKey(e.datum)));
+  renderEA(); renderJahres();
+});
+window.addEventListener('afterprint',function(){
+  if(!_printBackup) return;
+  eaFilter=_printBackup.filter; eaSearch=_printBackup.search; shownMonthSums=_printBackup.months; editId=_printBackup.editId;
+  document.querySelectorAll('#tab-ea .filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===eaFilter));
+  const ss=document.getElementById('ea-search'); if(ss) ss.value=_printBackup.search;
+  renderEA(); _printBackup=null;
+});
+</script>
+</body>
+</html>
