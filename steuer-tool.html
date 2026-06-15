@@ -203,12 +203,35 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .banner{display:none;background:#fff4d6;border:0.5px solid #e6cf86;color:#7a5b00;border-radius:var(--radius-md);padding:9px 12px;font-size:12px;margin-bottom:0.85rem;}
 .banner.show{display:block;}
 
+/* Kopfzeilen-Symbole (Sync / Einstellungen) + Modal-Overlays */
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.icon-btn{background:var(--card);border:0.5px solid var(--border-2);border-radius:50%;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;color:var(--txt);flex-shrink:0;line-height:1;}
+.icon-btn:active{background:var(--card-2);}
+.icon-btn .dot{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--card);background:var(--red);}
+.icon-btn .dot.on{background:var(--green);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:flex-end;justify-content:center;z-index:200;}
+.ov.open{display:flex;}
+.ov-card{background:var(--card);width:100%;max-width:520px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:1.1rem 1.25rem calc(1.4rem + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.25);}
+.ov-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;position:sticky;top:-1.1rem;background:var(--card);padding:0.2rem 0 0.4rem;}
+.ov-head .t{font-size:16px;font-weight:600;}
+.ov-x{background:none;border:none;font-size:25px;line-height:1;cursor:pointer;color:var(--txt-2);padding:0 4px;}
+@media(min-width:560px){ .ov{align-items:center;} .ov-card{border-radius:18px;} }
+
 /* Handy: nur Fahrt-Bereich, übrige Tabs ausblenden (Desktop bleibt unverändert) */
 @media(max-width:600px){
   .tabs{display:none;}
   #tab-ea,#tab-afa,#tab-jahres,#tab-lehramt{display:none!important;}
   #tab-fahrt{display:block!important;}
-  .topbar h1::after{content:' · Fahrtkosten';font-weight:400;color:var(--txt-2);font-size:13px;}
+  .topbar h1{font-size:0;letter-spacing:0;}
+  .topbar h1::after{content:'Fahrtenbuch';font-size:21px;font-weight:600;letter-spacing:-0.02em;color:var(--txt);}
+  /* luftigere Eingabe: keine 3-Spalten-Quetsche, mehr Abstand */
+  .app{padding:0.75rem 0.9rem 4rem;}
+  .row3{grid-template-columns:1fr;}
+  .card{padding:1rem 1.05rem;}
+  .form-row{margin-bottom:0.9rem;}
+  .topbar{padding:0.4rem 0.1rem 0.85rem;}
+  .year-sel{padding:7px 26px 7px 10px;font-size:13px;}
+  .icon-btn{width:36px;height:36px;font-size:16px;}
 }
 @media print{
   @page{ margin:13mm; }
@@ -256,9 +279,13 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 <div class="app">
   <div class="topbar">
     <h1>Steuer-Tool</h1>
-    <select id="year-sel" class="year-sel no-print" onchange="setYear()">
-      <option>2024</option><option selected>2025</option><option>2026</option><option>2027</option><option>2028</option>
-    </select>
+    <div class="topbar-actions no-print">
+      <button class="icon-btn" id="hdr-sync" onclick="openOv('ov-sync')" aria-label="GitHub-Sync" title="GitHub-Sync">☁<span class="dot" id="hdr-sync-dot"></span></button>
+      <button class="icon-btn" id="hdr-setup" onclick="openOv('ov-kfz')" aria-label="km-Einstellungen" title="km-Abrechnung & Heimatort">⚙</button>
+      <select id="year-sel" class="year-sel" onchange="setYear()">
+        <option>2024</option><option selected>2025</option><option>2026</option><option>2027</option><option>2028</option>
+      </select>
+    </div>
   </div>
 
   <div id="storage-banner" class="banner no-print">⚠️ Browser-Speicher ist hier blockiert (z. B. Vorschau-Fenster). Das Tool funktioniert, aber Eingaben werden <b>nicht dauerhaft gespeichert</b>. Datei direkt im Browser öffnen für echte Speicherung.</div>
@@ -351,86 +378,8 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
       <div class="metric"><div class="metric-label">Summe abzugsfähig</div><div class="metric-value red" id="m-fsum">0,00 €</div></div>
     </div>
 
-    <div class="card no-print">
-      <div class="sync-card">
-        <span class="sync-dot off" id="sync-dot"></span>
-        <div class="sync-info">
-          <div class="t" id="sync-title">Nicht verbunden</div>
-          <div class="s" id="sync-sub">Fahrtkosten lokal — kein GitHub-Sync</div>
-        </div>
-        <button class="btn-ghost" id="sync-btn" onclick="toggleSyncFields()">Verbinden</button>
-      </div>
-      <div class="sync-fields" id="sync-fields">
-        <div class="form-row"><label>GitHub Fine-Grained Token</label><input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off"></div>
-        <div class="form-row"><label>Repository (benutzer/repo)</label><input type="text" id="gh-repo" placeholder="markuskoelbl/steuer-sync" autocomplete="off"></div>
-        <div class="form-row"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
-        <div class="sync-actions">
-          <button class="btn-ghost" onclick="ghPull()">↓ Laden (Pull)</button>
-          <button class="btn-ghost" onclick="ghPush()">↑ Hochladen (Push)</button>
-        </div>
-        <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="saveToken()">Einstellungen speichern</button>
-        <button class="btn-ghost" style="width:100%;margin-top:8px;color:var(--red);" onclick="clearToken()">Verbindung trennen</button>
-      </div>
-    </div>
-
-    <div class="card no-print">
-      <div class="sync-card">
-        <div class="sync-info" style="flex:1;">
-          <div class="t">km-Abrechnung</div>
-          <div class="s" id="kfz-status">Pauschale 0,30 €/km</div>
-        </div>
-        <button class="btn-ghost" onclick="toggleKfz()">Einstellungen</button>
-      </div>
-      <div id="kfz-fields" style="display:none;margin-top:0.85rem;border-top:0.5px solid var(--border);padding-top:0.85rem;">
-        <div class="form-row"><label>Standard-km-Satz (€/km)</label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
-        <div class="hint" style="margin:-2px 0 10px;">Falls sich der gesetzliche Satz ändert (z. B. auf 0,38 €), hier anpassen.</div>
-        <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span></label>
-        <div class="seg" id="seg-method">
-          <button id="btn-pausch" class="on" onclick="setMethod('pauschal')">Pauschale</button>
-          <button id="btn-einzel" onclick="setMethod('einzel')">Einzelnachweis</button>
-        </div>
-        <div id="einzel-sheet" style="display:none;">
-          <div class="hint" style="margin-bottom:0.6rem;">Belege <b>einzeln</b> erfassen — das Tool summiert automatisch. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km kommen aus den Fahrten; privat ergibt sich aus dem km-Stand.</div>
-          <div class="row2">
-            <div class="form-row"><label>Datum</label><input type="date" id="kb-datum"></div>
-            <div class="form-row"><label>Kostenart</label><select id="kb-kat"><option>Sprit</option><option>Versicherung</option><option>Kfz-Steuer</option><option>Reparatur</option><option>AfA/Leasing</option><option>Sonstiges</option></select></div>
-          </div>
-          <div class="row2">
-            <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="kb-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
-            <div class="form-row"><label>Notiz</label><input type="text" id="kb-note" placeholder="optional"></div>
-          </div>
-          <div style="display:flex;gap:6px;margin-bottom:0.5rem;">
-            <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center;">📷 Beleg scannen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanBeleg(this)"></label>
-            <button type="button" class="btn-ghost" style="flex:1;" onclick="addKfzBeleg()">+ Beleg hinzufügen</button>
-          </div>
-          <div id="kb-list" style="margin-bottom:0.6rem;"></div>
-          <div style="border-top:0.5px dashed var(--border-2);margin:0.2rem 0 0.6rem;padding-top:0.6rem;">
-            <div class="hint" style="margin-bottom:0.5rem;">Auto-AfA berechnen (Neuwagen 6 J., Gebraucht = Restnutzungsdauer) und als Jahres-Beleg „AfA/Leasing" übernehmen:</div>
-            <div class="row3">
-              <div class="form-row"><label>Kaufpreis (€)</label><input type="text" inputmode="decimal" id="car-preis" oninput="updateCarAfa()" onblur="fmtField(this)"></div>
-              <div class="form-row"><label>Kaufdatum</label><input type="date" id="car-datum" oninput="updateCarAfa()"></div>
-              <div class="form-row"><label>Jahre</label><input type="text" inputmode="numeric" id="car-jahre" placeholder="6" oninput="updateCarAfa()"></div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <div class="hint" id="car-afa-hint" style="flex:1;margin:0;"></div>
-              <button type="button" class="btn-ghost" onclick="addCarAfaBeleg()">AfA übernehmen</button>
-            </div>
-          </div>
-          <div class="row2">
-            <div class="form-row"><label>km-Stand 01.01.</label><input type="text" inputmode="decimal" id="kfz-kmstart" oninput="updateKfz()"></div>
-            <div class="form-row"><label>km-Stand 31.12.</label><input type="text" inputmode="decimal" id="kfz-kmend" oninput="updateKfz()"></div>
-          </div>
-          <div class="jblock" style="margin-top:8px;">
-            <div class="jrow"><span>Gesamtkosten</span><span id="kfz-r-kosten">—</span></div>
-            <div class="jrow"><span>Gesamt-km</span><span id="kfz-r-gkm">—</span></div>
-            <div class="jrow"><span>davon dienstlich (aus Fahrten)</span><span id="kfz-r-dienst">—</span></div>
-            <div class="jrow"><span>privat (errechnet)</span><span id="kfz-r-privat">—</span></div>
-            <div class="jrow total"><span>dein km-Satz</span><span id="kfz-r-satz">—</span></div>
-            <div class="jrow total"><span>absetzbar (dienstl. km × Satz)</span><span id="kfz-r-absetz">—</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- GitHub-Sync und km-Abrechnung liegen jetzt als Modals (ov-sync / ov-kfz) am Seitenende
+         und werden über die Symbole ☁ / ⚙ in der Kopfzeile geöffnet. -->
 
     <div class="card no-print">
       <div class="section-title">Fahrt erfassen</div>
@@ -444,13 +393,17 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
         <div class="form-row"><label>Rückkehr</label><input type="text" id="f-rueckort" placeholder="Heimatort" onchange="suggestRouteKm()"></div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.5rem;">
-        <button type="button" class="btn-ghost" onclick="gpsTo('f-start')">📍 Start</button>
-        <button type="button" class="btn-ghost" onclick="gpsTo('f-ziel')">📍 Ziel</button>
-        <button type="button" class="btn-ghost" onclick="openMaps()">🗺️ km in Maps</button>
+        <button type="button" class="btn-ghost" tabindex="-1" onclick="gpsTo('f-start')">📍 Start</button>
+        <button type="button" class="btn-ghost" tabindex="-1" onclick="gpsTo('f-ziel')">📍 Ziel</button>
+        <button type="button" class="btn-ghost" tabindex="-1" onclick="openMaps()">🗺️ km in Maps</button>
       </div>
-      <div class="row2">
-        <div class="form-row"><label>Gefahrene km</label><input type="text" inputmode="decimal" id="f-km" placeholder="160" oninput="calcFahrt()"></div>
-        <div class="form-row"><label>Satz</label><input type="text" id="f-satz-info" readonly value="0,30 €/km" title="In Einstellungen änderbar"></div>
+      <div class="form-row"><label>Gefahrene km</label><input type="text" inputmode="decimal" id="f-km" placeholder="160" oninput="calcFahrt()"></div>
+      <div class="form-row"><label>Satz pro km</label>
+        <div class="seg" id="seg-satz" style="margin-bottom:0;">
+          <button type="button" id="btn-satz-voll" class="on" onclick="setSatzMode('voll')">0,30 €/km</button>
+          <button type="button" id="btn-satz-halb" onclick="setSatzMode('halb')">0,15 €/km · Entfernung</button>
+        </div>
+        <div class="hint" style="margin-top:5px;">Halber Satz = Entfernungspauschale (½ des Standard-/Einzelnachweis-Satzes). 0,30 ist voreingestellt.</div>
       </div>
 
       <div class="form-row"><label>Verpflegung</label>
@@ -495,14 +448,15 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
         <span class="hint" style="margin:0;">Steuerjahr <b id="afa-jahr-lbl">2025</b> (oben umschaltbar) · pro rata temporis · Anschaffungsmonat zählt voll</span>
       </div>
       <div id="afa-list"></div>
-      <div class="no-print" style="border-top:0.5px solid var(--border);margin-top:12px;padding-top:12px;">
+      <div class="no-print" id="afa-form" style="border-top:0.5px solid var(--border);margin-top:12px;padding-top:12px;">
         <div class="section-title" style="font-size:14px;margin-bottom:0.7rem;">Neues Objekt abschreiben</div>
-        <div class="form-row"><label>Bezeichnung</label><input id="afa-name" placeholder="z.B. PA-Anlage"></div>
+        <div class="form-row"><label>Bezeichnung</label><input id="afa-name" placeholder="z.B. PA-Anlage" oninput="afaSuggest()"></div>
         <div class="row3">
           <div class="form-row"><label>Kaufdatum</label><input type="date" id="afa-datum"></div>
           <div class="form-row"><label>Preis (€)</label><input type="text" inputmode="decimal" id="afa-betrag" placeholder="0,00" oninput="updateAfaHint()" onblur="fmtField(this)"></div>
-          <div class="form-row"><label>Jahre (Nutzung)</label><input type="number" inputmode="numeric" id="afa-jahre" min="1" placeholder="5" oninput="updateAfaHint()"></div>
+          <div class="form-row"><label>Jahre (Nutzung)</label><input type="number" inputmode="numeric" id="afa-jahre" min="1" placeholder="5" oninput="afaJahreManual=true;updateAfaHint()"></div>
         </div>
+        <div class="hint" id="afa-cat-hint">Orientierung: Computer/Laptop 3 J. · Handy 2 J. · Keyboard/E-Piano 5–7 J. · Boxen/PA 5–10 J.</div>
         <div class="hint" id="afa-add-hint"></div>
         <button class="btn-ghost" style="width:100%;margin-top:4px;" onclick="addAfa()">+ AfA-Objekt hinzufügen</button>
       </div>
@@ -621,6 +575,87 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
       </div>
     </div>
   </section>
+</div>
+
+<!-- ===== Modal: GitHub-Sync ===== -->
+<div class="ov no-print" id="ov-sync" onclick="if(event.target===this)closeOv('ov-sync')">
+  <div class="ov-card">
+    <div class="ov-head"><span class="t">GitHub-Sync (Fahrten)</span><button class="ov-x" onclick="closeOv('ov-sync')" aria-label="Schließen">×</button></div>
+    <div class="sync-card" style="margin-bottom:0.85rem;">
+      <span class="sync-dot off" id="sync-dot"></span>
+      <div class="sync-info">
+        <div class="t" id="sync-title">Nicht verbunden</div>
+        <div class="s" id="sync-sub">Fahrtkosten lokal — kein GitHub-Sync</div>
+      </div>
+    </div>
+    <div class="form-row"><label>GitHub Fine-Grained Token</label><input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off"></div>
+    <div class="form-row"><label>Repository (benutzer/repo)</label><input type="text" id="gh-repo" placeholder="markuskoelbl24/steuer-tool" autocomplete="off"></div>
+    <div class="form-row"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
+    <div class="sync-actions">
+      <button class="btn-ghost" onclick="ghPull()">↓ Laden (Pull)</button>
+      <button class="btn-ghost" onclick="ghPush()">↑ Hochladen (Push)</button>
+    </div>
+    <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="saveToken()">Einstellungen speichern</button>
+    <button class="btn-ghost" style="width:100%;margin-top:8px;color:var(--red);" onclick="clearToken()">Verbindung trennen</button>
+  </div>
+</div>
+
+<!-- ===== Modal: km-Abrechnung & Heimatort ===== -->
+<div class="ov no-print" id="ov-kfz" onclick="if(event.target===this)closeOv('ov-kfz')">
+  <div class="ov-card">
+    <div class="ov-head"><span class="t">km-Abrechnung & Heimatort</span><button class="ov-x" onclick="closeOv('ov-kfz')" aria-label="Schließen">×</button></div>
+    <div class="hint" id="kfz-status" style="margin:0 0 12px;">Pauschale 0,30 €/km</div>
+    <div class="form-row"><label>Standard-Heimatort</label><input type="text" id="set-heimat" placeholder="z.B. München" oninput="updateHeimat()"></div>
+    <div class="hint" style="margin:-4px 0 12px;">Wird bei neuen Fahrten automatisch als <b>Start und Rückkehr</b> vor-eingetragen.</div>
+    <div class="form-row"><label>Standard-km-Satz (€/km)</label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
+    <div class="hint" style="margin:-4px 0 12px;">Falls sich der gesetzliche Satz ändert (z. B. 0,38 €), hier anpassen. Den halben Satz (Entfernungspauschale) wählst du direkt bei der Fahrt.</div>
+    <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span></label>
+    <div class="seg" id="seg-method">
+      <button type="button" id="btn-pausch" class="on" onclick="setMethod('pauschal')">Pauschale</button>
+      <button type="button" id="btn-einzel" onclick="setMethod('einzel')">Einzelnachweis</button>
+    </div>
+    <div class="hint" style="margin:-2px 0 10px;">Einzelnachweis gilt für das <b>komplette Kalenderjahr</b>; der errechnete Satz (und sein halber Wert) steht dann bei jeder Fahrt zur Auswahl.</div>
+    <div id="einzel-sheet" style="display:none;">
+      <div class="hint" style="margin-bottom:0.6rem;">Belege <b>einzeln</b> erfassen — das Tool summiert automatisch. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km kommen aus den Fahrten; privat ergibt sich aus dem km-Stand.</div>
+      <div class="row2">
+        <div class="form-row"><label>Datum</label><input type="date" id="kb-datum"></div>
+        <div class="form-row"><label>Kostenart</label><select id="kb-kat"><option>Sprit</option><option>Versicherung</option><option>Kfz-Steuer</option><option>Reparatur</option><option>AfA/Leasing</option><option>Sonstiges</option></select></div>
+      </div>
+      <div class="row2">
+        <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="kb-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
+        <div class="form-row"><label>Notiz</label><input type="text" id="kb-note" placeholder="optional"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:0.5rem;">
+        <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center;">📷 Beleg scannen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanBeleg(this)"></label>
+        <button type="button" class="btn-ghost" style="flex:1;" onclick="addKfzBeleg()">+ Beleg hinzufügen</button>
+      </div>
+      <div id="kb-list" style="margin-bottom:0.6rem;"></div>
+      <div style="border-top:0.5px dashed var(--border-2);margin:0.2rem 0 0.6rem;padding-top:0.6rem;">
+        <div class="hint" style="margin-bottom:0.5rem;">Auto-AfA berechnen (Neuwagen 6 J., Gebraucht = Restnutzungsdauer) und als Jahres-Beleg „AfA/Leasing" übernehmen:</div>
+        <div class="row3">
+          <div class="form-row"><label>Kaufpreis (€)</label><input type="text" inputmode="decimal" id="car-preis" oninput="updateCarAfa()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Kaufdatum</label><input type="date" id="car-datum" oninput="updateCarAfa()"></div>
+          <div class="form-row"><label>Jahre</label><input type="text" inputmode="numeric" id="car-jahre" placeholder="6" oninput="updateCarAfa()"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="hint" id="car-afa-hint" style="flex:1;margin:0;"></div>
+          <button type="button" class="btn-ghost" onclick="addCarAfaBeleg()">AfA übernehmen</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="form-row"><label>km-Stand 01.01.</label><input type="text" inputmode="decimal" id="kfz-kmstart" oninput="updateKfz()"></div>
+        <div class="form-row"><label>km-Stand 31.12.</label><input type="text" inputmode="decimal" id="kfz-kmend" oninput="updateKfz()"></div>
+      </div>
+      <div class="jblock" style="margin-top:8px;">
+        <div class="jrow"><span>Gesamtkosten</span><span id="kfz-r-kosten">—</span></div>
+        <div class="jrow"><span>Gesamt-km</span><span id="kfz-r-gkm">—</span></div>
+        <div class="jrow"><span>davon dienstlich (aus Fahrten)</span><span id="kfz-r-dienst">—</span></div>
+        <div class="jrow"><span>privat (errechnet)</span><span id="kfz-r-privat">—</span></div>
+        <div class="jrow total"><span>dein km-Satz</span><span id="kfz-r-satz">—</span></div>
+        <div class="jrow total"><span>absetzbar (dienstl. km × Satz)</span><span id="kfz-r-absetz">—</span></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1159,7 +1194,21 @@ let _scanImg=null;
 function kfzKosten(year){ const d=kfzData[year]; return (d&&d.belege)?d.belege.reduce((s,b)=>s+(b.betrag||0),0):0; }
 function einzelRate(year){ const d=kfzData[year]; if(!d) return 0; const gkm=(d.kmEnd||0)-(d.kmStart||0); return gkm>0 ? kfzKosten(year)/gkm : 0; }
 function activeSatz(year){ const d=kfzData[year]; if(d && d.method==='einzel') return einzelRate(year); return settings.standardSatz||0.30; }
-function resolveSatz(){ return activeSatz(currentYear); }
+let curSatzMode='voll';   // 'voll' = Standard-/Einzelnachweis-Satz, 'halb' = Entfernungspauschale (½)
+function resolveSatz(){ const s=activeSatz(currentYear); return curSatzMode==='halb'? s/2 : s; }
+function setSatzMode(m){
+  curSatzMode=m;
+  const v=document.getElementById('btn-satz-voll'), h=document.getElementById('btn-satz-halb');
+  if(v) v.classList.toggle('on',m==='voll');
+  if(h) h.classList.toggle('on',m==='halb');
+  calcFahrt();
+}
+function updateSatzLabels(){
+  const s=activeSatz(currentYear);
+  const v=document.getElementById('btn-satz-voll'), h=document.getElementById('btn-satz-halb');
+  if(v) v.textContent=deNum(s)+' €/km';
+  if(h) h.textContent=deNum(s/2)+' €/km · Entfernung';
+}
 function dienstKm(year){ return fahrten.filter(f=>f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.km||0),0); }
 function setMethod(m){ const d=kfzData[currentYear]||{}; d.method=m; kfzData[currentYear]=d; saveKfz(); fillKfz(); calcFahrt(); }
 function updateSettings(){ const s=num(document.getElementById('set-satz').value); settings.standardSatz=s>0?s:0.30; saveSettings(); fillKfzResults(); calcFahrt(); }
@@ -1205,6 +1254,7 @@ function fillKfz(){
   document.getElementById('kfz-year2').textContent=currentYear;
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
   set('kfz-kmstart', d.kmStart?String(d.kmStart):''); set('kfz-kmend', d.kmEnd?String(d.kmEnd):'');
+  set('set-heimat', settings.heimatort||'');
   const kbd=document.getElementById('kb-datum'); if(kbd && !kbd.value) kbd.value=eaDefaultDate();
   renderKfzBelege(); fillKfzResults(); updateCarAfa();
 }
@@ -1221,14 +1271,11 @@ function fillKfzResults(){
   setT('kfz-r-satz', rate>0?deNum(rate)+' €/km':'—');
   setT('kfz-r-absetz', rate>0?fmt(dienst*rate):'—');
   const aSatz=activeSatz(currentYear), isEin=(d.method==='einzel');
-  document.getElementById('kfz-status').textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+deNum(settings.standardSatz||0.30)+' €/km');
-  const info=document.getElementById('f-satz-info'); if(info) info.value=deNum(aSatz)+' €/km';
+  const st=document.getElementById('kfz-status');
+  if(st) st.textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+deNum(settings.standardSatz||0.30)+' €/km');
+  updateSatzLabels();
 }
-function toggleKfz(){
-  const el=document.getElementById('kfz-fields');
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
-  if(el.style.display!=='none') fillKfz();
-}
+function toggleKfz(){ openOv('ov-kfz'); }   /* km-Abrechnung ist jetzt ein Modal */
 /* ---- Beleg-Foto OCR (optional; lädt Tesseract.js bei Bedarf aus dem Netz, Bild bleibt lokal) ---- */
 function compressImage(file,maxDim,quality){
   return new Promise(function(res){
@@ -1314,13 +1361,20 @@ function addFahrt(){
   document.getElementById('f-park').value='0'; document.getElementById('f-zug').value='0';
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
   document.getElementById('f-datum').value=eaDefaultDate();
-  prefillHome(); setTrip('ein');
+  prefillHome(); setTrip('ein'); setSatzMode('voll');
   document.getElementById('f-preview').textContent='0,00 €';
   renderFahrten(); toast('Fahrt gespeichert');
+  document.getElementById('f-zweck').focus();
+}
+function updateHeimat(){
+  settings.heimatort=document.getElementById('set-heimat').value.trim();
+  saveSettings(); prefillHome(); calcFahrt();
 }
 function prefillHome(){
-  if(homeOrt.start) document.getElementById('f-start').value=homeOrt.start;
-  if(homeOrt.rueckort) document.getElementById('f-rueckort').value=homeOrt.rueckort;
+  const h=settings.heimatort||'';
+  const s=document.getElementById('f-start'), r=document.getElementById('f-rueckort');
+  if(s && !s.value) s.value=homeOrt.start||h;
+  if(r && !r.value) r.value=homeOrt.rueckort||h;
 }
 function routeKeyFrom(s,z,r){ return (s+'|'+z+'|'+(r||s)).toLowerCase().replace(/\s+/g,' ').trim(); }
 function suggestRouteKm(){
@@ -1414,6 +1468,31 @@ function renderAfA(){
   document.getElementById('m-afa').textContent=fmt(total);
   document.getElementById('m-afa-n').textContent=n;
 }
+/* Nutzungsdauer-Vorschlag nach Bezeichnung (Orientierung an AfA-Tabelle) */
+const AFA_HINTS=[
+  {re:/computer|laptop|macbook|notebook|\bpc\b|rechner|tablet|ipad/i, jahre:3, range:'3 Jahre', label:'Computer/Laptop'},
+  {re:/handy|smartphone|iphone|telefon/i, jahre:2, range:'2 Jahre', label:'Handy/Smartphone'},
+  {re:/keyboard|e-?piano|epiano|stage|klavier|synth|digitalpiano|cembalo|masterkey/i, jahre:6, range:'5–7 Jahre', label:'Keyboard/E-Piano'},
+  {re:/box|boxen|\bpa\b|lautsprech|speaker|anlage|verstärk|\bamp\b|endstufe|subwoofer|aktivbox/i, jahre:8, range:'5–10 Jahre', label:'Boxen/PA'}
+];
+const AFA_HINT_DEFAULT='Orientierung: Computer/Laptop 3 J. · Handy 2 J. · Keyboard/E-Piano 5–7 J. · Boxen/PA 5–10 J.';
+let afaJahreManual=false;
+function suggestedAfaJahre(name){ for(const h of AFA_HINTS){ if(h.re.test(name||'')) return h.jahre; } return null; }
+function afaDefaults(){ const d=document.getElementById('afa-datum'); if(d&&!d.value) d.value=eaDefaultDate(); }
+function afaSuggest(){
+  const name=document.getElementById('afa-name').value;
+  let hit=null; for(const h of AFA_HINTS){ if(h.re.test(name)){ hit=h; break; } }
+  const hintEl=document.getElementById('afa-cat-hint');
+  if(hit){
+    hintEl.innerHTML='💡 <b>'+esc(hit.label)+'</b>: Nutzungsdauer lt. AfA-Tabelle ca. <b>'+hit.range+'</b>'
+      +(afaJahreManual?'':' — als Vorschlag eingetragen, anpassbar');
+    const jf=document.getElementById('afa-jahre');
+    if(!afaJahreManual && !jf.value){ jf.value=hit.jahre; }
+    updateAfaHint();
+  } else {
+    hintEl.textContent=AFA_HINT_DEFAULT;
+  }
+}
 function updateAfaHint(){
   const b=num(document.getElementById('afa-betrag').value);
   const j=parseInt(document.getElementById('afa-jahre').value,10)||0;
@@ -1423,13 +1502,18 @@ function addAfa(){
   const name=document.getElementById('afa-name').value.trim();
   const datum=document.getElementById('afa-datum').value;
   const betrag=num(document.getElementById('afa-betrag').value);
-  const jahre=parseInt(document.getElementById('afa-jahre').value,10)||0;
-  if(!name||!datum||betrag<=0||jahre<=0){ toast('Name, Datum, Preis und Jahre nötig',true); return; }
+  let jahre=parseInt(document.getElementById('afa-jahre').value,10);
+  if(!jahre||jahre<=0) jahre=suggestedAfaJahre(name)||5;   // leer → Vorschlag aus Bezeichnung, sonst 5
+  if(!name||!datum||betrag<=0){ toast('Name, Datum und Preis nötig',true); return; }
   userAfa.push({id:'u'+Date.now(),name,datum,betrag,jahre,jahresbetrag:Math.round(betrag/jahre*100)/100,user:true});
   saveUserAfa();
   ['afa-name','afa-datum','afa-betrag','afa-jahre'].forEach(id=>document.getElementById(id).value='');
+  afaJahreManual=false;
   document.getElementById('afa-add-hint').textContent='';
-  renderAfA(); toast('AfA-Objekt hinzugefügt');
+  document.getElementById('afa-cat-hint').textContent=AFA_HINT_DEFAULT;
+  afaDefaults();
+  renderAfA(); toast('AfA-Objekt „'+name+'" · '+jahre+' J.');
+  document.getElementById('afa-name').focus();
 }
 function delAfa(id){
   const a=userAfa.find(x=>x.id===id);
@@ -1567,19 +1651,25 @@ function b64encode(s){ return btoa(unescape(encodeURIComponent(s))); }
 function b64decode(b){ return decodeURIComponent(escape(atob((b||'').replace(/\s/g,'')))); }
 function syncState(){
   const c=ghCfg(), on=!!(c.tok&&c.repo);
-  document.getElementById('sync-dot').className='sync-dot '+(on?'on':'off');
-  document.getElementById('sync-title').textContent=on?'Verbunden':'Nicht verbunden';
-  document.getElementById('sync-sub').textContent=on?(c.repo+' · '+c.path+' · manuell'):'Fahrtkosten lokal — kein GitHub-Sync';
-  document.getElementById('sync-btn').textContent=on?'Einstellungen':'Verbinden';
+  const set=(id,fn)=>{ const el=document.getElementById(id); if(el) fn(el); };
+  set('sync-dot', el=>el.className='sync-dot '+(on?'on':'off'));
+  set('hdr-sync-dot', el=>el.className='dot '+(on?'on':''));
+  set('sync-title', el=>el.textContent=on?'Verbunden':'Nicht verbunden');
+  set('sync-sub', el=>el.textContent=on?(c.repo+' · '+c.path+' · manuell'):'Fahrtkosten lokal — kein GitHub-Sync');
 }
-function toggleSyncFields(){
-  const f=document.getElementById('sync-fields'); f.classList.toggle('visible');
-  if(f.classList.contains('visible')){
+/* Modal-Overlays (Sync / km-Abrechnung) öffnen & schließen */
+function openOv(id){
+  const el=document.getElementById(id); if(!el) return;
+  if(id==='ov-sync'){
     document.getElementById('gh-token').value=store.get('steuer_gh_token')||'';
     document.getElementById('gh-repo').value=store.get('steuer_gh_repo')||'';
     document.getElementById('gh-path').value=store.get('steuer_gh_path')||'fahrten.json';
+    syncState();
   }
+  if(id==='ov-kfz') fillKfz();
+  el.classList.add('open');
 }
+function closeOv(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
 function saveToken(){
   const tok=document.getElementById('gh-token').value.trim();
   const repo=document.getElementById('gh-repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/^\/+|\/+$/g,'');
@@ -1655,6 +1745,17 @@ document.getElementById('ea-list').addEventListener('click',function(ev){
 document.getElementById('ea-form').addEventListener('keydown',function(ev){
   if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
 });
+/* Enter speichert auch in Fahrt / AfA / Kfz-Beleg / Lehramt */
+function bindEnter(ids,fn){ ids.forEach(function(id){ const el=document.getElementById(id); if(el) el.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); fn(); } }); }); }
+bindEnter(['f-zweck','f-start','f-ziel','f-rueckort','f-km','f-ab','f-rueck','f-park','f-zug'], addFahrt);
+bindEnter(['afa-name','afa-betrag','afa-jahre'], addAfa);
+bindEnter(['kb-betrag','kb-note'], addKfzBeleg);
+bindEnter(['lp-name','lp-betrag'], addLehramtPos);
+/* Tab überspringt Umschalter (Segmented Controls) und reine Anzeige-Felder → flüssige Eingabe */
+document.querySelectorAll('.seg button').forEach(function(b){ b.tabIndex=-1; });
+document.querySelectorAll('input[readonly]').forEach(function(b){ b.tabIndex=-1; });
+document.addEventListener('keydown',function(ev){ if(ev.key==='Escape') document.querySelectorAll('.ov.open').forEach(function(o){ o.classList.remove('open'); }); });
+afaDefaults();
 /* Klick außerhalb von Formular UND Einträgen beendet den Bearbeiten-Modus.
    Klicks im Formular (inkl. Aktualisieren/Abbrechen) und auf Einträge bleiben unberührt. */
 document.addEventListener('click',function(ev){
