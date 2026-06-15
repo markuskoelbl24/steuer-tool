@@ -211,20 +211,44 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
   .topbar h1::after{content:' · Fahrtkosten';font-weight:400;color:var(--txt-2);font-size:13px;}
 }
 @media print{
-  :root{--bg:#fff;--card:#fff;--card-2:#fff;--inset:#fff;--txt:#000;--txt-2:#333;--txt-3:#555;--border:#bbb;--border-2:#999;}
-  html,body{background:#fff;color:#000;}
-  .tabs,.no-print,.del-btn,.fahrt-del,.expand-toggle,.banner{display:none!important;}
-  .section{display:block!important;margin-bottom:1.5rem;}
-  /* Reihenfolge fürs Steuerbüro: Zusammenfassung zuerst, dann Buchungen */
-  .app{display:flex;flex-direction:column;}
-  .topbar{order:0;} #tab-jahres{order:1;} #tab-ea{order:2;} #tab-lehramt{order:3;} #tab-fahrt{order:4;} #tab-afa{order:5;}
+  @page{ margin:13mm; }
+  :root{--bg:#fff;--card:#fff;--card-2:#f2f2f2;--inset:#fff;--txt:#000;--txt-2:#333;--txt-3:#555;--border:#ccc;--border-2:#999;}
+  html,body{background:#fff;color:#000;font-size:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .tabs,.no-print,.del-btn,.fahrt-del,.expand-toggle,.banner,.year-sel{display:none!important;}
+  .app{display:flex;flex-direction:column;max-width:100%;padding:0;}
+  .topbar{order:0;padding:0 0 4px;} .topbar h1{font-size:14px;}
+  /* Reihenfolge: Zusammenfassung zuerst */
+  #tab-jahres{order:1;} #tab-ea{order:2;} #tab-lehramt{order:3;} #tab-fahrt{order:4;} #tab-afa{order:5;}
+  .section{display:block!important;}
+  /* jede Rubrik beginnt auf neuer Seite (Jahres bleibt Seite 1) */
+  #tab-ea,#tab-lehramt,#tab-fahrt,#tab-afa{break-before:page;page-break-before:always;}
+  #tab-jahres{break-before:avoid;page-break-before:avoid;}
+  /* deutliche Rubrik-Überschrift pro Seite */
+  #tab-ea::before{content:"Einnahmen / Ausgaben (E/A)";}
+  #tab-lehramt::before{content:"Lehramt — Werbungskosten (Anlage N)";}
+  #tab-fahrt::before{content:"Fahrtkosten";}
+  #tab-afa::before{content:"Abschreibungen (AfA)";}
+  #tab-ea::before,#tab-lehramt::before,#tab-fahrt::before,#tab-afa::before{
+    display:block;font-size:14px;font-weight:700;margin:0 0 7px;padding-bottom:3px;border-bottom:1.5px solid #000;}
+  /* nichts mitten durchschneiden */
+  .jblock,.jresult,.metric,.afa,.entry,.fahrt-entry,.q-head,.month-div,.led-head{break-inside:avoid;page-break-inside:avoid;}
+  /* kompakt: weniger Luft */
   .ea-grid{display:block!important;}
-  .month-body{display:block!important;}
-  .month-head{position:static;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .card,.metric{box-shadow:none;border:1px solid #999;}
+  .card{box-shadow:none;border:0.5px solid #ccc;border-radius:6px;padding:6px 9px;margin-bottom:6px;}
+  .section-title{font-size:12px;margin-bottom:5px;}
+  .metric-grid{gap:5px;margin-bottom:6px;} .metric-grid.three .metric-value{font-size:14px;}
+  .metric{box-shadow:none;border:0.5px solid #ccc;border-radius:6px;padding:5px 8px;}
+  .metric-label{font-size:8px;margin-bottom:1px;} .metric-value{font-size:14px;}
+  .jblock,.jresult{background:#fff;border:0.5px solid #bbb;border-radius:6px;padding:5px 8px;margin-bottom:5px;}
+  .jblock-title{font-size:8.5px;margin-bottom:3px;} .jrow{padding:1px 0;} .jresult .jrow{font-size:12px;}
+  .led-row{gap:6px;} .led-head{padding-bottom:3px;}
+  .q-head{background:#e8e8e8!important;padding:4px 6px;margin:9px 0 1px;border-radius:4px;}
+  .month-div{padding:4px 0 1px;margin-top:2px;border-top:0.5px solid #ddd;}
+  .entry{padding:2px 0;font-size:9.5px;} .entry-main .sub{font-size:8px;}
   .badge,.afa-pill{border:0.5px solid #999;background:#fff!important;color:#000!important;}
-  .jblock,.jresult,.preview-box{background:#fff;border:1px solid #999;color:#000;}
-  .app{max-width:100%;}
+  .afa{padding:4px 0;} .afa-name{font-size:11px;} .afa-meta{font-size:8px;}
+  .fahrt-entry{padding:3px 0;} .fahrt-route{font-size:11px;} .fahrt-sub{font-size:8px;}
+  .month-head{position:static;background:#e8e8e8!important;padding:4px 6px;}
 }
 </style>
 </head>
@@ -277,7 +301,7 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
             </div>
             <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="ea-betrag" placeholder="0,00" oninput="updateAnteilHint()" onblur="fmtField(this)"></div>
           </div>
-          <div class="form-row"><label>Beschreibung</label><input type="text" id="ea-text" placeholder="z.B. Philipp Allar Gage" oninput="suggestKategorie()"></div>
+          <div class="form-row"><label>Beschreibung</label><input type="text" id="ea-text" placeholder="z.B. Bandgage / Equipment-Kauf" oninput="suggestKategorie()"></div>
           <div class="row2" id="kat-row">
             <div class="form-row"><label>Kategorie</label><select id="ea-kategorie" onchange="userPickedKat()"></select></div>
             <div class="form-row" id="anteil-row"><label>Absetzbar %</label><input type="number" id="ea-anteil" value="100" min="1" max="100" inputmode="numeric" oninput="anteilManual=true;updateAnteilHint()"></div>
@@ -290,7 +314,7 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
           <div class="form-row" id="beleg-row" style="display:none;"><label>Belegnr. (Gage)</label><input type="text" id="ea-belegnr" placeholder="—"></div>
           <div class="bewirtung-fields" id="bew-extra">
             <div class="form-row"><label>Anlass (Pflicht)</label><input type="text" id="bew-anlass" placeholder="z.B. Probenbesprechung"></div>
-            <div class="form-row"><label>Personen (Pflicht)</label><input type="text" id="bew-personen" placeholder="z.B. M. Kölbl, J. Müller"></div>
+            <div class="form-row"><label>Personen (Pflicht)</label><input type="text" id="bew-personen" placeholder="z.B. Namen der Teilnehmer"></div>
           </div>
           <button class="btn-primary" id="save-btn" onclick="addEintrag()">Eintrag speichern</button>
           <button class="btn-ghost" id="cancel-edit" style="display:none;width:100%;margin-top:8px;" onclick="cancelEdit()">Abbrechen</button>
@@ -298,7 +322,8 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
             <span style="flex:1;min-width:120px;">Enter speichert · Kategorie & % gelernt. <span id="backup-info" style="color:var(--txt-3);"></span></span>
             <button class="expand-toggle" style="color:var(--txt-3);" onclick="exportData()">⤓ Backup</button>
             <label class="expand-toggle" style="color:var(--txt-3);cursor:pointer;margin:0;">⤴ Import<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label>
-            <button class="expand-toggle" style="color:var(--txt-3);" onclick="resetData()">↺ Testdaten</button>
+            <button class="expand-toggle" style="color:var(--accent);font-weight:600;" onclick="loadDemo()">▶ Demo 2025</button>
+            <button class="expand-toggle" style="color:var(--txt-3);" onclick="resetData()">↺ Leeren</button>
           </div>
         </div>
       </div>
@@ -411,7 +436,7 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
       <div class="section-title">Fahrt erfassen</div>
       <div class="row2">
         <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
-        <div class="form-row"><label>Zweck / Band</label><input type="text" id="f-zweck" placeholder="z.B. MATS Gig"></div>
+        <div class="form-row"><label>Zweck / Band</label><input type="text" id="f-zweck" placeholder="z.B. Bandauftritt"></div>
       </div>
       <div class="row3">
         <div class="form-row"><label>Start</label><input type="text" id="f-start" placeholder="Heimatort" onchange="suggestRouteKm()"></div>
@@ -613,111 +638,21 @@ const store={
 };
 
 /* ====== Seed-Daten 2025 ====== */
-const SEED_DATA_2025 = [
-  {id:1,typ:'aus',konto:'B',datum:'2025-01-02',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:2,typ:'aus',konto:'B',datum:'2025-01-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:3,typ:'aus',konto:'B',datum:'2025-01-10',betrag:30.00,kategorie:'Software/Abo',text:'Strato WebDomain',belegnr:''},
-  {id:4,typ:'aus',konto:'K',datum:'2025-01-10',betrag:3.95,kategorie:'Equipment',text:'Batterie',belegnr:''},
-  {id:5,typ:'aus',konto:'K',datum:'2025-01-13',betrag:23.00,kategorie:'Bewirtung',text:'Geschäftsessen',belegnr:''},
-  {id:6,typ:'aus',konto:'K',datum:'2025-01-16',betrag:0.99,kategorie:'Software/Abo',text:'Apple iCloud',belegnr:''},
-  {id:7,typ:'aus',konto:'B',datum:'2025-01-20',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:8,typ:'aus',konto:'B',datum:'2025-01-15',betrag:108.60,kategorie:'Bürobedarf',text:'Bürobedarf',belegnr:''},
-  {id:9,typ:'ein',konto:'B',datum:'2025-01-27',betrag:850.00,kategorie:'Gage',text:'Philipp Allar Gage',belegnr:'25001'},
-  {id:10,typ:'aus',konto:'B',datum:'2025-02-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:11,typ:'aus',konto:'B',datum:'2025-02-03',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:12,typ:'aus',konto:'B',datum:'2025-02-07',betrag:5.06,kategorie:'Noten',text:'Noten',belegnr:''},
-  {id:13,typ:'aus',konto:'B',datum:'2025-02-09',betrag:154.30,kategorie:'Fortbildung',text:'Fortbildung Katherl',belegnr:''},
-  {id:14,typ:'aus',konto:'B',datum:'2025-02-12',betrag:22.63,kategorie:'Fortbildung',text:'Weiterbildung Konzert',belegnr:''},
-  {id:15,typ:'aus',konto:'K',datum:'2025-02-12',betrag:39.30,kategorie:'Equipment',text:'Gitarrensaiten',belegnr:''},
-  {id:16,typ:'aus',konto:'B',datum:'2025-02-14',betrag:66.06,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
-  {id:17,typ:'ein',konto:'K',datum:'2025-02-14',betrag:400.00,kategorie:'Gage',text:'Piano Solo Gage',belegnr:'25002'},
-  {id:18,typ:'aus',konto:'B',datum:'2025-02-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:19,typ:'aus',konto:'B',datum:'2025-03-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:20,typ:'aus',konto:'B',datum:'2025-03-03',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:21,typ:'aus',konto:'B',datum:'2025-03-07',betrag:46.30,kategorie:'Fortbildung',text:'Weiterbildung Konzert',belegnr:''},
-  {id:22,typ:'aus',konto:'B',datum:'2025-03-12',betrag:13.99,kategorie:'Equipment',text:'Audio-Kabel',belegnr:''},
-  {id:23,typ:'aus',konto:'B',datum:'2025-03-12',betrag:16.14,kategorie:'Bürobedarf',text:'Handyorganizer Klassenzimmer',belegnr:''},
-  {id:24,typ:'aus',konto:'B',datum:'2025-03-12',betrag:14.99,kategorie:'Equipment',text:'USB Kabel',belegnr:''},
-  {id:25,typ:'aus',konto:'B',datum:'2025-03-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:26,typ:'ein',konto:'B',datum:'2025-03-21',betrag:800.00,kategorie:'Gage',text:'Keyz2Voice Gage',belegnr:'25003'},
-  {id:27,typ:'aus',konto:'B',datum:'2025-03-26',betrag:29.00,kategorie:'Equipment',text:'Audio-Entstörfilter',belegnr:''},
-  {id:28,typ:'aus',konto:'B',datum:'2025-03-28',betrag:11.98,kategorie:'Equipment',text:'USB Hub',belegnr:''},
-  {id:29,typ:'aus',konto:'B',datum:'2025-04-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:30,typ:'aus',konto:'B',datum:'2025-04-01',betrag:3.30,kategorie:'Bürobedarf',text:'DHL Versand',belegnr:''},
-  {id:31,typ:'aus',konto:'B',datum:'2025-04-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:32,typ:'aus',konto:'B',datum:'2025-04-16',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:33,typ:'aus',konto:'B',datum:'2025-04-29',betrag:336.00,kategorie:'Homeoffice',text:'Kaffeemühle Homeoffice 58%',belegnr:''},
-  {id:34,typ:'aus',konto:'B',datum:'2025-05-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:35,typ:'ein',konto:'B',datum:'2025-05-06',betrag:400.00,kategorie:'Gage',text:'Trio Haipt Gage',belegnr:'25004'},
-  {id:36,typ:'aus',konto:'B',datum:'2025-05-12',betrag:13.40,kategorie:'Bürobedarf',text:'Lehrerkalender',belegnr:''},
-  {id:37,typ:'aus',konto:'B',datum:'2025-05-15',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
-  {id:38,typ:'aus',konto:'B',datum:'2025-05-19',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:39,typ:'aus',konto:'B',datum:'2025-05-22',betrag:15.99,kategorie:'Equipment',text:'iPad Schutzfolie',belegnr:''},
-  {id:40,typ:'ein',konto:'B',datum:'2025-05-22',betrag:700.00,kategorie:'Gage',text:'TS Band Gage',belegnr:'25005'},
-  {id:41,typ:'ein',konto:'K',datum:'2025-05-27',betrag:1150.00,kategorie:'Gage',text:'Abba99 Gage',belegnr:'25006'},
-  {id:42,typ:'aus',konto:'B',datum:'2025-06-02',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:43,typ:'aus',konto:'B',datum:'2025-06-02',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:44,typ:'ein',konto:'B',datum:'2025-06-11',betrag:1560.00,kategorie:'Gage',text:'MATS Bandgage',belegnr:'25007'},
-  {id:45,typ:'aus',konto:'B',datum:'2025-06-11',betrag:4.15,kategorie:'Bürobedarf',text:'Post Versand',belegnr:''},
-  {id:46,typ:'aus',konto:'B',datum:'2025-06-16',betrag:275.00,kategorie:'Sonstiges',text:'MATS Drummer Gage (Weitergabe)',belegnr:''},
-  {id:47,typ:'aus',konto:'B',datum:'2025-06-16',betrag:321.00,kategorie:'Sonstiges',text:'MATS Bassist Gage (Weitergabe)',belegnr:''},
-  {id:48,typ:'aus',konto:'B',datum:'2025-06-17',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:49,typ:'aus',konto:'B',datum:'2025-06-23',betrag:275.00,kategorie:'Sonstiges',text:'MATS Gitarrist Gage (Weitergabe)',belegnr:''},
-  {id:50,typ:'aus',konto:'B',datum:'2025-07-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:51,typ:'aus',konto:'B',datum:'2025-07-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:52,typ:'aus',konto:'B',datum:'2025-07-02',betrag:30.00,kategorie:'Software/Abo',text:'Strato WebDomain',belegnr:''},
-  {id:53,typ:'aus',konto:'B',datum:'2025-07-03',betrag:26.80,kategorie:'Equipment',text:'Akkordeon Hülle',belegnr:''},
-  {id:54,typ:'ein',konto:'B',datum:'2025-07-03',betrag:530.00,kategorie:'Gage',text:'MATS Gage',belegnr:'25009'},
-  {id:55,typ:'aus',konto:'B',datum:'2025-07-04',betrag:326.89,kategorie:'Sonstiges',text:'Steuerbüro',belegnr:''},
-  {id:56,typ:'aus',konto:'B',datum:'2025-07-08',betrag:190.00,kategorie:'Equipment',text:'Roland GoKeys Keyboard',belegnr:''},
-  {id:57,typ:'aus',konto:'B',datum:'2025-07-08',betrag:300.00,kategorie:'Sonstiges',text:'MATS Sängerin Gage (Weitergabe)',belegnr:''},
-  {id:58,typ:'aus',konto:'B',datum:'2025-07-14',betrag:39.00,kategorie:'Equipment',text:'Keyboard Netzteil',belegnr:''},
-  {id:59,typ:'ein',konto:'B',datum:'2025-07-14',betrag:580.00,kategorie:'Gage',text:'RockAntenne Gage',belegnr:'25010'},
-  {id:60,typ:'ein',konto:'B',datum:'2025-07-18',betrag:550.00,kategorie:'Gage',text:'Abba99 Gage',belegnr:''},
-  {id:61,typ:'aus',konto:'B',datum:'2025-07-22',betrag:7.99,kategorie:'Fortbildung',text:'Musikfilm Unterricht',belegnr:''},
-  {id:62,typ:'aus',konto:'B',datum:'2025-08-01',betrag:11.50,kategorie:'KV/Versicherung',text:'Auslands-KV',belegnr:''},
-  {id:63,typ:'aus',konto:'B',datum:'2025-08-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:64,typ:'aus',konto:'B',datum:'2025-08-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:65,typ:'aus',konto:'B',datum:'2025-08-14',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
-  {id:66,typ:'ein',konto:'B',datum:'2025-08-14',betrag:333.33,kategorie:'Sonstiges',text:'KV Rückerstattung 2024',belegnr:''},
-  {id:67,typ:'aus',konto:'B',datum:'2025-08-18',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:68,typ:'aus',konto:'K',datum:'2025-08-24',betrag:800.00,kategorie:'Bürobedarf',text:'Reisekoffer',belegnr:''},
-  {id:69,typ:'aus',konto:'B',datum:'2025-08-26',betrag:56.96,kategorie:'Bürobedarf',text:'Kalenderhülle',belegnr:''},
-  {id:70,typ:'ein',konto:'B',datum:'2025-08-16',betrag:500.00,kategorie:'Gage',text:'CandyTunes Gage',belegnr:'25012'},
-  {id:71,typ:'aus',konto:'B',datum:'2025-09-01',betrag:10.78,kategorie:'Equipment',text:'Handy Schutzfolie',belegnr:''},
-  {id:72,typ:'aus',konto:'B',datum:'2025-09-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:73,typ:'aus',konto:'B',datum:'2025-09-01',betrag:81.27,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:74,typ:'aus',konto:'B',datum:'2025-09-16',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:75,typ:'ein',konto:'B',datum:'2025-09-16',betrag:825.00,kategorie:'Gage',text:'CandyTunes Gage',belegnr:'25013'},
-  {id:76,typ:'aus',konto:'B',datum:'2025-10-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:77,typ:'aus',konto:'B',datum:'2025-10-01',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:78,typ:'aus',konto:'B',datum:'2025-10-17',betrag:19.50,kategorie:'Noten',text:'Noten',belegnr:''},
-  {id:79,typ:'aus',konto:'B',datum:'2025-10-20',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:80,typ:'ein',konto:'B',datum:'2025-10-23',betrag:375.00,kategorie:'Gage',text:'TSB Gage',belegnr:''},
-  {id:81,typ:'aus',konto:'B',datum:'2025-10-24',betrag:45.00,kategorie:'Bürobedarf',text:'Mülleimer Bürobedarf',belegnr:''},
-  {id:82,typ:'aus',konto:'K',datum:'2025-10-27',betrag:7.99,kategorie:'Software/Abo',text:'Vocal Painting App',belegnr:''},
-  {id:83,typ:'aus',konto:'B',datum:'2025-10-27',betrag:16.14,kategorie:'Equipment',text:'USB C Verlängerung',belegnr:''},
-  {id:84,typ:'aus',konto:'B',datum:'2025-11-03',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:85,typ:'aus',konto:'B',datum:'2025-11-03',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:86,typ:'aus',konto:'B',datum:'2025-11-12',betrag:8.98,kategorie:'Equipment',text:'Batterien',belegnr:''},
-  {id:87,typ:'aus',konto:'B',datum:'2025-11-13',betrag:17.59,kategorie:'Equipment',text:'Schlüsselanhänger',belegnr:''},
-  {id:88,typ:'aus',konto:'B',datum:'2025-11-13',betrag:49.80,kategorie:'Bewirtung',text:'Geschäftsessen JazzWorks',belegnr:''},
-  {id:89,typ:'aus',konto:'B',datum:'2025-11-17',betrag:72.18,kategorie:'KV/Versicherung',text:'BPV Mitgliedsbeitrag',belegnr:''},
-  {id:90,typ:'aus',konto:'B',datum:'2025-11-18',betrag:20.19,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:91,typ:'aus',konto:'B',datum:'2025-11-25',betrag:4.50,kategorie:'Noten',text:'Noten',belegnr:''},
-  {id:92,typ:'aus',konto:'B',datum:'2025-12-01',betrag:341.09,kategorie:'KV/Versicherung',text:'KV',belegnr:''},
-  {id:93,typ:'aus',konto:'B',datum:'2025-12-01',betrag:83.70,kategorie:'KV/Versicherung',text:'BU/DU',belegnr:''},
-  {id:94,typ:'aus',konto:'B',datum:'2025-12-09',betrag:29.80,kategorie:'Bewirtung',text:'Probentage Geschäftsessen',belegnr:''},
-  {id:95,typ:'aus',konto:'B',datum:'2025-12-15',betrag:19.96,kategorie:'Handy',text:'Handy 80%',belegnr:''},
-  {id:96,typ:'aus',konto:'B',datum:'2025-12-16',betrag:80.00,kategorie:'Equipment',text:'Apple TV (Kleinanzeige)',belegnr:''},
-  {id:97,typ:'aus',konto:'K',datum:'2025-12-18',betrag:131.00,kategorie:'Equipment',text:'Apple TV',belegnr:''},
-];
+const SEED_DATA_2025 = [];
 
-const ABSCHREIBUNGEN = [
-  { name:'MacBook Air M2', datum:'2022-10-04', betrag:2421.90, jahre:3, jahresbetrag:807.30 },
-  { name:'Nord Stage 4',   datum:'2023-03-20', betrag:3233.34, jahre:5, jahresbetrag:646.67 },
-  { name:'Keyboard Case',  datum:'2020-06-12', betrag:259.00,  jahre:5, jahresbetrag:51.80  },
-  { name:'iPhone 14 Pro',  datum:'2022-10-10', betrag:1056.90, jahre:2, jahresbetrag:528.45 },
+/* Keine fest eingebauten AfA mehr — alle Abschreibungen werden vom Nutzer im AfA-Tab erfasst (userAfa). */
+const ABSCHREIBUNGEN = [];
+
+/* Neutrale Beispieldaten NUR für den Demo-Knopf (keine echten Zahlen) */
+const DEMO_EA_2025 = [
+  {id:1,typ:'ein',konto:'B',datum:'2025-02-10',betrag:600.00,kategorie:'Gage',text:'Demo Bandgage',belegnr:'25001'},
+  {id:2,typ:'ein',konto:'K',datum:'2025-04-18',betrag:400.00,kategorie:'Gage',text:'Demo Solo-Auftritt',belegnr:'25002'},
+  {id:3,typ:'ein',konto:'B',datum:'2025-07-12',betrag:900.00,kategorie:'Gage',text:'Demo Festival',belegnr:'25003'},
+  {id:4,typ:'aus',konto:'B',datum:'2025-01-15',betrag:120.00,kategorie:'Equipment',text:'Demo Kabel & Zubehör',belegnr:''},
+  {id:5,typ:'aus',konto:'B',datum:'2025-03-20',betrag:80.00,kategorie:'Noten',text:'Demo Notenkauf',belegnr:''},
+  {id:6,typ:'aus',konto:'B',datum:'2025-05-05',betrag:35.00,voll:50.00,anteil:70,kategorie:'Bewirtung',text:'Demo Geschäftsessen',bew_anlass:'Demo-Besprechung',bew_personen:'M. K., J. M.',belegnr:''},
+  {id:7,typ:'aus',konto:'B',datum:'2025-09-01',betrag:20.00,voll:25.00,anteil:80,kategorie:'Handy',text:'Demo Handy 80%',belegnr:''},
+  {id:8,typ:'aus',konto:'B',datum:'2025-11-10',betrag:200.00,kategorie:'Fortbildung',text:'Demo Workshop',belegnr:''}
 ];
 
 const DEFAULT_CATS=['Gage','KV/Versicherung','Equipment','Bürobedarf','Bewirtung','Homeoffice','Fortbildung','Noten','Handy','Software/Abo','Sonstiges'];
@@ -914,6 +849,7 @@ function setYear(){
   currentYear=parseInt(document.getElementById('year-sel').value,10)||2025;
   shownMonthSums.clear();
   if(editId==null){ const dd=eaDefaultDate(); document.getElementById('ea-datum').value=dd; document.getElementById('ea-datum-txt').value=fmtDate(dd); document.getElementById('ea-belegnr').value=''; refreshKat(); }
+  document.getElementById('f-datum').value=eaDefaultDate();
   fillKfz();
   renderEA(); renderFahrten(); renderAfA(); renderLehramt();
   if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
@@ -1061,11 +997,39 @@ function renderEA(){
   el.innerHTML=html;
 }
 function resetData(){
-  if(!confirm('Alle E/A-Einträge löschen und Seed-Daten 2025 neu laden? (Gelernte Kategorien bleiben.)')) return;
-  store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
-  eintraege=JSON.parse(JSON.stringify(SEED_DATA_2025));
+  if(!confirm('Alle E/A-Einträge dieses Browsers löschen?')) return;
+  if(editId!=null) resetForm();
+  eintraege=[]; saveEA(); nextId=1;
+  renderEA(); renderJahres(); toast('E/A geleert');
+}
+function loadDemo(){
+  if(!confirm('Demo 2025 laden? Lädt neutrale Beispieldaten (E/A, 3 Fahrten, Lehramt) für 2025. Eigene E/A-, Fahrt- und Lehramt-Daten 2025 werden überschrieben.')) return;
+  currentYear=2025; document.getElementById('year-sel').value='2025';
+  if(editId!=null) resetForm();
+  store.set('steuer_ea', JSON.stringify(DEMO_EA_2025));
+  eintraege=JSON.parse(JSON.stringify(DEMO_EA_2025));
   nextId=Math.max(...eintraege.map(e=>e.id))+1;
-  renderEA(); toast('Testdaten 2025 geladen');
+  fahrten=fahrten.filter(f=>f.datum.slice(0,4)!=='2025');
+  nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
+  const mk=o=>Object.assign({id:nextFahrtId++,satz:0.30,park:0,zug:0,anreiseNacht:false,heimMitternacht:false,updated:Date.now(),demo:true},o);
+  fahrten.push(mk({datum:'2025-03-15',enddatum:'',start:'Heimatort',ziel:'München',rueckort:'Heimatort',route:'Heimatort → München → Heimatort',zweck:'Demo-Gig (eintägig)',km:280,pausch:14,mehr:false,tage:1,kmgeld:280*0.30+14}));
+  fahrten.push(mk({datum:'2025-06-20',enddatum:'2025-06-22',start:'Heimatort',ziel:'Hamburg',rueckort:'Heimatort',route:'Heimatort → Hamburg → Heimatort',zweck:'Demo-Festival (3 Tage)',km:1500,pausch:56,mehr:true,tage:3,kmgeld:1500*0.30+56}));
+  fahrten.push(mk({datum:'2025-09-05',enddatum:'2025-09-07',start:'Heimatort',ziel:'Berlin',rueckort:'Heimatort',route:'Heimatort → Berlin → Heimatort',zweck:'Demo-Gig (Heimkunft nach Mitternacht)',km:1100,pausch:42,mehr:true,tage:3,heimMitternacht:true,kmgeld:1100*0.30+42}));
+  saveFahrt();
+  routeKm[routeKeyFrom('Heimatort','München','Heimatort')]=280;
+  routeKm[routeKeyFrom('Heimatort','Hamburg','Heimatort')]=1500;
+  routeKm[routeKeyFrom('Heimatort','Berlin','Heimatort')]=1100; saveRouteKm();
+  lehramtData['2025']={hoTage:210,kmSchule:25,arbeitstage:190,positions:[
+    {id:'d1',name:'Arbeitsmittelpauschale',betrag:110,ziel:'lehramt'},
+    {id:'d2',name:'Kontoführungsgebühr',betrag:16,ziel:'lehramt'},
+    {id:'d3',name:'BU/DU',betrag:76.60,ziel:'lehramt'},
+    {id:'d4',name:'Fachliteratur',betrag:90,ziel:'lehramt'}
+  ]}; saveLehramt();
+  const dd=eaDefaultDate();
+  document.getElementById('ea-datum').value=dd; document.getElementById('ea-datum-txt').value=fmtDate(dd);
+  document.getElementById('f-datum').value=dd;
+  renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); fillKfz();
+  toast('Demo 2025 geladen');
 }
 function exportCSV(){
   const yStr=String(currentYear);
@@ -1349,7 +1313,7 @@ function addFahrt(){
   ['f-ziel','f-zweck','f-km','f-ab','f-rueck','f-enddatum'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-park').value='0'; document.getElementById('f-zug').value='0';
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
-  document.getElementById('f-datum').value=today;
+  document.getElementById('f-datum').value=eaDefaultDate();
   prefillHome(); setTrip('ein');
   document.getElementById('f-preview').textContent='0,00 €';
   renderFahrten(); toast('Fahrt gespeichert');
@@ -1691,12 +1655,20 @@ document.getElementById('ea-list').addEventListener('click',function(ev){
 document.getElementById('ea-form').addEventListener('keydown',function(ev){
   if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
 });
+/* Klick außerhalb von Formular UND Einträgen beendet den Bearbeiten-Modus.
+   Klicks im Formular (inkl. Aktualisieren/Abbrechen) und auf Einträge bleiben unberührt. */
+document.addEventListener('click',function(ev){
+  if(editId==null) return;
+  if(ev.target.closest('#ea-form')) return;
+  if(ev.target.closest('.entry')) return;
+  cancelEdit();
+});
 const eaDD=eaDefaultDate();
 document.getElementById('ea-datum').value=eaDD;
 document.getElementById('ea-datum-txt').value=fmtDate(eaDD);
-document.getElementById('f-datum').value=today;
+document.getElementById('f-datum').value=eaDD;
 setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz();
-renderEA(); renderFahrten(); renderAfA(); renderLehramt(); syncState(); updateBackupInfo();
+renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); syncState(); updateBackupInfo();
 if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
 
 /* Druck: Such-/Filter ignorieren, alle Monatssummen zeigen, danach Zustand wiederherstellen */
