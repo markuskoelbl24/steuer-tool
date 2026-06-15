@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "id": 1,
+    "datum": "2025-06-15",
+    "enddatum": "",
+    "route": "48.76632, 11.38242 → Regensburg → 48.76632, 11.38242",
+    "start": "48.76632, 11.38242",
+    "ziel": "Regensburg",
+    "rueckort": "48.76632, 11.38242",
+    "zweck": "Test Gig",
+    "km": 182,
+    "satz": 0.3,
+    "park": 0,
+    "zug": 0,
+    "pausch": 14,
+    "mehr": false,
+    "tage": 1,
+    "anreiseNacht": false,
+    "heimMitternacht": false,
+    "kmgeld": 68.6,
+    "updated": 1781545755158
+  },
+  {
+    "id": 2,
+    "datum": "2025-06-15",
+    "enddatum": "",
+    "route": "Ingolstadt → Regensburg → Ingolstadt",
+    "start": "Ingolstadt",
+    "ziel": "Regensburg",
+    "rueckort": "Ingolstadt",
+    "zweck": "Test 2",
+    "km": 179,
+    "satz": 0.3,
+    "park": 0,
+    "zug": 0,
+    "pausch": 14,
+    "mehr": false,
+    "tage": 1,
+    "anreiseNacht": false,
+    "heimMitternacht": false,
+    "kmgeld": 67.69999999999999,
+    "updated": 1781553627057
+  }
+]
