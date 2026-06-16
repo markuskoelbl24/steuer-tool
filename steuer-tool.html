@@ -60,7 +60,14 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);-webkit-
 .tab.active{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.1);}
 
 .section{display:none;}
+#tab-ea{order:1;} #tab-fahrt{order:2;} #tab-lehramt{order:3;} #tab-afa{order:4;} #tab-jahres{order:5;}
 .section.active{display:block;}
+/* Setup als ganzseitiger Bereich (kein Popup), erreichbar über ⚙ */
+#tab-kfz{max-width:980px;margin:0 auto;padding:0 1rem 4rem;}
+.setup-inner{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.4rem;}
+.setup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.7rem;border-bottom:0.5px solid var(--border);}
+.setup-head .t{font-size:19px;font-weight:600;}
+body.setup-open .app{padding-bottom:0;}
 
 .card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:0.85rem;}
 
@@ -250,7 +257,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 @media(max-width:600px){
   .tabs{display:none;}
   #tab-ea,#tab-afa,#tab-jahres,#tab-lehramt{display:none!important;}
-  #tab-fahrt{display:block!important;}
+  /* Fahrt (Standard) & Setup (über ⚙) folgen dem .active-System */
+  #tab-kfz{padding-left:0;padding-right:0;}
   .topbar h1{font-size:0;letter-spacing:0;}
   .topbar h1::after{content:'Fahrtenbuch';font-size:21px;font-weight:600;letter-spacing:-0.02em;color:var(--txt);}
   /* luftigere Eingabe: keine 3-Spalten-Quetsche, mehr Abstand */
@@ -269,7 +277,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 @media print{
   @page{ margin:12mm; }
   body{background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .app,.ov,.toast,.banner{display:none!important;}
+  .app,.ov,.toast,.banner,#tab-kfz{display:none!important;}
   #report{display:block!important;}
 }
 /* ===== Druck-Bericht: kompakt & tabellarisch (nur im PDF/Druck sichtbar) ===== */
@@ -305,7 +313,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     <h1>Steuer-Tool</h1>
     <div class="topbar-actions no-print">
       <button class="icon-btn" id="hdr-sync" onclick="openOv('ov-sync')" aria-label="GitHub-Sync" title="GitHub-Sync">☁<span class="dot" id="hdr-sync-dot"></span></button>
-      <button class="icon-btn" id="hdr-setup" onclick="openOv('ov-kfz')" aria-label="km-Einstellungen" title="km-Abrechnung & Heimatort">⚙</button>
+      <button class="icon-btn" id="hdr-setup" onclick="toggleSetup()" aria-label="Einstellungen" title="Einstellungen (Setup)">⚙</button>
       <select id="year-sel" class="year-sel" onchange="setYear()">
         <option>2024</option><option selected>2025</option><option>2026</option><option>2027</option><option>2028</option>
       </select>
@@ -315,11 +323,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   <div id="storage-banner" class="banner no-print">⚠️ Browser-Speicher ist hier blockiert (z. B. Vorschau-Fenster). Das Tool funktioniert, aber Eingaben werden <b>nicht dauerhaft gespeichert</b>. Datei direkt im Browser öffnen für echte Speicherung.</div>
 
   <div class="tabs no-print">
-    <button class="tab active" data-tab="ea" onclick="switchTab('ea')">E/A</button>
-    <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrt</button>
-    <button class="tab" data-tab="afa" onclick="switchTab('afa')">AfA</button>
-    <button class="tab" data-tab="jahres" onclick="switchTab('jahres')">Jahres</button>
-    <button class="tab" data-tab="lehramt" onclick="switchTab('lehramt')">Lehramt</button>
+    <button class="tab active" data-tab="ea" onclick="switchTab('ea')">Einnahmen & Ausgaben</button>
+    <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrtkosten</button>
+    <button class="tab" data-tab="lehramt" onclick="switchTab('lehramt')">Werbungskosten</button>
+    <button class="tab" data-tab="afa" onclick="switchTab('afa')">Abschreibungen</button>
+    <button class="tab" data-tab="jahres" onclick="switchTab('jahres')">Jahresübersicht</button>
   </div>
 
   <!-- ============ E/A ============ -->
@@ -402,8 +410,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="metric"><div class="metric-label">Summe abzugsfähig</div><div class="metric-value red" id="m-fsum">0,00 €</div></div>
     </div>
 
-    <!-- GitHub-Sync und km-Abrechnung liegen jetzt als Modals (ov-sync / ov-kfz) am Seitenende
-         und werden über die Symbole ☁ / ⚙ in der Kopfzeile geöffnet. -->
+    <!-- GitHub-Sync ist ein Modal (ov-sync); Setup ist ein ganzseitiger Bereich (#tab-kfz).
+         Beide werden über die Symbole ☁ / ⚙ in der Kopfzeile geöffnet. -->
 
     <div class="card no-print">
       <div class="list-head" style="margin-bottom:0.9rem;">
@@ -430,11 +438,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="form-row"><label>Gefahrene km</label><input type="text" inputmode="decimal" id="f-km" placeholder="160" oninput="calcFahrt()"></div>
       <div class="form-row"><label>Satz pro km</label>
-        <div class="seg" id="seg-satz" style="margin-bottom:0;">
-          <button type="button" id="btn-satz-voll" class="on" onclick="setSatzMode('voll')">0,30 €/km</button>
-          <button type="button" id="btn-satz-halb" onclick="setSatzMode('halb')">0,15 €/km · Entfernung</button>
-        </div>
-        <div class="hint" style="margin-top:5px;">Halber Satz = Entfernungspauschale (½ des Standard-/Einzelnachweis-Satzes). 0,30 ist voreingestellt.</div>
+        <div class="hint" style="margin-bottom:8px;">Pauschale: 0,30 €/km (Musikfahrten)</div>
       </div>
 
       <div class="form-row"><label>Art der Reise (Verpflegung)</label>
@@ -526,14 +530,15 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="jblock">
         <div class="jblock-title">EINNAHMEN</div>
         <div class="jrow"><span>Musikergagen</span><span class="ein" id="j-gagen">—</span></div>
+        <div class="jrow"><span>Unterricht</span><span class="ein" id="j-unterricht">—</span></div>
         <div class="jrow"><span>Sonstige Einnahmen</span><span class="ein" id="j-sonstein">—</span></div>
         <div class="jrow total"><span>Gesamt Einnahmen</span><span class="ein" id="j-eintotal">—</span></div>
       </div>
       <div class="jblock">
         <div class="jblock-title">AUSGABEN LAUFEND</div>
-        <div class="jrow"><span>KV / Versicherungen</span><span class="aus" id="j-kv">—</span></div>
-        <div class="jrow"><span>Equipment / Noten</span><span class="aus" id="j-equip">—</span></div>
-        <div class="jrow"><span>Büro / Homeoffice / Handy / Software / Fortbildung</span><span class="aus" id="j-buero">—</span></div>
+        <div class="jrow"><span>Versicherungen</span><span class="aus" id="j-kv">—</span></div>
+        <div class="jrow"><span>Musikzubehör</span><span class="aus" id="j-equip">—</span></div>
+        <div class="jrow"><span>Büro / Services & Abos / Fortbildung</span><span class="aus" id="j-buero">—</span></div>
         <div class="jrow"><span>Bewirtung</span><span class="aus" id="j-bew">—</span></div>
         <div class="jrow"><span>Sonstiges</span><span class="aus" id="j-sonstaus">—</span></div>
         <div class="jrow"><span>Aus Lehramt verschoben</span><span class="aus" id="j-lehrversch">—</span></div>
@@ -592,11 +597,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="form-row"><label>Homeoffice-Pauschale</label><input type="text" id="l-ho-betrag" readonly></div>
       </div>
       <div class="row3">
-        <div class="form-row"><label>km zur Schule (einfach)</label><input type="text" inputmode="numeric" id="l-km" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>km zur Schule (einfach)</label><input type="text" inputmode="decimal" id="l-km" placeholder="0" oninput="updateLehramt()"></div>
         <div class="form-row"><label>Arbeitstage (Fahrt)</label><input type="text" inputmode="numeric" id="l-tage" placeholder="0" oninput="updateLehramt()"></div>
         <div class="form-row"><label>Entfernungspauschale</label><input type="text" id="l-entf-betrag" readonly></div>
       </div>
-      <div class="hint">Homeoffice 6 €/Tag (max 210 = 1.260 €). Entfernung: 0,30 €/km bis 20 km, 0,38 €/km ab km 21, × Arbeitstage.</div>
+      <div class="hint" id="l-rates-hint">Homeoffice 6 €/Tag. Entfernung × Arbeitstage.</div>
     </div>
 
     <div class="card no-print">
@@ -624,11 +629,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     </div>
 
     <div class="card no-print">
-      <div class="afa-toolbar" style="margin-bottom:0.7rem;"><span class="hint" style="margin:0;">2024 dient als Vorlage; neue Jahre übernehmen die Werte und sind editierbar. Bei Gesetzesänderung anpassbar:</span></div>
-      <div class="row2">
-        <div class="form-row"><label>Arbeitnehmer-Pauschbetrag (€)</label><input type="text" inputmode="decimal" id="set-pb" oninput="updateLehrSettings()" onblur="fmtField(this)"></div>
-        <div class="form-row"><label>Homeoffice-Satz (€/Tag)</label><input type="text" inputmode="decimal" id="set-hosatz" oninput="updateLehrSettings()" onblur="fmtField(this)"></div>
-      </div>
+      <div class="hint" style="margin:0;">Pauschbetrag, Homeoffice-Satz, Entfernungspauschale & weitere gesetzliche Werte sind zentral im <b>⚙ Setup</b> (oben rechts → „Gesetzliche Werte") editierbar.</div>
     </div>
   </section>
 </div>
@@ -663,15 +664,62 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   </div>
 </div>
 
-<!-- ===== Modal: km-Abrechnung & Heimatort ===== -->
-<div class="ov no-print" id="ov-kfz" onclick="if(event.target===this)closeOv('ov-kfz')">
-  <div class="ov-card">
-    <div class="ov-head"><span class="t">km-Abrechnung & Heimatort</span><button class="ov-x" onclick="closeOv('ov-kfz')" aria-label="Schließen">×</button></div>
+<!-- ===== Setup: ganzseitiger Bereich (über ⚙ erreichbar, kein Popup) ===== -->
+<section class="section setup-page no-print" id="tab-kfz">
+  <div class="setup-inner">
+    <div class="setup-head"><span class="t">Einstellungen (Setup)</span><button class="btn-ghost" onclick="closeSetup()">← Zurück</button></div>
     <div class="hint" id="kfz-status" style="margin:0 0 12px;">Pauschale 0,30 €/km</div>
     <div class="form-row"><label>Standard-Heimatort (mit Straße &amp; Hausnr.)</label><input type="text" id="set-heimat" placeholder="z.B. Musterstr. 12, 80331 München" oninput="updateHeimat()"></div>
     <div class="hint" style="margin:-4px 0 12px;">Wird bei neuen Fahrten automatisch als <b>Start und Rückkehr</b> eingetragen. Vollständige Adresse = genauere km-Berechnung.</div>
-    <div class="form-row"><label>Standard-km-Satz (€/km)</label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
-    <div class="hint" style="margin:-4px 0 12px;">Falls sich der gesetzliche Satz ändert (z. B. 0,38 €), hier anpassen. Den halben Satz (Entfernungspauschale) wählst du direkt bei der Fahrt.</div>
+    <div class="form-row"><label>Standard-km-Satz Musikfahrten (€/km) — Jahr <span id="satz-year">2026</span></label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
+    <div class="hint" style="margin:-4px 0 12px;">Gilt <b>ab dem oben gewählten Jahr und allen Folgejahren</b>, bis du ein späteres Jahr abweichend einstellst — frühere Jahre bleiben unberührt. Bereits gespeicherte Fahrten behalten ihren Satz.</div>
+
+    <details class="afa-info" id="law-panel" style="margin-bottom:14px;">
+      <summary>⚖️ Gesetzliche Werte — Jahr <span id="law-year">2026</span></summary>
+      <div class="afa-info-body">
+        <div class="row2">
+          <div class="form-row"><label>Arbeitnehmer-Pauschbetrag (€)</label><input type="text" inputmode="decimal" id="law-pb" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Homeoffice-Satz (€/Tag)</label><input type="text" inputmode="decimal" id="law-hosatz" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+        </div>
+        <div class="row2">
+          <div class="form-row"><label>Homeoffice max. Tage</label><input type="text" inputmode="numeric" id="law-homax" oninput="updateLawSettings()"></div>
+          <div class="form-row"><label>Bewirtung absetzbar (%)</label><input type="text" inputmode="numeric" id="law-bewirtung" oninput="updateLawSettings()"></div>
+        </div>
+        <div class="row2">
+          <div class="form-row"><label>Entfernung €/km (bis 20 km)</label><input type="text" inputmode="decimal" id="law-entf1" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Entfernung €/km (ab 21 km)</label><input type="text" inputmode="decimal" id="law-entf2" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+        </div>
+        <div class="row2">
+          <div class="form-row"><label>Verpflegung €/Tag (≥8 h / An-/Abreise)</label><input type="text" inputmode="decimal" id="law-verpfl8" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Verpflegung €/Tag (voller Tag)</label><input type="text" inputmode="decimal" id="law-verpflfull" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+        </div>
+        <div class="row2">
+          <div class="form-row"><label>GWG-Grenze (€)</label><input type="text" inputmode="decimal" id="law-gwg800" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>AfA-Pflicht ab (€)</label><input type="text" inputmode="decimal" id="law-gwg1000" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+        </div>
+        <button type="button" class="btn-ghost" style="width:100%;margin-top:8px;" onclick="resetLaw()">↺ Werte dieses Jahres auf Standard zurücksetzen</button>
+        <p style="margin-top:8px;">Werte gelten <b>für das oben gewählte Jahr und alle Folgejahre</b>, bis du ein späteres Jahr abweichend einstellst — frühere Jahre bleiben unberührt. Leeres Feld = gesetzlicher Standard. Beispiel: Pendlerpauschale 2025 = 0,30 €/km bis 20 km, ab 2026 = 0,38 €/km ab dem 1. km. Den km-Satz (Musikfahrten) stellst du oben separat ein.</p>
+      </div>
+    </details>
+
+    <details class="afa-info" style="margin-bottom:14px;">
+      <summary>🏷️ Belegnummern-Konfiguration</summary>
+      <div class="afa-info-body">
+        <div id="belegnummern-list" style="margin-bottom:8px;"></div>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick="addBelegCategory()">+ Weitere Kategorie hinzufügen</button>
+        <p style="margin-top:8px;font-size:10px;color:var(--txt-2);">Für jede Kategorie kannst du Belegnummern aktivieren/deaktivieren und ein Prefix setzen (z.B. „u" für Unterricht → 25u001).</p>
+      </div>
+    </details>
+
+    <details class="afa-info" style="margin-bottom:14px;">
+      <summary>🏷️ Stichwort-Zuordnung (Auto-Kategorien)</summary>
+      <div class="afa-info-body">
+        <div id="stichwort-list" style="margin-bottom:8px;"></div>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick="addStichwort()">+ Neue Zuordnung hinzufügen</button>
+        <p style="margin-top:8px;font-size:10px;color:var(--txt-2);">Wenn du eine Beschreibung mit einem Stichwort eingibst (z.B. „Gage"), wird die Kategorie automatisch erkannt. Hier kannst du diese Zuordnungen verwalten.</p>
+      </div>
+    </details>
+
     <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span></label>
     <div class="seg" id="seg-method">
       <button type="button" id="btn-pausch" class="on" onclick="setMethod('pauschal')">Pauschale</button>
@@ -719,7 +767,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       </div>
     </div>
   </div>
-</div>
+</section>
 
 <div class="toast" id="toast"></div>
 
@@ -746,15 +794,14 @@ const DEMO_EA_2025 = [
   {id:1,typ:'ein',konto:'B',datum:'2025-02-10',betrag:600.00,kategorie:'Gage',text:'Demo Bandgage',belegnr:'25001'},
   {id:2,typ:'ein',konto:'K',datum:'2025-04-18',betrag:400.00,kategorie:'Gage',text:'Demo Solo-Auftritt',belegnr:'25002'},
   {id:3,typ:'ein',konto:'B',datum:'2025-07-12',betrag:900.00,kategorie:'Gage',text:'Demo Festival',belegnr:'25003'},
-  {id:4,typ:'aus',konto:'B',datum:'2025-01-15',betrag:120.00,kategorie:'Equipment',text:'Demo Kabel & Zubehör',belegnr:''},
-  {id:5,typ:'aus',konto:'B',datum:'2025-03-20',betrag:80.00,kategorie:'Noten',text:'Demo Notenkauf',belegnr:''},
+  {id:4,typ:'aus',konto:'B',datum:'2025-01-15',betrag:120.00,kategorie:'Musikzubehör',text:'Demo Audiokabel & Zubehör',belegnr:''},
+  {id:5,typ:'aus',konto:'B',datum:'2025-03-20',betrag:80.00,kategorie:'Musikzubehör',text:'Demo Notenkauf',belegnr:''},
   {id:6,typ:'aus',konto:'B',datum:'2025-05-05',betrag:35.00,voll:50.00,anteil:70,kategorie:'Bewirtung',text:'Demo Geschäftsessen',bew_anlass:'Demo-Besprechung',bew_personen:'M. K., J. M.',belegnr:''},
-  {id:7,typ:'aus',konto:'B',datum:'2025-09-01',betrag:20.00,voll:25.00,anteil:80,kategorie:'Handy',text:'Demo Handy 80%',belegnr:''},
+  {id:7,typ:'aus',konto:'B',datum:'2025-09-01',betrag:20.00,voll:25.00,anteil:80,kategorie:'Services & Abos',text:'Demo Handytarif 80%',belegnr:''},
   {id:8,typ:'aus',konto:'B',datum:'2025-11-10',betrag:200.00,kategorie:'Fortbildung',text:'Demo Workshop',belegnr:''}
 ];
 
-const DEFAULT_CATS=['Gage','KV/Versicherung','Equipment','Bürobedarf','Bewirtung','Homeoffice','Fortbildung','Noten','Handy','Software/Abo','Sonstiges'];
-const CAT_DEFAULT_PCT={Bewirtung:70};
+const DEFAULT_CATS=['Gage','Unterricht','Services & Abos','Versicherung','Bewirtung','Fortbildung','Musikzubehör','Bürobedarf','Sonstiges'];
 
 /* ====== Laden (Seed write-once) ====== */
 if(!store.get('steuer_ea')) store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
@@ -763,8 +810,36 @@ let fahrten    = JSON.parse(store.get('steuer_fahrt') || '[]');
 let customCats = JSON.parse(store.get('steuer_cats') || '[]');
 let learnMap   = JSON.parse(store.get('steuer_learn') || '{}');
 let learnPct   = JSON.parse(store.get('steuer_learnpct') || '{}');
-let belegCats  = new Set(JSON.parse(store.get('steuer_belegcats') || '["Gage"]'));
-let baseLearn  = {};
+/* Belegnummern-Konfiguration: {kategorie: {enabled, prefix, nextNum}} */
+let belegConfig = JSON.parse(store.get('steuer_belegconfig') || '{"Gage":{"enabled":true,"prefix":""},"Unterricht":{"enabled":true,"prefix":"u"}}');
+/* Eingebaute Stichwort→Kategorie-Vorschläge (überschreibbar: eigene Eingaben landen in learnMap und gewinnen).
+   Keys kleingeschrieben, ohne Zahlen (normTxt). Bei mehreren Treffern gewinnt das längste Stichwort. */
+let baseLearn = {
+  // Gage
+  'gage':'Gage','konzert':'Gage','auftritt':'Gage','gig':'Gage','honorar':'Gage','musiker':'Gage',
+  // Unterricht
+  'unterricht':'Unterricht','privatunterricht':'Unterricht','klavierunterricht':'Unterricht','nachhilfe':'Unterricht','schüler':'Unterricht',
+  // Services & Abos
+  'icloud':'Services & Abos','domain':'Services & Abos','website':'Services & Abos','hosting':'Services & Abos','webhosting':'Services & Abos',
+  'handy':'Services & Abos','handytarif':'Services & Abos','telefon':'Services & Abos','internet':'Services & Abos','spotify':'Services & Abos',
+  'streaming':'Services & Abos','adobe':'Services & Abos','software':'Services & Abos','lizenz':'Services & Abos','abonnement':'Services & Abos',
+  // Versicherung
+  'versicherung':'Versicherung','berufsunfähig':'Versicherung','krankenvers':'Versicherung','krankenkasse':'Versicherung',
+  'bu/du':'Versicherung','haftpflicht':'Versicherung','rentenvers':'Versicherung',
+  // Bewirtung
+  'geschäftsessen':'Bewirtung','bewirtung':'Bewirtung','restaurant':'Bewirtung',
+  // Fortbildung
+  'fortbildung':'Fortbildung','konzertkarte':'Fortbildung','workshop':'Fortbildung','seminar':'Fortbildung',
+  'lehrgang':'Fortbildung','meisterkurs':'Fortbildung','fachbuch':'Fortbildung',
+  // Musikzubehör
+  'akkordeon':'Musikzubehör','audiokabel':'Musikzubehör','keyboard':'Musikzubehör','keys':'Musikzubehör','piano':'Musikzubehör',
+  'klavier':'Musikzubehör','saiten':'Musikzubehör','noten':'Musikzubehör','mikrofon':'Musikzubehör','mischpult':'Musikzubehör',
+  'ständer':'Musikzubehör','instrument':'Musikzubehör','verstärker':'Musikzubehör','boxen':'Musikzubehör','lautsprecher':'Musikzubehör',
+  // Bürobedarf
+  'usb kabel':'Bürobedarf','usb-kabel':'Bürobedarf','usb hub':'Bürobedarf','usb-hub':'Bürobedarf','batterie':'Bürobedarf',
+  'organizer':'Bürobedarf','kopierpapier':'Bürobedarf','papier':'Bürobedarf','kalender':'Bürobedarf','schutzfolie':'Bürobedarf',
+  'porto':'Bürobedarf','versand':'Bürobedarf','mülleimer':'Bürobedarf','drucker':'Bürobedarf','toner':'Bürobedarf','ordner':'Bürobedarf'
+};
 let baseLearnPct = {};
 let homeOrt    = JSON.parse(store.get('steuer_fahrt_home') || '{"start":"","rueckort":""}');
 let routeKm    = JSON.parse(store.get('steuer_routekm') || '{}');
@@ -772,6 +847,41 @@ let currentYear=2025, shownMonthSums=new Set(), anteilManual=false, editId=null,
 let userAfa = JSON.parse(store.get('steuer_afa') || '[]');
 let kfzData = JSON.parse(store.get('steuer_kfz') || '{}');
 let settings = JSON.parse(store.get('steuer_settings') || '{"standardSatz":0.30}');
+if(!settings.lawYears) settings.lawYears={};   // {jahr: {key: wert}} – gelten ab dem Jahr aufwärts
+const $=id=>document.getElementById(id);
+/* Gesetzliche Standardwerte (Basis) + jahresabhängige Defaults (gelten ab dem Jahr aufwärts). */
+const LAW_DEFAULTS={pauschbetrag:1230,hoSatz:6,hoMax:210,standardSatz:0.30,entf1:0.30,entf2:0.38,entfSchwelle:20,verpfl8:14,verpflFull:28,bewirtungPct:70,gwg800:800,gwg1000:1000};
+const LAW_DEFAULTS_BY_YEAR={
+  2026:{ entf1:0.38 }   // Pendlerpauschale ab 2026: 0,38 €/km ab dem 1. km (2025: 0,30 bis 20 km)
+};
+/* Wert eines gesetzlichen Parameters für ein Jahr: eigene Jahres-Overrides > Jahres-Default > Basis. */
+function law(k, year){
+  if(year==null) year=currentYear;
+  const yo=settings.lawYears||{};
+  let v=null, by=-Infinity;
+  for(const y in yo){ const yi=+y, val=yo[y]&&yo[y][k]; if(yi<=year && yi>by && val!=null && val!==''){ by=yi; v=val; } }
+  if(v!=null) return +v;
+  let dv=LAW_DEFAULTS[k], dby=-Infinity;
+  for(const y in LAW_DEFAULTS_BY_YEAR){ const yi=+y, val=LAW_DEFAULTS_BY_YEAR[y][k]; if(yi<=year && yi>dby && val!=null){ dby=yi; dv=val; } }
+  return dv;
+}
+const SCHEMA_VERSION=2;
+/* Schema-Migration: füllt fehlende Felder eines (ggf. alten) Backups mit Defaults, damit nichts bricht. */
+function migrate(d){
+  d=d||{};
+  if(!Array.isArray(d.eintraege)) d.eintraege=[];
+  if(!Array.isArray(d.fahrten)) d.fahrten=[];
+  if(!Array.isArray(d.customCats)) d.customCats=[];
+  if(!Array.isArray(d.userAfa)) d.userAfa=[];
+  if(!d.belegConfig) d.belegConfig={Gage:{enabled:true,prefix:""},Unterricht:{enabled:true,prefix:"u"}};
+  d.learnMap=d.learnMap||{}; d.learnPct=d.learnPct||{}; d.routeKm=d.routeKm||{};
+  d.kfzData=d.kfzData||{}; d.settings=(d.settings&&typeof d.settings==='object')?d.settings:{};
+  if(!d.settings.lawYears||typeof d.settings.lawYears!=='object') d.settings.lawYears={};
+  d.lehramtData=d.lehramtData||{}; d.homeOrt=d.homeOrt||{start:'',rueckort:''};
+  d.fahrten.forEach(f=>{ if(f.satz==null) f.satz=LAW_DEFAULTS.standardSatz;
+    if(f.kmgeld==null) f.kmgeld=(f.km||0)*(f.satz||0)+(f.park||0)+(f.zug||0)+(f.pausch||0); });
+  return d;
+}
 let lehramtData = JSON.parse(store.get('steuer_lehramt') || '{}');
 if(!lehramtData['2024']){
   lehramtData['2024']={hoTage:0,kmSchule:0,arbeitstage:0,positions:[
@@ -789,7 +899,7 @@ const saveFahrt = ()=>store.set('steuer_fahrt', JSON.stringify(fahrten));
 const saveCats  = ()=>store.set('steuer_cats', JSON.stringify(customCats));
 const saveLearn = ()=>store.set('steuer_learn', JSON.stringify(learnMap));
 const saveLearnPct = ()=>store.set('steuer_learnpct', JSON.stringify(learnPct));
-const saveBelegCats = ()=>store.set('steuer_belegcats', JSON.stringify([...belegCats]));
+const saveBelegConfig = ()=>store.set('steuer_belegconfig', JSON.stringify(belegConfig));
 const saveHome  = ()=>store.set('steuer_fahrt_home', JSON.stringify(homeOrt));
 const saveRouteKm = ()=>store.set('steuer_routekm', JSON.stringify(routeKm));
 const saveUserAfa = ()=>store.set('steuer_afa', JSON.stringify(userAfa));
@@ -814,15 +924,24 @@ function toast(msg,err){ const t=document.getElementById('toast'); t.textContent
 function allCats(){ return DEFAULT_CATS.concat(customCats.filter(c=>!DEFAULT_CATS.includes(c))); }
 
 /* ====== Tabs ====== */
+let lastTab='ea';   // letzter „echter" Reiter, für Rücksprung aus dem Setup
 function switchTab(t){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
+  document.body.classList.toggle('setup-open', t==='kfz');
   if(t==='afa') renderAfA();
   if(t==='jahres') renderJahres();
   if(t==='lehramt') renderLehramt();
+  if(t==='kfz'){ fillKfz(); fillLawSettings(); }
   window.scrollTo(0,0);
 }
+function toggleSetup(){
+  const active=document.querySelector('.section.active');
+  if(active && active.id==='tab-kfz') switchTab(lastTab);
+  else { if(active) lastTab=active.id.replace('tab-',''); switchTab('kfz'); }
+}
+function closeSetup(){ switchTab(lastTab); }
 
 /* ====== E/A ====== */
 let curType='ein', curKonto='B', eaFilter='alle', katManual=false;
@@ -871,7 +990,8 @@ function addNewCat(){
 function refreshKat(){
   const v=document.getElementById('ea-kategorie').value;
   document.getElementById('bew-extra').classList.toggle('visible', v==='Bewirtung');
-  const showBeleg=belegCats.has(v);
+  const cfg=belegConfig[v];
+  const showBeleg=cfg&&cfg.enabled;
   document.getElementById('beleg-row').style.display=showBeleg?'block':'none';
   const beleg=document.getElementById('ea-belegnr');
   if(showBeleg){ if(!beleg.value) beleg.value=nextBeleg(); } else beleg.value='';
@@ -885,7 +1005,7 @@ function applyPctSuggestion(){
     pct=learnPct[n]; if(pct==null) pct=baseLearnPct[n];
     if(pct==null){ let best=''; [learnPct,baseLearnPct].forEach(mp=>{ for(const k in mp){ if(k.length>=4 && (n.includes(k)||k.includes(n)) && k.length>best.length){ best=k; pct=mp[k]; } } }); }
   }
-  if(pct==null){ const v=document.getElementById('ea-kategorie').value; if(CAT_DEFAULT_PCT[v]!=null) pct=CAT_DEFAULT_PCT[v]; }
+  if(pct==null){ const v=document.getElementById('ea-kategorie').value; if(v==='Bewirtung') pct=law('bewirtungPct'); }
   document.getElementById('ea-anteil').value = pct!=null?pct:100;
   updateAnteilHint();
 }
@@ -939,11 +1059,12 @@ function updateAnteilHint(){
 function checkGWG(){
   const voll=num(document.getElementById('ea-betrag').value);
   const v=document.getElementById('ea-kategorie').value;
-  const assetCats=['Equipment','Homeoffice','Bürobedarf'];
+  const assetCats=['Musikzubehör','Bürobedarf'];
+  const g1=law('gwg1000'), g8=law('gwg800');
   let msg='';
   if(curType==='aus' && assetCats.includes(v)){
-    if(voll>1000) msg='⚠️ Über 1.000 € — kein Sofortabzug. Nur AfA über die Nutzungsdauer (AfA-Tab).';
-    else if(voll>800) msg='⚠️ Über 800 € — kein GWG-Sofortabzug. AfA über die Nutzungsdauer (AfA-Tab) oder Sammelposten — siehe AfA → Wertgrenzen.';
+    if(voll>g1) msg='⚠️ Über '+deNum(g1)+' € — kein Sofortabzug. Nur AfA über die Nutzungsdauer (AfA-Tab).';
+    else if(voll>g8) msg='⚠️ Über '+deNum(g8)+' € — kein GWG-Sofortabzug. AfA über die Nutzungsdauer (AfA-Tab) oder Sammelposten — siehe AfA → Wertgrenzen.';
   }
   document.getElementById('gwg-hint').textContent=msg;
 }
@@ -952,9 +1073,27 @@ function setYear(){
   shownMonthSums.clear();
   if(editId==null){ const dd=eaDefaultDate(); document.getElementById('ea-datum').value=dd; document.getElementById('ea-datum-txt').value=fmtDate(dd); document.getElementById('ea-belegnr').value=''; refreshKat(); }
   document.getElementById('f-datum').value=eaDefaultDate();
-  fillKfz();
+  fillKfz(); fillLawSettings();   // Setup-Werte aufs neue Jahr (Pendlerpauschale etc.)
   renderEA(); renderFahrten(); renderAfA(); renderLehramt();
   if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
+}
+function allDataYears(){
+  const ys=new Set();
+  eintraege.forEach(e=>ys.add(+e.datum.slice(0,4)));
+  fahrten.forEach(f=>ys.add(+f.datum.slice(0,4)));
+  allAfa().forEach(a=>ys.add(+a.datum.slice(0,4)));
+  Object.keys(lehramtData||{}).forEach(y=>ys.add(+y));
+  return [...ys].filter(y=>y>1990&&y<3000);
+}
+function populateYearOptions(){
+  const sel=document.getElementById('year-sel'); if(!sel) return;
+  const now=new Date().getFullYear(), data=allDataYears();
+  let lo=Math.min(now-2, currentYear, ...data);
+  let hi=Math.max(now+1, currentYear, ...data);
+  if(hi-lo>40) lo=hi-40;   // Sicherheitsgrenze
+  let html='';
+  for(let y=lo;y<=hi;y++) html+='<option value="'+y+'"'+(y===currentYear?' selected':'')+'>'+y+'</option>';
+  sel.innerHTML=html;
 }
 function setSearch(v){ eaSearch=(v||'').trim().toLowerCase(); renderEA(); }
 function toggleMonthSum(mk){ shownMonthSums.has(mk)?shownMonthSums.delete(mk):shownMonthSums.add(mk); renderEA(); }
@@ -969,11 +1108,20 @@ function startAmountEdit(cell,id){
   inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ev.preventDefault();commit(true);} else if(ev.key==='Escape'){commit(false);} });
 }
 function nextBeleg(){
+  const kat=document.getElementById('ea-kategorie').value;
+  const cfg=belegConfig[kat];
+  if(!cfg||!cfg.enabled) return '';
   const isoY=(parseDate(document.getElementById('ea-datum-txt').value)||'').slice(0,4);
   const yr=isoY?+isoY:currentYear;
   const base=(yr%100)*1000;
-  const used=new Set(eintraege.map(e=>parseInt(e.belegnr,10)).filter(x=>!isNaN(x)));
-  let i=base+1; while(used.has(i)) i++; return String(i);
+  const prefix=cfg.prefix||'';
+  const used=new Set(eintraege.filter(e=>e.kategorie===kat).map(e=>e.belegnr).filter(x=>x));
+  let i=base+1;
+  while(used.has(prefix+i)) i++;
+  const next=prefix+i;
+  if(!cfg.nextNum || cfg.nextNum<i) cfg.nextNum=i+1;
+  saveBelegConfig();
+  return next;
 }
 function addEintrag(){
   const datum=normEADate();
@@ -1002,9 +1150,8 @@ function addEintrag(){
   else eintraege.push(entry);
   saveEA();
   const nk=normTxt(text); if(nk.length>=3){ learnMap[nk]=kategorie; saveLearn(); learnPct[nk]=anteil; saveLearnPct(); }
-  if(belegnr){ belegCats.add(kategorie); saveBelegCats(); }
   resetForm();
-  renderEA(); toast(isEdit?'Eintrag aktualisiert':'Eintrag gespeichert');
+  populateYearOptions(); renderEA(); toast(isEdit?'Eintrag aktualisiert':'Eintrag gespeichert');
   document.getElementById('ea-text').focus();
 }
 function resetForm(){
@@ -1130,6 +1277,7 @@ function loadDemo(){
   const dd=eaDefaultDate();
   document.getElementById('ea-datum').value=dd; document.getElementById('ea-datum-txt').value=fmtDate(dd);
   document.getElementById('f-datum').value=dd;
+  populateYearOptions();
   renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); fillKfz();
   toast('Demo 2025 geladen');
 }
@@ -1154,7 +1302,7 @@ function exportCSV(){
   toast('CSV exportiert');
 }
 function exportData(){
-  const data={version:1,exported:new Date().toISOString(),eintraege,fahrten,customCats,learnMap,learnPct,belegCats:[...belegCats],homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
+  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,fahrten,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='steuer-backup-'+today+'.json'; a.click(); URL.revokeObjectURL(a.href);
@@ -1170,24 +1318,16 @@ function importData(input){
   const f=input.files&&input.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=()=>{ try{
-    const d=JSON.parse(r.result);
+    const d=migrate(JSON.parse(r.result));
     if(!confirm('Backup importieren? Ersetzt die aktuellen E/A- und Fahrt-Daten.')){ input.value=''; return; }
-    if(Array.isArray(d.eintraege)) eintraege=d.eintraege;
-    if(Array.isArray(d.fahrten)) fahrten=d.fahrten;
-    if(Array.isArray(d.customCats)) customCats=d.customCats;
-    if(d.learnMap) learnMap=d.learnMap;
-    if(d.learnPct) learnPct=d.learnPct;
-    if(Array.isArray(d.belegCats)) belegCats=new Set(d.belegCats);
-    if(d.homeOrt) homeOrt=d.homeOrt;
-    if(d.routeKm) routeKm=d.routeKm;
-    if(Array.isArray(d.userAfa)) userAfa=d.userAfa;
-    if(d.kfzData) kfzData=d.kfzData;
-    if(d.settings) settings=d.settings;
-    if(d.lehramtData) lehramtData=d.lehramtData;
-    saveEA(); saveFahrt(); saveCats(); saveLearn(); saveLearnPct(); saveBelegCats(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
+    eintraege=d.eintraege; fahrten=d.fahrten; customCats=d.customCats;
+    learnMap=d.learnMap; learnPct=d.learnPct; belegConfig=d.belegConfig||{Gage:{enabled:true,prefix:""},Unterricht:{enabled:true,prefix:"u"}};
+    homeOrt=d.homeOrt; routeKm=d.routeKm; userAfa=d.userAfa; kfzData=d.kfzData;
+    settings=d.settings; lehramtData=d.lehramtData;
+    saveEA(); saveFahrt(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
     nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
     nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
-    renderEA(); renderFahrten(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
+    populateYearOptions(); renderEA(); renderFahrten(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
   }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
   r.readAsText(f);
 }
@@ -1228,18 +1368,19 @@ function pauschalValue(){
     if(days<2) return {v:0,days,parts:[]};
     const bA=document.getElementById('f-anreise-nacht').checked;   // Fall 3
     const bH=document.getElementById('f-heim-mitternacht').checked; // Fall 4
+    const v8=law('verpfl8'), vFull=law('verpflFull');
     const parts=[];
     for(let i=0;i<days;i++){
-      if(i===0) parts.push(bA?0:14);
-      else if(i===days-1) parts.push(bH?0:14);
-      else parts.push(28);
+      if(i===0) parts.push(bA?0:v8);
+      else if(i===days-1) parts.push(bH?0:v8);
+      else parts.push(vFull);
     }
     return {v:parts.reduce((a,b)=>a+b,0), days, parts, bA, bH};
   }
   const ab=parseFloat(document.getElementById('f-ab').value), ru=parseFloat(document.getElementById('f-rueck').value);
   if(isNaN(ab)||isNaN(ru)) return {v:0,std:null};
   const std=ru>=ab?ru-ab:(24-ab)+ru;
-  return {v: std>=8?14:0, std};
+  return {v: std>=8?law('verpfl8'):0, std};
 }
 function calcPauschale(){
   const p=pauschalValue();
@@ -1263,25 +1404,24 @@ function calcPauschale(){
 let _scanImg=null;
 function kfzKosten(year){ const d=kfzData[year]; return (d&&d.belege)?d.belege.reduce((s,b)=>s+(b.betrag||0),0):0; }
 function einzelRate(year){ const d=kfzData[year]; if(!d) return 0; const gkm=(d.kmEnd||0)-(d.kmStart||0); return gkm>0 ? kfzKosten(year)/gkm : 0; }
-function activeSatz(year){ const d=kfzData[year]; if(d && d.method==='einzel') return einzelRate(year); return settings.standardSatz||0.30; }
-let curSatzMode='voll';   // 'voll' = Standard-/Einzelnachweis-Satz, 'halb' = Entfernungspauschale (½)
-function resolveSatz(){ const s=activeSatz(currentYear); return curSatzMode==='halb'? s/2 : s; }
-function setSatzMode(m){
-  curSatzMode=m;
-  const v=document.getElementById('btn-satz-voll'), h=document.getElementById('btn-satz-halb');
-  if(v) v.classList.toggle('on',m==='voll');
-  if(h) h.classList.toggle('on',m==='halb');
-  calcFahrt();
+/* Pauschalsatz (Musikfahrten) jahresabhängig: Override ab Jahr aufwärts, sonst Basis-Satz/0,30. */
+function pauschSatz(year){
+  const yo=settings.lawYears||{};
+  let v=null, by=-Infinity;
+  for(const y in yo){ const yi=+y, val=yo[y]&&yo[y].standardSatz; if(yi<=year && yi>by && val!=null && val!==''){ by=yi; v=val; } }
+  return (v!=null)?+v:(settings.standardSatz||0.30);
 }
-function updateSatzLabels(){
-  const s=activeSatz(currentYear);
-  const v=document.getElementById('btn-satz-voll'), h=document.getElementById('btn-satz-halb');
-  if(v) v.textContent=deNum(s)+' €/km';
-  if(h) h.textContent=deNum(s/2)+' €/km · Entfernung';
-}
+function activeSatz(year){ const d=kfzData[year]; if(d && d.method==='einzel') return einzelRate(year); return pauschSatz(year); }
 function dienstKm(year){ return fahrten.filter(f=>f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.km||0),0); }
 function setMethod(m){ const d=kfzData[currentYear]||{}; d.method=m; kfzData[currentYear]=d; saveKfz(); fillKfz(); calcFahrt(); }
-function updateSettings(){ const s=num(document.getElementById('set-satz').value); settings.standardSatz=s>0?s:0.30; saveSettings(); fillKfzResults(); calcFahrt(); }
+function updateSettings(){
+  const s=num(document.getElementById('set-satz').value);
+  settings.lawYears=settings.lawYears||{};
+  const yr=settings.lawYears[currentYear]=settings.lawYears[currentYear]||{};
+  if(s>0) yr.standardSatz=s; else delete yr.standardSatz;
+  if(!Object.keys(yr).length) delete settings.lawYears[currentYear];
+  saveSettings(); fillKfzResults(); calcFahrt();
+}
 function updateKfz(){
   const d=kfzData[currentYear]||{};
   d.kmStart=num(document.getElementById('kfz-kmstart').value);
@@ -1316,7 +1456,8 @@ function renderKfzBelege(){
     +'<button class="del-btn" onclick="delKfzBeleg(\''+b.id+'\')" aria-label="Löschen">×</button></div>').join('');
 }
 function fillKfz(){
-  document.getElementById('set-satz').value=deNum(settings.standardSatz||0.30);
+  document.getElementById('set-satz').value=deNum(pauschSatz(currentYear));
+  const sy=document.getElementById('satz-year'); if(sy) sy.textContent=currentYear;
   const d=kfzData[currentYear]||{}; const m=d.method||'pauschal';
   document.getElementById('btn-pausch').classList.toggle('on',m==='pauschal');
   document.getElementById('btn-einzel').classList.toggle('on',m==='einzel');
@@ -1342,10 +1483,9 @@ function fillKfzResults(){
   setT('kfz-r-absetz', rate>0?fmt(dienst*rate):'—');
   const aSatz=activeSatz(currentYear), isEin=(d.method==='einzel');
   const st=document.getElementById('kfz-status');
-  if(st) st.textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+deNum(settings.standardSatz||0.30)+' €/km');
-  updateSatzLabels();
+  if(st) st.textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+currentYear+': '+deNum(pauschSatz(currentYear))+' €/km');
 }
-function toggleKfz(){ openOv('ov-kfz'); }   /* km-Abrechnung ist jetzt ein Modal */
+function toggleKfz(){ toggleSetup(); }   /* km-Abrechnung ist Teil des Setup-Bereichs */
 /* ---- Beleg-Foto OCR (optional; lädt Tesseract.js bei Bedarf aus dem Netz, Bild bleibt lokal) ---- */
 function compressImage(file,maxDim,quality){
   return new Promise(function(res){
@@ -1400,7 +1540,7 @@ function addCarAfaBeleg(){
 }
 function calcFahrt(){
   const km=num(document.getElementById('f-km').value);
-  const satz=resolveSatz();
+  const satz=activeSatz(currentYear);
   const park=num(document.getElementById('f-park').value);
   const zug=num(document.getElementById('f-zug').value);
   document.getElementById('f-preview').textContent=fmt(km*satz+park+zug+pauschalValue().v);
@@ -1412,7 +1552,7 @@ function addFahrt(){
   let rueckort=document.getElementById('f-rueckort').value.trim();
   const zweck=document.getElementById('f-zweck').value.trim();
   const km=num(document.getElementById('f-km').value);
-  const satz=resolveSatz();
+  const satz=activeSatz(currentYear);
   const park=num(document.getElementById('f-park').value);
   const zug=num(document.getElementById('f-zug').value);
   const pObj=pauschalValue(), pausch=pObj.v;
@@ -1430,7 +1570,7 @@ function addFahrt(){
   saveFahrt();
   homeOrt={start,rueckort}; saveHome();
   clearFahrtFields(false);   // Start/Rückkehr für die nächste Fahrt behalten
-  renderFahrten(); toast('Fahrt gespeichert'); scheduleAutoPush();
+  populateYearOptions(); renderFahrten(); toast('Fahrt gespeichert'); scheduleAutoPush();
   document.getElementById('f-zweck').focus();
 }
 function clearFahrtFields(full){
@@ -1439,7 +1579,7 @@ function clearFahrtFields(full){
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
   document.getElementById('f-datum').value=eaDefaultDate();
   if(full){ document.getElementById('f-start').value=''; document.getElementById('f-rueckort').value=''; }
-  prefillHome(); setTrip('ein'); setSatzMode('voll');
+  prefillHome(); setTrip('ein');
   document.getElementById('f-preview').textContent='0,00 €';
 }
 function newFahrt(){
@@ -1502,6 +1642,10 @@ function deleteFahrt(id){
   if(f && !confirm('Fahrt „'+f.route+'" löschen?')) return;
   fahrten=fahrten.filter(x=>x.id!==id); saveFahrt(); renderFahrten(); scheduleAutoPush();
 }
+function cleanOrtname(s){
+  if(!s) return '';
+  return s.match(/^[+-]?[\d.]+\s*,\s*[+-]?[\d.]+$/)?'📍':s;
+}
 function renderFahrten(){
   document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
   document.getElementById('fahrt-list-title').textContent='Fahrten '+currentYear;
@@ -1523,7 +1667,8 @@ function renderFahrten(){
       if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
       if(f.park>0) meta.push('Park '+fmt(f.park));
       if(f.zug>0) meta.push('Zug '+fmt(f.zug));
-      return '<div class="fahrt-entry"><div class="fahrt-top"><span class="fahrt-route">'+esc(f.route)+'</span><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span></div>'
+      const route=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+      return '<div class="fahrt-entry"><div class="fahrt-top"><span class="fahrt-route">'+esc(route)+'</span><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span></div>'
         +'<div class="fahrt-sub">'+meta.map(esc).join(' · ')+'</div>'
         +'<button class="fahrt-del no-print" onclick="deleteFahrt('+f.id+')">× löschen</button></div>';
     }).join('');
@@ -1548,13 +1693,16 @@ function renderAfA(){
   document.getElementById('afa-list').innerHTML=allAfa().map(a=>{
     const r=afaForYear(a,year), aktiv=r.months>0;
     const ky=+a.datum.slice(0,4), km=+a.datum.slice(5,7);
+    const lastActiveYear=Math.floor((ky*12+(km-1)+a.jahre*12-1)/12);  // letztes Jahr mit AfA
+    // fertig abgeschrieben: nur im direkten Folgejahr noch als leere Position, danach ausblenden
+    if(!aktiv && year>ky && year>lastActiveYear+1) return '';
     const endD=new Date(ky,(km-1)+a.jahre,0);
     const span=String(km).padStart(2,'0')+'/'+ky+' – '+String(endD.getMonth()+1).padStart(2,'0')+'/'+endD.getFullYear();
     if(aktiv){ total+=r.betrag; n++; }
     let pillTxt,pillCls;
     if(aktiv){ pillTxt=r.months+'/12 Monate'; pillCls='on'; }
     else if(year<ky){ pillTxt='ab '+ky; pillCls='off'; }
-    else { pillTxt='fertig'; pillCls='off'; }
+    else { pillTxt='abgeschrieben'; pillCls='off'; }
     const del=a.user?' <button class="del-btn no-print" onclick="delAfa(\''+a.id+'\')" aria-label="Löschen">×</button>':'';
     return '<div class="afa"><div><div class="afa-name">'+esc(a.name)+del+'</div>'
       +'<div class="afa-meta">'+fmtDate(a.datum)+' · '+fmt(a.betrag)+' · '+a.jahre+' J. · voll '+fmt(a.jahresbetrag)+'/J.</div>'
@@ -1609,7 +1757,7 @@ function addAfa(){
   document.getElementById('afa-add-hint').textContent='';
   document.getElementById('afa-cat-hint').textContent=AFA_HINT_DEFAULT;
   afaDefaults();
-  renderAfA(); toast('AfA-Objekt „'+name+'" · '+jahre+' J.');
+  populateYearOptions(); renderAfA(); toast('AfA-Objekt „'+name+'" · '+jahre+' J.');
   document.getElementById('afa-name').focus();
 }
 function delAfa(id){
@@ -1619,8 +1767,8 @@ function delAfa(id){
 }
 
 /* ====== Jahres ====== */
-const BUERO_KATS=['Bürobedarf','Homeoffice','Handy','Software/Abo','Fortbildung'];
-const FIX_KATS=['Gage','KV/Versicherung','Equipment','Noten','Bewirtung','Sonstiges'].concat(BUERO_KATS);
+const BUERO_KATS=['Bürobedarf','Services & Abos','Fortbildung'];
+const FIX_KATS=['Gage','Unterricht','Versicherung','Musikzubehör','Bewirtung','Sonstiges'].concat(BUERO_KATS);
 /* read-only Lehramt-Daten für ein Jahr (ohne Vorlagen-Materialisierung/Speichern) */
 function lehrDataFor(year){ return lehramtData[year] || lehramtData[year-1] || {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]}; }
 function renderJahres(){
@@ -1629,10 +1777,11 @@ function renderJahres(){
   const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr);
   const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)).reduce((s,e)=>s+e.betrag,0);
   const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
-  const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage').reduce((s,e)=>s+e.betrag,0);
-  const eintotal=gagen+sonstEin;
-  const kv=sA(['KV/Versicherung']);
-  const equip=sA(['Equipment','Noten']);
+  const unterricht=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
+  const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage'&&e.kategorie!=='Unterricht').reduce((s,e)=>s+e.betrag,0);
+  const eintotal=gagen+unterricht+sonstEin;
+  const kv=sA(['Versicherung']);
+  const equip=sA(['Musikzubehör']);
   const buero=sA(BUERO_KATS);
   const bew=sA(['Bewirtung']);
   const sonst=ey.filter(e=>e.typ==='aus'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
@@ -1648,7 +1797,7 @@ function renderJahres(){
   set('jahres-title','Jahresübersicht '+year);
   set('csv-year',year);
   set('j-fahrt-title','FAHRTKOSTEN '+year);
-  set('j-gagen',fmt(gagen)); set('j-sonstein',fmt(sonstEin)); set('j-eintotal',fmt(eintotal));
+  set('j-gagen',fmt(gagen)); set('j-unterricht',fmt(unterricht)); set('j-sonstein',fmt(sonstEin)); set('j-eintotal',fmt(eintotal));
   set('j-kv',fmt(kv)); set('j-equip',fmt(equip)); set('j-buero',fmt(buero)); set('j-bew',fmt(bew));
   set('j-sonstaus',fmt(sonst)); set('j-lehrversch',fmt(lehrV)); set('j-austotal',fmt(austotal));
   set('j-km30',fmt(km30)); set('j-verpfl',fmt(verpfl)); set('j-park',fmt(parkzug)); set('j-fahrttotal',fmt(fahrttotal));
@@ -1737,7 +1886,8 @@ function buildReport(){
     H+='<table><thead><tr><th>Datum</th><th>Route</th><th>Zweck</th><th class="num">km</th><th class="num">Satz</th><th class="num">km-Geld</th><th class="num">Verpfl.</th><th class="num">Park/Zug</th><th class="num">Summe</th></tr></thead><tbody>';
     fy.forEach(f=>{
       const pz=(f.park||0)+(f.zug||0);
-      H+='<tr><td>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</td><td>'+esc(f.route||'')+'</td><td>'+esc(f.zweck||'')+'</td>'
+      const rRoute=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+      H+='<tr><td>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</td><td>'+esc(rRoute)+'</td><td>'+esc(f.zweck||'')+'</td>'
         +'<td class="num">'+(f.km||0)+'</td><td class="num">'+((f.satz||0)*100).toFixed(0)+' ct</td>'
         +'<td class="num">'+M((f.km||0)*(f.satz||0))+'</td><td class="num">'+M(f.pausch||0)+'</td><td class="num">'+M(pz)+'</td><td class="num">'+M(f.kmgeld||0)+'</td></tr>';
     });
@@ -1763,8 +1913,8 @@ function buildReport(){
   /* Lehramt */
   H+='<div class="rep-sec rep-break"><h2>Lehramt — Werbungskosten (Anlage N) '+year+'</h2>';
   H+='<table><thead><tr><th>Posten</th><th>Detail</th><th>Zuordnung</th><th class="num">Betrag</th></tr></thead><tbody>';
-  H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(lehrHoSatz())+' (max '+HO_MAX+')</td><td>Lehramt</td><td class="num">'+M(ho)+'</td></tr>';
-  H+='<tr><td>Entfernungspauschale</td><td>'+(ld.kmSchule||0)+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Lehramt</td><td class="num">'+M(entf)+'</td></tr>';
+  H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(lehrHoSatz())+' (max '+law('hoMax')+')</td><td>Lehramt</td><td class="num">'+M(ho)+'</td></tr>';
+  H+='<tr><td>Entfernungspauschale</td><td>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Lehramt</td><td class="num">'+M(entf)+'</td></tr>';
   (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td></td><td>'+(p.ziel==='selbst'?'Selbständig':'Lehramt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
   H+='<tr class="qsub"><td colspan="3">Werbungskosten gesamt (nur Lehramt-Zuordnung)</td><td class="num">'+M(lwk)+'</td></tr>';
   H+='<tr><td colspan="3">Arbeitnehmer-Pauschbetrag</td><td class="num">'+M(lpb)+'</td></tr>';
@@ -1774,7 +1924,7 @@ function buildReport(){
   /* Hinweise & Risiken */
   H+='<div class="rep-sec rep-break"><h2>Hinweise & Risiken</h2><ul class="rep-note">';
   if(ergebnis<0) H+='<li><b>Verlustfall:</b> Der Verlust aus Selbständigkeit kann i. d. R. mit anderen Einkünften verrechnet werden — bitte vom Steuerberater prüfen lassen.</li>';
-  if((ld.hoTage||0)>HO_MAX) H+='<li><b>Homeoffice:</b> '+(ld.hoTage)+' Tage eingetragen, höchstens '+HO_MAX+' Tage (1.260 €) sind ansetzbar.</li>';
+  if((ld.hoTage||0)>law('hoMax')) H+='<li><b>Homeoffice:</b> '+(ld.hoTage)+' Tage eingetragen, höchstens '+law('hoMax')+' Tage ('+M(law('hoMax')*lehrHoSatz())+') sind ansetzbar.</li>';
   if(lwk<=lpb) H+='<li>Lehramt-Werbungskosten ('+M(lwk)+') liegen unter dem Pauschbetrag ('+M(lpb)+') — es wirkt automatisch der Pauschbetrag.</li>';
   H+='<li>Selbständigkeit (EÜR) und Lehramt (Werbungskosten) sind <b>getrennte Anlagen</b> — kein Posten doppelt absetzen.</li>';
   H+='<li><b>Bewirtung</b> nur zu 70 % absetzbar (im Tool bereits berücksichtigt).</li>';
@@ -1792,9 +1942,8 @@ function buildReport(){
    0,38 €/km ab km 21 × Arbeitstage) sind Lehramt-spezifisch. Weitere Posten sind per Schalter
    zwischen Lehramt (Werbungskosten) und Selbständigkeit (Betriebsausgabe in E/A) verschiebbar.
    Angesetzt wird der höhere Wert aus Werbungskosten und Arbeitnehmer-Pauschbetrag. */
-const ENF1=0.30, ENF2=0.38, HO_MAX=210;
-function lehrPB(){ return settings.pauschbetrag||1230; }
-function lehrHoSatz(){ return settings.hoSatz||6; }
+function lehrPB(){ return law('pauschbetrag'); }
+function lehrHoSatz(){ return law('hoSatz'); }
 function lehrGet(){
   if(!lehramtData[currentYear]){
     const prev=lehramtData[currentYear-1];
@@ -1803,22 +1952,114 @@ function lehrGet(){
   }
   return lehramtData[currentYear];
 }
-function lehrHoBetrag(d){ return Math.min(d.hoTage||0, HO_MAX)*lehrHoSatz(); }
-function lehrEntfBetrag(d){ const km=d.kmSchule||0; return (d.arbeitstage||0)*(ENF1*Math.min(km,20)+ENF2*Math.max(km-20,0)); }
+function lehrHoBetrag(d){ return Math.min(d.hoTage||0, law('hoMax'))*lehrHoSatz(); }
+function lehrEntfBetrag(d){ const km=d.kmSchule||0, sw=law('entfSchwelle'); return (d.arbeitstage||0)*(law('entf1')*Math.min(km,sw)+law('entf2')*Math.max(km-sw,0)); }
 function lehrPosSum(d,ziel){ return (d.positions||[]).filter(p=>p.ziel===ziel).reduce((s,p)=>s+(p.betrag||0),0); }
 function werbungskosten(d){ return lehrHoBetrag(d)+lehrEntfBetrag(d)+lehrPosSum(d,'lehramt'); }
 function lehrSelbst(year){ const d=lehramtData[year]; return d?lehrPosSum(d,'selbst'):0; }
 function updateLehramt(){
   const d=lehrGet();
   d.hoTage=Math.round(num(document.getElementById('l-hotage').value));
-  d.kmSchule=Math.round(num(document.getElementById('l-km').value));
+  d.kmSchule=Math.round(num(document.getElementById('l-km').value)*10)/10;  // 1 Nachkommastelle (z.B. 3,2 km)
   d.arbeitstage=Math.round(num(document.getElementById('l-tage').value));
   saveLehramt(); renderLehramt();
 }
-function updateLehrSettings(){
-  const pb=num(document.getElementById('set-pb').value); settings.pauschbetrag=pb>0?pb:1230;
-  const hs=num(document.getElementById('set-hosatz').value); settings.hoSatz=hs>0?hs:6;
-  saveSettings(); renderLehramt();
+/* ===== Zentrales Setup: gesetzliche Werte (⚙ Modal) ===== */
+function refreshAllCalc(){ renderLehramt(); calcFahrt(); if($('tab-jahres').classList.contains('active')) renderJahres(); }
+function updateLawSettings(){
+  const y=currentYear;
+  settings.lawYears=settings.lawYears||{};
+  const yr=settings.lawYears[y]=settings.lawYears[y]||{};
+  const f=(key,id)=>{ const t=$(id).value.trim(); if(t==='') delete yr[key]; else yr[key]=num(t); };
+  f('pauschbetrag','law-pb'); f('hoSatz','law-hosatz'); f('hoMax','law-homax');
+  f('entf1','law-entf1'); f('entf2','law-entf2'); f('verpfl8','law-verpfl8'); f('verpflFull','law-verpflfull');
+  f('bewirtungPct','law-bewirtung'); f('gwg800','law-gwg800'); f('gwg1000','law-gwg1000');
+  if(!Object.keys(yr).length) delete settings.lawYears[y];
+  saveSettings(); refreshAllCalc();
+}
+function fillLawSettings(){
+  const y=currentYear, ye=$('law-year'); if(ye) ye.textContent=y;
+  const set=(id,k,intg)=>{ const el=$(id); if(el) el.value=intg?String(law(k,y)):deNum(law(k,y)); };
+  set('law-pb','pauschbetrag'); set('law-hosatz','hoSatz'); set('law-homax','hoMax',true);
+  set('law-entf1','entf1'); set('law-entf2','entf2'); set('law-verpfl8','verpfl8'); set('law-verpflfull','verpflFull');
+  set('law-bewirtung','bewirtungPct',true); set('law-gwg800','gwg800'); set('law-gwg1000','gwg1000');
+  renderBelegConfig(); renderStichwort();
+}
+function resetLaw(){
+  const y=currentYear;
+  if(!confirm('Steuerwerte für '+y+' auf die gesetzlichen Standardwerte zurücksetzen? Andere Jahre bleiben unberührt.')) return;
+  if(settings.lawYears) delete settings.lawYears[y];
+  /* alte globale Overrides (aus früherer Version) aufräumen – werden ohnehin nicht mehr gelesen */
+  Object.keys(LAW_DEFAULTS).forEach(k=>{ if(k!=='standardSatz') delete settings[k]; });
+  saveSettings(); fillLawSettings(); fillKfz(); refreshAllCalc(); toast('Steuerwerte '+y+' zurückgesetzt');
+}
+/* ===== Belegnummern-Konfiguration ===== */
+function renderBelegConfig(){
+  const list=$('belegnummern-list');
+  if(!list) return;
+  let html='';
+  for(const kat in belegConfig){
+    const cfg=belegConfig[kat];
+    html+='<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;padding:8px;background:var(--card-2);border-radius:6px;font-size:11px;">'
+      +'<label style="flex:1;"><input type="checkbox" '+(cfg.enabled?'checked':'')
+      +' onchange="belegConfig['+JSON.stringify(kat)+'].enabled=this.checked;saveBelegConfig();renderBelegConfig();"> '
+      +kat+'</label>'
+      +'<input type="text" placeholder="Prefix" value="'+(cfg.prefix||'')+'" style="width:60px;padding:4px;font-size:10px;border:0.5px solid var(--border-2);border-radius:4px;" '
+      +'onchange="belegConfig['+JSON.stringify(kat)+'].prefix=this.value;saveBelegConfig();">'
+      +'<button type="button" class="del-btn" style="width:28px;height:28px;padding:0;" onclick="delBelegCategory('+JSON.stringify(kat)+')">×</button></div>';
+  }
+  list.innerHTML=html;
+}
+function addBelegCategory(){
+  const kat=prompt('Kategorie-Name (z.B. „Sonstiges"):').trim();
+  if(!kat||belegConfig[kat]) return;
+  belegConfig[kat]={enabled:true,prefix:''};
+  saveBelegConfig(); renderBelegConfig();
+}
+function delBelegCategory(kat){
+  if(!confirm('Belegnummern für „'+kat+'" deaktivieren?')) return;
+  delete belegConfig[kat];
+  saveBelegConfig(); renderBelegConfig();
+}
+/* ===== Stichwort-Zuordnung (Auto-Kategorien) ===== */
+function renderStichwort(){
+  const list=$('stichwort-list');
+  if(!list) return;
+  let html='';
+  // 1) Eigene/gelernte Zuordnungen (editierbar, gewinnen vor den Standard-Vorschlägen)
+  const own=Object.keys(learnMap);
+  if(own.length){
+    html+='<div style="font-size:10px;font-weight:600;color:var(--txt-2);margin-bottom:4px;">Eigene Zuordnungen (gelernt)</div>';
+    for(const stichwort of own){
+      html+='<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;padding:6px;background:var(--card-2);border-radius:6px;font-size:10px;">'
+        +'<span style="flex:1;"><b>'+esc(stichwort)+'</b> → '+esc(learnMap[stichwort])+'</span>'
+        +'<button type="button" class="del-btn" style="width:24px;height:24px;padding:0;font-size:10px;" onclick="delStichwort('+JSON.stringify(stichwort)+')">×</button></div>';
+    }
+  } else {
+    html+='<div class="hint" style="font-size:10px;">Noch keine eigenen Zuordnungen. Tippe eine E/A-Beschreibung und wähle die Kategorie — die Zuordnung wird gelernt und überschreibt die Standard-Vorschläge.</div>';
+  }
+  // 2) Eingebaute Standard-Vorschläge (kompakt, nach Kategorie gruppiert)
+  const byCat={};
+  for(const k in baseLearn){ (byCat[baseLearn[k]]=byCat[baseLearn[k]]||[]).push(k); }
+  html+='<div style="font-size:10px;font-weight:600;color:var(--txt-2);margin:10px 0 4px;">Standard-Vorschläge (eingebaut)</div>';
+  for(const cat of Object.keys(byCat).sort()){
+    html+='<div style="font-size:10px;margin-bottom:4px;line-height:1.4;"><b>'+esc(cat)+':</b> '+byCat[cat].map(esc).join(', ')+'</div>';
+  }
+  list.innerHTML=html;
+}
+function addStichwort(){
+  const stichwort=prompt('Stichwort (mindestens 3 Buchstaben):').trim().toLowerCase();
+  if(!stichwort||stichwort.length<3){ toast('Ungültiges Stichwort',true); return; }
+  const allCatsStr=allCats().join(', ');
+  const kat=prompt('Kategorie (wähle aus oder neue):\n'+allCatsStr);
+  if(!kat) return;
+  learnMap[stichwort]=kat;
+  saveLearn(); renderStichwort();
+}
+function delStichwort(stichwort){
+  if(!confirm('Zuordnung „'+stichwort+'" löschen?')) return;
+  delete learnMap[stichwort];
+  saveLearn(); renderStichwort();
 }
 function addLehramtPos(){
   const name=document.getElementById('lp-name').value.trim();
@@ -1849,14 +2090,17 @@ function renderLehramt(){
   const d=lehrGet();
   document.getElementById('l-wk-lbl').textContent='Werbungskosten '+currentYear;
   document.getElementById('l-ov-year').textContent=currentYear;
-  document.getElementById('l-homax').textContent=HO_MAX;
+  document.getElementById('l-homax').textContent=law('hoMax');
+  const rh=document.getElementById('l-rates-hint');
+  if(rh){ const e1=law('entf1'),e2=law('entf2'),sw=law('entfSchwelle');
+    const eTxt=(e1===e2)?(deNum(e1)+' €/km ab dem 1. km'):(deNum(e1)+' €/km bis '+sw+' km, '+deNum(e2)+' €/km ab km '+(sw+1));
+    rh.textContent='Jahr '+currentYear+': Homeoffice '+deNum(law('hoSatz'))+' €/Tag (max '+law('hoMax')+' = '+deNum(law('hoMax')*law('hoSatz'))+' €). Entfernung '+eTxt+' × Arbeitstage.'; }
   const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
   setV('l-hotage', d.hoTage?String(d.hoTage):'');
-  setV('l-km', d.kmSchule?String(d.kmSchule):'');
+  setV('l-km', d.kmSchule?String(d.kmSchule).replace('.',','):'');
   setV('l-tage', d.arbeitstage?String(d.arbeitstage):'');
-  setV('set-pb', deNum(lehrPB())); setV('set-hosatz', deNum(lehrHoSatz()));
   const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), wk=ho+entf+posL, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
-  setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>HO_MAX?'  (max '+HO_MAX+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
+  setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>law('hoMax')?'  (max '+law('hoMax')+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
   document.getElementById('l-wk').textContent=fmt(wk);
   document.getElementById('l-pb').textContent=fmt(pb);
   const ueber=wk-pb, ue=document.getElementById('l-ueber');
@@ -1902,7 +2146,6 @@ function openOv(id){
     document.getElementById('gh-auto').checked=autoPushEnabled();
     syncState();
   }
-  if(id==='ov-kfz') fillKfz();
   el.classList.add('open');
 }
 function closeOv(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
@@ -2004,7 +2247,7 @@ const eaDD=eaDefaultDate();
 document.getElementById('ea-datum').value=eaDD;
 document.getElementById('ea-datum-txt').value=fmtDate(eaDD);
 document.getElementById('f-datum').value=eaDD;
-setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz();
+setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz(); populateYearOptions();
 renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); syncState(); updateBackupInfo();
 if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
 
