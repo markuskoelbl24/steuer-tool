@@ -167,15 +167,20 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .cal-btn:hover{background:var(--card-2);}
 .date-native{position:absolute;right:8px;top:50%;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none;}
 
+.fahrt-anlage{display:inline-block;min-width:15px;text-align:center;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;vertical-align:middle;cursor:pointer;}
+.fahrt-anlage.s{background:var(--accent-soft);color:var(--accent);}
+.fahrt-anlage.l{background:var(--orange-bg);color:var(--orange);}
 .preview-box{background:var(--accent-soft);border:0.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;margin-top:0.3rem;color:var(--accent);font-weight:500;}
 .preview-box strong{font-size:18px;font-weight:700;}
-.fahrt-entry{padding:10px 0;border-bottom:0.5px solid var(--border);}
+.fahrt-entry{display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border-bottom:0.5px solid var(--border);cursor:pointer;border-radius:var(--radius-sm);}
 .fahrt-entry:last-child{border-bottom:none;}
-.fahrt-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.fahrt-entry:hover{background:var(--card-2);}
+.fahrt-entry.editing{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);}
+.fahrt-main{flex:1;min-width:0;}
+.fahrt-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
 .fahrt-route{font-weight:600;font-size:14px;}
-.fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;align-self:center;}
 .fahrt-sub{font-size:11px;color:var(--txt-2);margin-top:2px;}
-.fahrt-del{font-size:11px;color:var(--txt-3);background:none;border:none;cursor:pointer;margin-top:4px;padding:0;font-family:inherit;}
 
 .sync-card{display:flex;align-items:center;gap:10px;}
 .sync-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -292,7 +297,10 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 #report thead{display:table-header-group;}
 #report th,#report td{border:0.5px solid #999;padding:3px 5px;text-align:left;vertical-align:top;}
 #report thead th{background:#ececec;font-weight:700;}
-#report tr{break-inside:avoid;page-break-inside:avoid;}
+/* Datenzeilen dürfen frei umbrechen (füllt Seiten, kein Leerraum); nur Kopf-/Summenzeilen zusammenhalten */
+#report thead tr,#report .qh,#report .qsub,#report .grand{break-inside:avoid;page-break-inside:avoid;}
+#report .qh{break-after:avoid;page-break-after:avoid;}
+#report .qsub,#report .grand{break-before:avoid;page-break-before:avoid;}
 #report small{color:#555;}
 #report .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
 #report .qh td{background:#dcdcdc;font-weight:700;}
@@ -415,8 +423,12 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 
     <div class="card no-print">
       <div class="list-head" style="margin-bottom:0.9rem;">
-        <div class="section-title" style="margin-bottom:0;">Fahrt erfassen</div>
+        <div class="section-title" id="fahrt-form-title" style="margin-bottom:0;">Fahrt erfassen</div>
         <button type="button" class="btn-ghost" onclick="newFahrt()">↺ Neue Fahrt</button>
+      </div>
+      <div class="seg" id="seg-fanlage" style="margin-bottom:0.7rem;">
+        <button type="button" id="btn-f-selbst" class="on" onclick="setFahrtAnlage('selbst')">Selbständig (EÜR)</button>
+        <button type="button" id="btn-f-lehramt" onclick="setFahrtAnlage('lehramt')">Lehramt (Anlage N)</button>
       </div>
       <div class="row2">
         <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
@@ -465,7 +477,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="form-row"><label>Zug (€)</label><input type="text" inputmode="decimal" id="f-zug" placeholder="0" value="0" oninput="calcFahrt()" onblur="fmtField(this)"></div>
       </div>
       <div class="preview-box"><span>Abzugsfähig gesamt</span><strong id="f-preview">0,00 €</strong></div>
-      <button class="btn-primary" onclick="addFahrt()">Fahrt speichern</button>
+      <button class="btn-primary" id="f-save-btn" onclick="addFahrt()">Fahrt speichern</button>
+      <button class="btn-ghost" id="f-cancel-edit" style="display:none;width:100%;margin-top:8px;" onclick="newFahrt()">Abbrechen</button>
     </div>
 
     <div class="card">
@@ -562,6 +575,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="jblock">
         <div class="jblock-title">LEHRAMT · WERBUNGSKOSTEN (Anlage N, separat)</div>
         <div class="jrow"><span>Werbungskosten gesamt</span><span id="j-l-wk">—</span></div>
+        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">davon Dienstfahrten (Reisekosten, aus Fahrt-Tab → L)</span><span id="j-l-fahrt" style="font-size:11px;color:var(--txt-2);">—</span></div>
         <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="j-l-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="j-l-eff">—</span></div>
       </div>
@@ -579,6 +593,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       </div>
     </div>
     <button class="btn-primary no-print" onclick="printReport()">📄 Bericht als PDF / Druck (für Steuerberater)</button>
+    <button class="btn-ghost no-print" style="width:100%;margin-top:8px;" onclick="exportXLSX()">📊 Excel-Export mit Formeln (.xlsx)</button>
     <button class="btn-ghost no-print" style="width:100%;margin-top:8px;" onclick="exportCSV()">CSV-Export der Buchungen (<span id="csv-year">2025</span>)</button>
   </section>
 
@@ -606,12 +621,17 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 
     <div class="card no-print">
       <div class="section-title">Weitere Posten</div>
+      <div class="seg" id="seg-lp-type" style="margin-bottom:0.6rem;">
+        <button type="button" id="btn-lp-pausch" class="on" onclick="setLpType('pausch')">Pauschale (jährlich)</button>
+        <button type="button" id="btn-lp-ansch" onclick="setLpType('ansch')">Anschaffung (mit Datum)</button>
+      </div>
       <div class="row2">
         <div class="form-row"><label>Bezeichnung</label><input type="text" id="lp-name" placeholder="z.B. Fachliteratur"></div>
         <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="lp-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
       </div>
+      <div class="form-row" id="lp-datum-row" style="display:none;"><label>Kaufdatum</label><input type="date" id="lp-datum"></div>
       <button class="btn-ghost" style="width:100%;" onclick="addLehramtPos()">+ Posten hinzufügen</button>
-      <div class="hint" style="margin-top:6px;">Tipp auf <b>L / S</b> verschiebt einen Posten zwischen Lehramt (Werbungskosten) und Selbständigkeit (Betriebsausgabe).</div>
+      <div class="hint" style="margin-top:6px;"><b>Pauschale</b> = jährlich wiederkehrend, wird in neue Jahre übernommen. <b>Anschaffung</b> = einmalig mit Datum, bleibt nur im jeweiligen Jahr. Tipp auf <b>L / S</b> verschiebt zwischen Lehramt und Selbständigkeit. Betrag per Klick editierbar.</div>
       <div id="lp-list" style="margin-top:0.4rem;"></div>
     </div>
 
@@ -621,6 +641,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow"><span>Homeoffice-Pauschale</span><span class="aus" id="l-r-ho">—</span></div>
         <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="l-r-entf">—</span></div>
         <div class="jrow"><span>Weitere Posten (Lehramt)</span><span class="aus" id="l-r-pos">—</span></div>
+        <div class="jrow"><span>Dienstfahrten (aus Fahrt-Tab → L)</span><span class="aus" id="l-r-fahrt">—</span></div>
         <div class="jrow total"><span>Werbungskosten gesamt</span><span class="aus" id="l-r-wk">—</span></div>
         <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="l-r-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="l-r-eff">—</span></div>
@@ -669,8 +690,10 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   <div class="setup-inner">
     <div class="setup-head"><span class="t">Einstellungen (Setup)</span><button class="btn-ghost" onclick="closeSetup()">← Zurück</button></div>
     <div class="hint" id="kfz-status" style="margin:0 0 12px;">Pauschale 0,30 €/km</div>
-    <div class="form-row"><label>Standard-Heimatort (mit Straße &amp; Hausnr.)</label><input type="text" id="set-heimat" placeholder="z.B. Musterstr. 12, 80331 München" oninput="updateHeimat()"></div>
-    <div class="hint" style="margin:-4px 0 12px;">Wird bei neuen Fahrten automatisch als <b>Start und Rückkehr</b> eingetragen. Vollständige Adresse = genauere km-Berechnung.</div>
+    <div class="form-row"><label>Standard-Heimatort — Anzeigename</label><input type="text" id="set-heimat" placeholder="z.B. Ingolstadt" oninput="updateHeimat()"></div>
+    <div class="hint" style="margin:-4px 0 10px;">Wird bei neuen Fahrten als <b>Start/Rückkehr</b> eingetragen und genau so angezeigt/gedruckt. Andere Ziele in derselben Stadt tippst du individuell (z. B. „Stadttheater Ingolstadt") — sie werden <b>nicht</b> zusammengeworfen.</div>
+    <div class="form-row"><label>Genaue Adresse (nur für „🗺️ in Maps", optional)</label><input type="text" id="set-heimat-adr" placeholder="z.B. Musterstr. 12, 85049 Ingolstadt" oninput="updateHeimat()"></div>
+    <div class="hint" style="margin:-4px 0 12px;">Bleibt im Hintergrund — der Maps-Link nutzt diese Adresse, angezeigt wird trotzdem nur der Anzeigename.</div>
     <div class="form-row"><label>Standard-km-Satz Musikfahrten (€/km) — Jahr <span id="satz-year">2026</span></label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
     <div class="hint" style="margin:-4px 0 12px;">Gilt <b>ab dem oben gewählten Jahr und allen Folgejahren</b>, bis du ein späteres Jahr abweichend einstellst — frühere Jahre bleiben unberührt. Bereits gespeicherte Fahrten behalten ihren Satz.</div>
 
@@ -802,6 +825,18 @@ const DEMO_EA_2025 = [
 ];
 
 const DEFAULT_CATS=['Gage','Unterricht','Services & Abos','Versicherung','Bewirtung','Fortbildung','Musikzubehör','Bürobedarf','Sonstiges'];
+/* Bestandsdaten: alte Kategorienamen → neue (einmalig, idempotent) */
+const CAT_RENAME={'KV/Versicherung':'Versicherung','Equipment':'Musikzubehör','Noten':'Musikzubehör','Software/Abo':'Services & Abos','Handy':'Services & Abos','Homeoffice':'Bürobedarf'};
+function migrateCats(){
+  let changed=false;
+  eintraege.forEach(e=>{ if(CAT_RENAME[e.kategorie]){ e.kategorie=CAT_RENAME[e.kategorie]; changed=true; } });
+  for(const k in learnMap){ if(CAT_RENAME[learnMap[k]]){ learnMap[k]=CAT_RENAME[learnMap[k]]; changed=true; } }
+  const before=customCats.join('|');
+  customCats=customCats.map(c=>CAT_RENAME[c]||c).filter((c,i,a)=>a.indexOf(c)===i && !DEFAULT_CATS.includes(c));
+  if(changed) saveEA();
+  if(changed) saveLearn();
+  if(before!==customCats.join('|')) saveCats();
+}
 
 /* ====== Laden (Seed write-once) ====== */
 if(!store.get('steuer_ea')) store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
@@ -1301,6 +1336,105 @@ function exportCSV(){
   a.download='steuer-EA-'+currentYear+'.csv'; a.click(); URL.revokeObjectURL(a.href);
   toast('CSV exportiert');
 }
+
+/* ===== Excel-Export (.xlsx) mit echten Formeln — eigener Mini-Generator, ohne Bibliothek =====
+   Flache Tabellen mit Endwerten; Summen/Produkte als Excel-Formeln (rechnen beim Öffnen). */
+function crc32(bytes){
+  let crc=0xFFFFFFFF;
+  for(let i=0;i<bytes.length;i++){
+    let c=(crc^bytes[i])&0xFF;
+    for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320^(c>>>1)) : (c>>>1);
+    crc=(crc>>>8)^c;
+  }
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function zipStore(files){
+  const u16=n=>[n&0xFF,(n>>>8)&0xFF];
+  const u32=n=>[n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF];
+  const enc=new TextEncoder(), chunks=[], central=[]; let offset=0;
+  files.forEach(f=>{
+    const name=enc.encode(f.name), data=f.data, crc=crc32(data), size=data.length;
+    const local=new Uint8Array([].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(size),u32(size),u16(name.length),u16(0)));
+    chunks.push(local,name,data);
+    central.push(new Uint8Array([].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(size),u32(size),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset))), name);
+    offset += local.length + name.length + data.length;
+  });
+  const cdStart=offset; let cdSize=0;
+  central.forEach(c=>{ chunks.push(c); cdSize+=c.length; });
+  chunks.push(new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(cdStart),u16(0))));
+  let total=0; chunks.forEach(c=>total+=c.length);
+  const out=new Uint8Array(total); let p=0; chunks.forEach(c=>{ out.set(c,p); p+=c.length; });
+  return out;
+}
+function exportXLSX(){
+  const year=currentYear, yStr=String(year);
+  const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const r2=n=>Math.round((+n||0)*100)/100;
+  const colL=i=>{ let s=''; while(i>0){ s=String.fromCharCode(65+((i-1)%26))+s; i=Math.floor((i-1)/26); } return s; };
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const rows=[]; let r=0, cells=[];
+  const open=()=>{ r++; cells=[]; };
+  const close=()=>{ rows.push('<row r="'+r+'">'+cells.join('')+'</row>'); };
+  const S=(c,v)=>cells.push('<c r="'+colL(c)+r+'" t="inlineStr"><is><t xml:space="preserve">'+xe(v)+'</t></is></c>');
+  const N=(c,v)=>cells.push('<c r="'+colL(c)+r+'"><v>'+r2(v)+'</v></c>');
+  const F=(c,f)=>cells.push('<c r="'+colL(c)+r+'"><f>'+xe(f)+'</f></c>');
+  /* --- E/A --- */
+  open(); S(1,'Steuer-Export '+year+' — Endwerte; Summen & Produkte sind Excel-Formeln (frei änderbar)'); close();
+  open(); close();
+  open(); ['Datum','Beleg','Konto','Kategorie','Beschreibung','Einnahme','Ausgabe'].forEach((h,i)=>S(i+1,h)); close();
+  const eaFirst=r+1;
+  ey.forEach(e=>{ open(); S(1,fmtDate(e.datum)); S(2,e.belegnr||''); S(3,e.konto); S(4,e.kategorie); S(5,e.text);
+    if(e.typ==='ein') N(6,e.betrag); else N(7,e.betrag); close(); });
+  const eaLast=r;
+  open(); S(5,'Summe '+year);
+    if(ey.length){ F(6,'SUM(F'+eaFirst+':F'+eaLast+')'); F(7,'SUM(G'+eaFirst+':G'+eaLast+')'); } close();
+  if(ey.length){ open(); S(5,'Saldo (Einnahmen − Ausgaben)'); F(6,'F'+r+'-G'+r); close(); }   /* verweist auf Summenzeile darüber */
+  open(); close();
+  /* --- Fahrten --- */
+  open(); S(1,'FAHRTEN '+year+'  (S = Selbständig/EÜR · L = Lehramt/Anlage N)'); close();
+  open(); ['Datum','Route','Zweck','Anlage','km','Satz €/km','km-Geld','Verpfl.','Park','Zug','Summe'].forEach((h,i)=>S(i+1,h)); close();
+  const fFirst=r+1;
+  fy.forEach(f=>{ open();
+    S(1,fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''));
+    S(2,cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):''));
+    S(3,f.zweck||''); S(4, f.anlage==='lehramt'?'L':'S'); N(5,f.km||0); N(6,f.satz||0);
+    F(7,'E'+r+'*F'+r); N(8,f.pausch||0); N(9,f.park||0); N(10,f.zug||0);
+    F(11,'G'+r+'+H'+r+'+I'+r+'+J'+r); close(); });
+  const fLast=r;
+  open(); S(3,'Summe '+year);
+    if(fy.length){ F(7,'SUM(G'+fFirst+':G'+fLast+')'); F(11,'SUM(K'+fFirst+':K'+fLast+')'); } close();
+
+  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+rows.join('')+'</sheetData></worksheet>';
+  const ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+    +'<Default Extension="xml" ContentType="application/xml"/>'
+    +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    +'<sheets><sheet name="Steuer '+year+'" sheetId="1" r:id="rId1"/></sheets><calcPr fullCalcOnLoad="1"/></workbook>';
+  const wbr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  const enc=new TextEncoder();
+  const zip=zipStore([
+    {name:'[Content_Types].xml',data:enc.encode(ct)},
+    {name:'_rels/.rels',data:enc.encode(rels)},
+    {name:'xl/workbook.xml',data:enc.encode(wb)},
+    {name:'xl/_rels/workbook.xml.rels',data:enc.encode(wbr)},
+    {name:'xl/worksheets/sheet1.xml',data:enc.encode(sheet)}
+  ]);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download='Steuer-'+year+'.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  toast('Excel-Datei erstellt');
+}
 function exportData(){
   const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,fahrten,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
   const a=document.createElement('a');
@@ -1327,13 +1461,20 @@ function importData(input){
     saveEA(); saveFahrt(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
     nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
     nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
+    migrateCats();
     populateYearOptions(); renderEA(); renderFahrten(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
   }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
   r.readAsText(f);
 }
 
 /* ====== Fahrt ====== */
-let curTrip='ein';
+let curTrip='ein', curFahrtAnlage='selbst', editFahrtId=null;
+function setFahrtAnlage(m){
+  curFahrtAnlage=m;
+  document.getElementById('btn-f-selbst').classList.toggle('on',m==='selbst');
+  document.getElementById('btn-f-lehramt').classList.toggle('on',m==='lehramt');
+}
+function lehrFahrtSum(year){ return fahrten.filter(f=>f.anlage==='lehramt' && f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.kmgeld||0),0); }
 function setTrip(t){
   curTrip=t;
   document.getElementById('btn-eintag').classList.toggle('on',t==='ein');
@@ -1465,7 +1606,7 @@ function fillKfz(){
   document.getElementById('kfz-year2').textContent=currentYear;
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
   set('kfz-kmstart', d.kmStart?String(d.kmStart):''); set('kfz-kmend', d.kmEnd?String(d.kmEnd):'');
-  set('set-heimat', settings.heimatort||'');
+  set('set-heimat', settings.heimatort||''); set('set-heimat-adr', settings.heimatAdresse||'');
   const kbd=document.getElementById('kb-datum'); if(kbd && !kbd.value) kbd.value=eaDefaultDate();
   renderKfzBelege(); fillKfzResults(); updateCarAfa();
 }
@@ -1566,12 +1707,50 @@ function addFahrt(){
   routeKm[routeKeyFrom(start,ziel,rueckort)]=km; saveRouteKm();
   const route=start+' → '+ziel+(rueckort?(' → '+rueckort):'');
   const kmgeld=km*satz+park+zug+pausch;
-  fahrten.push({id:nextFahrtId++,datum,enddatum,route,start,ziel,rueckort,zweck,km,satz,park,zug,pausch,mehr:curTrip==='mehr',tage:pObj.days||1,anreiseNacht:!!pObj.bA,heimMitternacht:!!pObj.bH,abUhr,rueckUhr,kmgeld,updated:Date.now()});
+  const rec={datum,enddatum,route,start,ziel,rueckort,zweck,km,satz,park,zug,pausch,mehr:curTrip==='mehr',tage:pObj.days||1,anreiseNacht:!!pObj.bA,heimMitternacht:!!pObj.bH,abUhr,rueckUhr,anlage:curFahrtAnlage,kmgeld,updated:Date.now()};
+  const isEdit=editFahrtId!=null;
+  if(isEdit){ const f=fahrten.find(x=>x.id===editFahrtId); if(f) Object.assign(f,rec); }
+  else { rec.id=nextFahrtId++; fahrten.push(rec); }
   saveFahrt();
   homeOrt={start,rueckort}; saveHome();
   clearFahrtFields(false);   // Start/Rückkehr für die nächste Fahrt behalten
-  populateYearOptions(); renderFahrten(); toast('Fahrt gespeichert'); scheduleAutoPush();
+  populateYearOptions(); renderFahrten();
+  if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
+  toast(isEdit?'Fahrt aktualisiert':'Fahrt gespeichert'); scheduleAutoPush();
   document.getElementById('f-zweck').focus();
+}
+function editFahrt(id){
+  const f=fahrten.find(x=>x.id===id); if(!f) return;
+  editFahrtId=id;
+  document.getElementById('f-datum').value=f.datum;
+  document.getElementById('f-zweck').value=f.zweck||'';
+  document.getElementById('f-start').value=f.start||'';
+  document.getElementById('f-ziel').value=f.ziel||'';
+  document.getElementById('f-rueckort').value=f.rueckort||'';
+  document.getElementById('f-km').value=f.km!=null?String(f.km).replace('.',','):'';
+  document.getElementById('f-park').value=deNum(f.park||0);
+  document.getElementById('f-zug').value=deNum(f.zug||0);
+  setFahrtAnlage(f.anlage||'selbst');
+  setTrip(f.mehr?'mehr':'ein');
+  document.getElementById('f-enddatum').value=f.enddatum||'';
+  document.getElementById('f-ab').value=f.abUhr!=null?f.abUhr:'';
+  document.getElementById('f-rueck').value=f.rueckUhr!=null?f.rueckUhr:'';
+  document.getElementById('f-anreise-nacht').checked=!!f.anreiseNacht;
+  document.getElementById('f-heim-mitternacht').checked=!!f.heimMitternacht;
+  document.getElementById('f-save-btn').textContent='Fahrt aktualisieren';
+  document.getElementById('f-cancel-edit').style.display='block';
+  document.getElementById('fahrt-form-title').textContent='Fahrt bearbeiten';
+  calcPauschale(); calcFahrt();
+  renderFahrten();   // markiert den Eintrag in der Liste (editing)
+  document.getElementById('f-zweck').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function toggleFahrtAnlage(id){
+  const f=fahrten.find(x=>x.id===id); if(!f) return;
+  f.anlage=(f.anlage==='lehramt')?'selbst':'lehramt'; f.updated=Date.now(); saveFahrt();
+  renderFahrten();
+  if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
+  if(document.getElementById('tab-lehramt').classList.contains('active')) renderLehramt();
+  scheduleAutoPush();
 }
 function clearFahrtFields(full){
   ['f-ziel','f-zweck','f-km','f-ab','f-rueck','f-enddatum'].forEach(id=>document.getElementById(id).value='');
@@ -1579,7 +1758,11 @@ function clearFahrtFields(full){
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
   document.getElementById('f-datum').value=eaDefaultDate();
   if(full){ document.getElementById('f-start').value=''; document.getElementById('f-rueckort').value=''; }
-  prefillHome(); setTrip('ein');
+  prefillHome(); setTrip('ein'); setFahrtAnlage('selbst');
+  editFahrtId=null;
+  document.getElementById('f-save-btn').textContent='Fahrt speichern';
+  document.getElementById('f-cancel-edit').style.display='none';
+  document.getElementById('fahrt-form-title').textContent='Fahrt erfassen';
   document.getElementById('f-preview').textContent='0,00 €';
 }
 function newFahrt(){
@@ -1591,7 +1774,12 @@ function newFahrt(){
 }
 function updateHeimat(){
   settings.heimatort=document.getElementById('set-heimat').value.trim();
+  const adr=document.getElementById('set-heimat-adr'); if(adr) settings.heimatAdresse=adr.value.trim();
   saveSettings(); prefillHome(); calcFahrt();
+}
+function mapsAddr(v){
+  const lbl=(settings.heimatort||'').trim().toLowerCase(), adr=(settings.heimatAdresse||'').trim();
+  return (adr && v.trim().toLowerCase()===lbl) ? adr : v;   // Heimat-Anzeigename → genaue Adresse fürs Routing
 }
 function prefillHome(){
   const h=settings.heimatort||'';
@@ -1614,7 +1802,7 @@ function openMaps(){
   const z=document.getElementById('f-ziel').value.trim();
   const r=document.getElementById('f-rueckort').value.trim()||s;
   if(!s||!z){ toast('Start und Ziel eingeben',true); return; }
-  window.open('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(s)+'&destination='+encodeURIComponent(r)+'&waypoints='+encodeURIComponent(z)+'&travelmode=driving','_blank');
+  window.open('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(mapsAddr(s))+'&destination='+encodeURIComponent(mapsAddr(r))+'&waypoints='+encodeURIComponent(mapsAddr(z))+'&travelmode=driving','_blank');
 }
 /* ---- Standortbestimmung: GPS → Ortsname über OpenStreetMap (Nominatim).
    Nur die Standort-Koordinaten gehen online an Nominatim; E/A-Daten niemals. ---- */
@@ -1648,7 +1836,7 @@ function cleanOrtname(s){
 }
 function renderFahrten(){
   document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
-  document.getElementById('fahrt-list-title').textContent='Fahrten '+currentYear;
+  document.getElementById('fahrt-list-title').innerHTML='Fahrten '+currentYear+' <span style="font-weight:400;color:var(--txt-2);font-size:13px;">· angewendet '+deNum(pauschSatz(currentYear))+' €/km</span>';
   fillKfzResults();
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===String(currentYear));
   const total=fy.reduce((s,f)=>s+f.kmgeld,0);
@@ -1662,15 +1850,20 @@ function renderFahrten(){
     const items=groups[k].slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
     const sum=items.reduce((s,f)=>s+f.kmgeld,0);
     const rows=items.map(f=>{
-      const meta=[fmtDate(f.datum),f.zweck,f.km+' km × '+(f.satz*100).toFixed(0)+' ct'];
-      if(f.abUhr!=null&&f.rueckUhr!=null) meta.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
-      if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
-      if(f.park>0) meta.push('Park '+fmt(f.park));
-      if(f.zug>0) meta.push('Zug '+fmt(f.zug));
+      const isL=f.anlage==='lehramt';
+      const sub=[fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''), (f.km||0)+' km'];
+      if(f.abUhr!=null&&f.rueckUhr!=null) sub.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
+      if(f.pausch>0) sub.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
+      if(f.park>0) sub.push('Park '+fmt(f.park));
+      if(f.zug>0) sub.push('Zug '+fmt(f.zug));
       const route=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
-      return '<div class="fahrt-entry"><div class="fahrt-top"><span class="fahrt-route">'+esc(route)+'</span><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span></div>'
-        +'<div class="fahrt-sub">'+meta.map(esc).join(' · ')+'</div>'
-        +'<button class="fahrt-del no-print" onclick="deleteFahrt('+f.id+')">× löschen</button></div>';
+      const badge='<span class="fahrt-anlage '+(isL?'l':'s')+'" onclick="event.stopPropagation();toggleFahrtAnlage('+f.id+')" title="S ↔ L umschalten">'+(isL?'L':'S')+'</span>';
+      const top=badge+'<span class="fahrt-route">'+esc(route)+'</span>'+(f.zweck?('<span style="color:var(--txt-2);font-size:12.5px;">· '+esc(f.zweck)+'</span>'):'');
+      return '<div class="fahrt-entry'+(f.id===editFahrtId?' editing':'')+'" onclick="editFahrt('+f.id+')" title="Zum Bearbeiten tippen">'
+        +'<div class="fahrt-main"><div class="fahrt-top">'+top+'</div>'
+        +'<div class="fahrt-sub">'+sub.map(esc).join(' · ')+'</div></div>'
+        +'<span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span>'
+        +'<button class="del-btn no-print" onclick="event.stopPropagation();deleteFahrt('+f.id+')" aria-label="Löschen">×</button></div>';
     }).join('');
     return '<div style="margin-bottom:0.75rem;"><div class="month-head" style="position:static;border-radius:var(--radius-sm);margin-bottom:4px;">'
       +'<span class="month-name">'+monthLabel(k)+'</span><span class="month-sums"><span class="a">−'+fmt(sum)+'</span></span></div>'+rows+'</div>';
@@ -1774,7 +1967,7 @@ function lehrDataFor(year){ return lehramtData[year] || lehramtData[year-1] || {
 function renderJahres(){
   const year=afaYear(), yStr=String(year);
   const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
-  const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr);
+  const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt');   // nur Selbständigkeit in der EÜR
   const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)).reduce((s,e)=>s+e.betrag,0);
   const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
   const unterricht=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
@@ -1802,8 +1995,9 @@ function renderJahres(){
   set('j-sonstaus',fmt(sonst)); set('j-lehrversch',fmt(lehrV)); set('j-austotal',fmt(austotal));
   set('j-km30',fmt(km30)); set('j-verpfl',fmt(verpfl)); set('j-park',fmt(parkzug)); set('j-fahrttotal',fmt(fahrttotal));
   set('j-afa',fmt(afa)); set('j-afa-jahr','('+year+')');
-  const ld=lehrDataFor(year), lwk=werbungskosten(ld), lpb=lehrPB();
+  const ld=lehrDataFor(year), lfahrt=lehrFahrtSum(year), lwk=werbungskosten(ld)+lfahrt, lpb=lehrPB();
   set('j-l-wk',fmt(lwk)); set('j-l-pb',fmt(lpb)); set('j-l-eff',fmt(Math.max(lwk,lpb)));
+  set('j-l-fahrt',fmt(lfahrt));
   const er=document.getElementById('j-ergebnis');
   er.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis);
   er.style.color=ergebnis>=0?'var(--green)':'var(--red)'; er.style.fontWeight='700';
@@ -1821,7 +2015,7 @@ function buildReport(){
   const M=n=>deNum(n)+' €';
   const sumRow=(l,v,cls)=>'<tr class="'+(cls||'')+'"><td>'+esc(l)+'</td><td class="num">'+v+'</td></tr>';
   const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
-  const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt').slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const afaRows=allAfa().map(a=>({a,r:afaForYear(a,year)}));
   const sumEin=ey.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
   const sumAus=ey.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
@@ -1830,8 +2024,8 @@ function buildReport(){
   const parkzug=fy.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
   const fahrttotal=fy.reduce((s,f)=>s+(f.kmgeld||0),0);
   const afaTotal=afaRows.reduce((s,o)=>s+o.r.betrag,0);
-  const ld=lehrDataFor(year), ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), posL=lehrPosSum(ld,'lehramt');
-  const lwk=ho+entf+posL, lpb=lehrPB(), leff=Math.max(lwk,lpb), lehrV=lehrPosSum(ld,'selbst');
+  const ld=lehrDataFor(year), ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), posL=lehrPosSum(ld,'lehramt'), lfahrtR=lehrFahrtSum(year);
+  const lwk=ho+entf+posL+lfahrtR, lpb=lehrPB(), leff=Math.max(lwk,lpb), lehrV=lehrPosSum(ld,'selbst');
   const ergebnis=sumEin-sumAus-lehrV-fahrttotal-afaTotal;
 
   let H='<h1>Steuer-Bericht '+year+'</h1>';
@@ -1883,15 +2077,18 @@ function buildReport(){
   H+='<div class="rep-sec rep-break"><h2>Fahrtkosten '+year+'</h2>';
   if(!fy.length){ H+='<p class="empty">Keine Fahrten erfasst.</p>'; }
   else{
-    H+='<table><thead><tr><th>Datum</th><th>Route</th><th>Zweck</th><th class="num">km</th><th class="num">Satz</th><th class="num">km-Geld</th><th class="num">Verpfl.</th><th class="num">Park/Zug</th><th class="num">Summe</th></tr></thead><tbody>';
+    const kmCount=fy.reduce((s,f)=>s+(f.km||0),0);
+    H+='<p style="font-size:10px;color:#333;margin:0 0 5px;">Angewendete Vergütung (Musikfahrten): <b>'+deNum(pauschSatz(year))+' €/km</b> · km-Geld = km × Satz</p>';
+    H+='<table><thead><tr><th>Datum</th><th>Route</th><th>Zweck</th><th class="num">Uhrzeit</th><th class="num">Verpfl.</th><th class="num">Park/Zug</th><th class="num">km</th><th class="num">km-Geld</th><th class="num">Summe</th></tr></thead><tbody>';
     fy.forEach(f=>{
       const pz=(f.park||0)+(f.zug||0);
+      const uhr=(f.abUhr!=null&&f.rueckUhr!=null)?(f.abUhr+'–'+f.rueckUhr):'';
       const rRoute=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
       H+='<tr><td>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</td><td>'+esc(rRoute)+'</td><td>'+esc(f.zweck||'')+'</td>'
-        +'<td class="num">'+(f.km||0)+'</td><td class="num">'+((f.satz||0)*100).toFixed(0)+' ct</td>'
-        +'<td class="num">'+M((f.km||0)*(f.satz||0))+'</td><td class="num">'+M(f.pausch||0)+'</td><td class="num">'+M(pz)+'</td><td class="num">'+M(f.kmgeld||0)+'</td></tr>';
+        +'<td class="num">'+uhr+'</td><td class="num">'+M(f.pausch||0)+'</td><td class="num">'+M(pz)+'</td>'
+        +'<td class="num">'+(f.km||0)+'</td><td class="num">'+M((f.km||0)*(f.satz||0))+'</td><td class="num">'+M(f.kmgeld||0)+'</td></tr>';
     });
-    H+='<tr class="grand"><td colspan="5">Gesamt ('+fy.length+' Fahrten)</td><td class="num">'+M(km30)+'</td><td class="num">'+M(verpfl)+'</td><td class="num">'+M(parkzug)+'</td><td class="num">'+M(fahrttotal)+'</td></tr>';
+    H+='<tr class="grand"><td colspan="4">Gesamt ('+fy.length+' Fahrten)</td><td class="num">'+M(verpfl)+'</td><td class="num">'+M(parkzug)+'</td><td class="num">'+kmCount+'</td><td class="num">'+M(km30)+'</td><td class="num">'+M(fahrttotal)+'</td></tr>';
     H+='</tbody></table>';
   }
   H+='</div>';
@@ -1915,8 +2112,9 @@ function buildReport(){
   H+='<table><thead><tr><th>Posten</th><th>Detail</th><th>Zuordnung</th><th class="num">Betrag</th></tr></thead><tbody>';
   H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(lehrHoSatz())+' (max '+law('hoMax')+')</td><td>Lehramt</td><td class="num">'+M(ho)+'</td></tr>';
   H+='<tr><td>Entfernungspauschale</td><td>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Lehramt</td><td class="num">'+M(entf)+'</td></tr>';
-  (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td></td><td>'+(p.ziel==='selbst'?'Selbständig':'Lehramt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
-  H+='<tr class="qsub"><td colspan="3">Werbungskosten gesamt (nur Lehramt-Zuordnung)</td><td class="num">'+M(lwk)+'</td></tr>';
+  (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td>'+(p.datum?fmtDate(p.datum):'')+'</td><td>'+(p.ziel==='selbst'?'Selbständig':'Lehramt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
+  if(lfahrtR>0) H+='<tr><td>Dienstfahrten (Reisekosten)</td><td>aus Fahrt-Tab (→ L)</td><td>Lehramt</td><td class="num">'+M(lfahrtR)+'</td></tr>';
+  H+='<tr class="qsub"><td colspan="3">Werbungskosten gesamt (Lehramt)</td><td class="num">'+M(lwk)+'</td></tr>';
   H+='<tr><td colspan="3">Arbeitnehmer-Pauschbetrag</td><td class="num">'+M(lpb)+'</td></tr>';
   H+='<tr class="grand"><td colspan="3">anzusetzen (höherer Wert)</td><td class="num">'+M(leff)+'</td></tr>';
   H+='</tbody></table></div>';
@@ -1947,7 +2145,14 @@ function lehrHoSatz(){ return law('hoSatz'); }
 function lehrGet(){
   if(!lehramtData[currentYear]){
     const prev=lehramtData[currentYear-1];
-    lehramtData[currentYear]= prev? JSON.parse(JSON.stringify(prev)) : {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]};
+    if(prev){
+      const copy=JSON.parse(JSON.stringify(prev));
+      /* nur jährliche Pauschalen ins neue Jahr übernehmen – einmalige (datierte) Anschaffungen nicht */
+      copy.positions=(copy.positions||[]).filter(p=>p.recurring!==false && !p.datum);
+      lehramtData[currentYear]=copy;
+    } else {
+      lehramtData[currentYear]={hoTage:0,kmSchule:0,arbeitstage:0,positions:[]};
+    }
     saveLehramt();
   }
   return lehramtData[currentYear];
@@ -1962,7 +2167,7 @@ function updateLehramt(){
   d.hoTage=Math.round(num(document.getElementById('l-hotage').value));
   d.kmSchule=Math.round(num(document.getElementById('l-km').value)*10)/10;  // 1 Nachkommastelle (z.B. 3,2 km)
   d.arbeitstage=Math.round(num(document.getElementById('l-tage').value));
-  saveLehramt(); renderLehramt();
+  saveLehramt(); lehrOutputs(d);   // Eingabefelder NICHT neu setzen → 3,2 bleibt tippbar
 }
 /* ===== Zentrales Setup: gesetzliche Werte (⚙ Modal) ===== */
 function refreshAllCalc(){ renderLehramt(); calcFahrt(); if($('tab-jahres').classList.contains('active')) renderJahres(); }
@@ -2061,15 +2266,36 @@ function delStichwort(stichwort){
   delete learnMap[stichwort];
   saveLearn(); renderStichwort();
 }
+let curLpType='pausch';
+function setLpType(m){
+  curLpType=m;
+  document.getElementById('btn-lp-pausch').classList.toggle('on',m==='pausch');
+  document.getElementById('btn-lp-ansch').classList.toggle('on',m==='ansch');
+  document.getElementById('lp-datum-row').style.display=(m==='ansch')?'block':'none';
+}
 function addLehramtPos(){
   const name=document.getElementById('lp-name').value.trim();
   const betrag=num(document.getElementById('lp-betrag').value);
   if(!name||betrag<=0){ toast('Bezeichnung und Betrag nötig',true); return; }
+  const recurring=curLpType==='pausch';
+  const datum=recurring?'':document.getElementById('lp-datum').value;
+  if(!recurring && !datum){ toast('Anschaffung: Kaufdatum nötig',true); return; }
   const d=lehrGet(); d.positions=d.positions||[];
-  d.positions.push({id:'p'+Date.now(),name,betrag,ziel:'lehramt'});
+  d.positions.push({id:'p'+Date.now(),name,betrag,ziel:'lehramt',recurring,datum});
   saveLehramt();
-  document.getElementById('lp-name').value=''; document.getElementById('lp-betrag').value='';
+  document.getElementById('lp-name').value=''; document.getElementById('lp-betrag').value=''; document.getElementById('lp-datum').value='';
   renderLehramt(); document.getElementById('lp-name').focus();
+}
+function startPosAmountEdit(span,id){
+  const d=lehrGet(); const p=(d.positions||[]).find(x=>x.id===id); if(!p) return;
+  const inp=document.createElement('input');
+  inp.type='number'; inp.step='0.01'; inp.value=(p.betrag||0).toFixed(2);
+  inp.style.cssText='width:90px;text-align:right;font-size:13px;padding:3px 6px;border:1px solid var(--accent);border-radius:6px;';
+  span.replaceWith(inp); inp.focus(); inp.select();
+  let done=false;
+  const commit=ok=>{ if(done) return; done=true; if(ok){ const v=num(inp.value); if(v>0){ p.betrag=v; saveLehramt(); } } renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); };
+  inp.addEventListener('blur',()=>commit(true));
+  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ev.preventDefault();commit(true);} else if(ev.key==='Escape'){commit(false);} });
 }
 function delLehramtPos(id){ const d=lehrGet(); d.positions=(d.positions||[]).filter(p=>p.id!==id); saveLehramt(); renderLehramt(); }
 function toggleLehramtPos(id){ const d=lehrGet(); const p=(d.positions||[]).find(x=>x.id===id); if(p){ p.ziel=p.ziel==='lehramt'?'selbst':'lehramt'; saveLehramt(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); } }
@@ -2079,10 +2305,12 @@ function renderLehramtPos(d){
   if(!pos.length){ el.innerHTML='<div class="hint">Noch keine Posten.</div>'; return; }
   el.innerHTML=pos.map(p=>{
     const isL=p.ziel==='lehramt';
+    const typ=(p.recurring===false||p.datum)?('Anschaffung'+(p.datum?' · '+fmtDate(p.datum):'')):'Pauschale (jährlich)';
+    const sub=(isL?'Lehramt':'Selbständig')+' · '+typ;
     return '<div class="entry" style="cursor:default;display:flex;align-items:center;gap:8px;padding:7px 0;">'
       +'<button class="filter-btn'+(isL?' active':'')+'" style="min-width:34px;padding:4px 8px;" onclick="toggleLehramtPos(\''+p.id+'\')" title="umschalten">'+(isL?'L':'S')+'</button>'
-      +'<div class="entry-main"><div class="desc">'+esc(p.name)+'</div><div class="sub">'+(isL?'Lehramt (Werbungskosten)':'Selbständig (Betriebsausgabe)')+'</div></div>'
-      +'<span style="font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;">'+fmt(p.betrag)+'</span>'
+      +'<div class="entry-main"><div class="desc">'+esc(p.name)+'</div><div class="sub">'+esc(sub)+'</div></div>'
+      +'<span style="font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer;border-bottom:1px dotted var(--txt-3);" onclick="startPosAmountEdit(this,\''+p.id+'\')" title="Betrag ändern">'+fmt(p.betrag)+'</span>'
       +'<button class="del-btn" onclick="delLehramtPos(\''+p.id+'\')" aria-label="Löschen">×</button></div>';
   }).join('');
 }
@@ -2090,23 +2318,29 @@ function renderLehramt(){
   const d=lehrGet();
   document.getElementById('l-wk-lbl').textContent='Werbungskosten '+currentYear;
   document.getElementById('l-ov-year').textContent=currentYear;
+  /* Eingabefelder NUR hier füllen (Tab-Wechsel/Jahr) – nicht bei jedem Tastendruck, sonst wird das Komma verschluckt */
+  const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  setV('l-hotage', d.hoTage?String(d.hoTage):'');
+  setV('l-km', d.kmSchule?String(d.kmSchule).replace('.',','):'');
+  setV('l-tage', d.arbeitstage?String(d.arbeitstage):'');
+  lehrOutputs(d);
+}
+function lehrOutputs(d){
+  d=d||lehrGet();
   document.getElementById('l-homax').textContent=law('hoMax');
   const rh=document.getElementById('l-rates-hint');
   if(rh){ const e1=law('entf1'),e2=law('entf2'),sw=law('entfSchwelle');
     const eTxt=(e1===e2)?(deNum(e1)+' €/km ab dem 1. km'):(deNum(e1)+' €/km bis '+sw+' km, '+deNum(e2)+' €/km ab km '+(sw+1));
     rh.textContent='Jahr '+currentYear+': Homeoffice '+deNum(law('hoSatz'))+' €/Tag (max '+law('hoMax')+' = '+deNum(law('hoMax')*law('hoSatz'))+' €). Entfernung '+eTxt+' × Arbeitstage.'; }
   const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
-  setV('l-hotage', d.hoTage?String(d.hoTage):'');
-  setV('l-km', d.kmSchule?String(d.kmSchule).replace('.',','):'');
-  setV('l-tage', d.arbeitstage?String(d.arbeitstage):'');
-  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), wk=ho+entf+posL, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
+  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), lfahrt=lehrFahrtSum(currentYear), wk=ho+entf+posL+lfahrt, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
   setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>law('hoMax')?'  (max '+law('hoMax')+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
   document.getElementById('l-wk').textContent=fmt(wk);
   document.getElementById('l-pb').textContent=fmt(pb);
   const ueber=wk-pb, ue=document.getElementById('l-ueber');
   ue.textContent=(ueber>=0?'+':'')+fmt(ueber); ue.className='metric-value '+(ueber>=0?'green':'red');
   const setT=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
-  setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL));
+  setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL)); setT('l-r-fahrt', fmt(lfahrt));
   setT('l-r-wk', fmt(wk)); setT('l-r-pb', fmt(pb)); setT('l-r-eff', fmt(Math.max(wk,pb))); setT('l-r-selbst', fmt(selbst));
   renderLehramtPos(d);
 }
@@ -2221,6 +2455,42 @@ document.getElementById('ea-list').addEventListener('click',function(ev){
   const row=ev.target.closest('.entry');
   if(row && row.dataset.id) editEintrag(parseInt(row.dataset.id,10));
 });
+/* sichtbare E/A-Einträge in Anzeige-Reihenfolge (chronologisch, dann id) – für Pfeiltasten-Navigation */
+function visibleEAIds(){
+  const yStr=String(currentYear);
+  let list=eintraege.filter(e=>e.datum.slice(0,4)===yStr).filter(e=> eaFilter==='alle'?true:e.typ===eaFilter);
+  if(eaSearch) list=list.filter(e=>((e.text||'')+' '+(e.kategorie||'')+' '+(e.belegnr||'')).toLowerCase().includes(eaSearch));
+  list.sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  return list.map(e=>e.id);
+}
+document.addEventListener('keydown',function(ev){
+  if(editId==null || (ev.key!=='ArrowUp' && ev.key!=='ArrowDown')) return;
+  if(!document.getElementById('tab-ea').classList.contains('active')) return;
+  const ae=document.activeElement;
+  if(ae && (ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA')) return;  // beim Tippen nicht stören
+  const ids=visibleEAIds(), i=ids.indexOf(editId);
+  if(i<0) return;
+  const ni=ev.key==='ArrowDown'?Math.min(i+1,ids.length-1):Math.max(i-1,0);
+  if(ni!==i){ ev.preventDefault(); editEintrag(ids[ni]); const row=document.querySelector('.entry[data-id="'+ids[ni]+'"]'); if(row) row.scrollIntoView({block:'center',behavior:'smooth'}); }
+});
+/* sichtbare Fahrten in Anzeige-Reihenfolge (Monate absteigend, je Monat Datum aufsteigend) – für Pfeiltasten */
+function visibleFahrtIds(){
+  const fy=fahrten.filter(f=>f.datum.slice(0,4)===String(currentYear));
+  const groups={}; fy.forEach(f=>{ (groups[monthKey(f.datum)]=groups[monthKey(f.datum)]||[]).push(f); });
+  const ids=[];
+  Object.keys(groups).sort().reverse().forEach(k=>{ groups[k].slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)).forEach(f=>ids.push(f.id)); });
+  return ids;
+}
+document.addEventListener('keydown',function(ev){
+  if(editFahrtId==null || (ev.key!=='ArrowUp' && ev.key!=='ArrowDown')) return;
+  if(!document.getElementById('tab-fahrt').classList.contains('active')) return;
+  const ae=document.activeElement;
+  if(ae && (ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA')) return;
+  const ids=visibleFahrtIds(), i=ids.indexOf(editFahrtId);
+  if(i<0) return;
+  const ni=ev.key==='ArrowDown'?Math.min(i+1,ids.length-1):Math.max(i-1,0);
+  if(ni!==i){ ev.preventDefault(); editFahrt(ids[ni]); }
+});
 document.getElementById('ea-form').addEventListener('keydown',function(ev){
   if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
 });
@@ -2247,6 +2517,7 @@ const eaDD=eaDefaultDate();
 document.getElementById('ea-datum').value=eaDD;
 document.getElementById('ea-datum-txt').value=fmtDate(eaDD);
 document.getElementById('f-datum').value=eaDD;
+migrateCats();
 setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz(); populateYearOptions();
 renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); syncState(); updateBackupInfo();
 if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
