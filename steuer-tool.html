@@ -92,6 +92,8 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .row-dz{display:grid;grid-template-columns:150px 1fr;gap:8px;}
+#law-panel .row2{align-items:end;}
+#law-panel .form-row label{min-height:2.5em;display:flex;align-items:flex-end;font-size:12px;line-height:1.25;}
 
 .btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:500;cursor:pointer;margin-top:0.4rem;font-family:inherit;transition:background .12s;}
 .btn-primary:hover{background:var(--accent-hover);}
@@ -1809,7 +1811,16 @@ function openMaps(){
   const z=document.getElementById('f-ziel').value.trim();
   const r=document.getElementById('f-rueckort').value.trim()||s;
   if(!s||!z){ toast('Start und Ziel eingeben',true); return; }
-  window.open('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(mapsAddr(s))+'&destination='+encodeURIComponent(mapsAddr(r))+'&waypoints='+encodeURIComponent(mapsAddr(z))+'&travelmode=driving','_blank');
+  const url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(mapsAddr(s))+'&destination='+encodeURIComponent(mapsAddr(r))+'&waypoints='+encodeURIComponent(mapsAddr(z))+'&travelmode=driving';
+  const w=window.open(url,'_blank');
+  if(w){
+    /* Hilfs-Tab automatisch schließen, sobald das Fahrtenbuch wieder sichtbar/fokussiert ist */
+    let closed=false;
+    const closeTab=function(){ if(closed) return; closed=true; try{ w.close(); }catch(e){} document.removeEventListener('visibilitychange',onVis); window.removeEventListener('focus',closeTab); };
+    const onVis=function(){ if(document.visibilityState==='visible') closeTab(); };
+    document.addEventListener('visibilitychange',onVis);
+    window.addEventListener('focus',closeTab);
+  }
 }
 /* ---- Standortbestimmung: GPS → Ortsname über OpenStreetMap (Nominatim).
    Nur die Standort-Koordinaten gehen online an Nominatim; E/A-Daten niemals. ---- */
