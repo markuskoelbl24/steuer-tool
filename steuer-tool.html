@@ -91,6 +91,7 @@ input[readonly]{background:var(--card-2);color:var(--txt-2);}
 select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.row-dz{display:grid;grid-template-columns:150px 1fr;gap:8px;}
 
 .btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:500;cursor:pointer;margin-top:0.4rem;font-family:inherit;transition:background .12s;}
 .btn-primary:hover{background:var(--accent-hover);}
@@ -172,15 +173,21 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .fahrt-anlage.l{background:var(--orange-bg);color:var(--orange);}
 .preview-box{background:var(--accent-soft);border:0.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;margin-top:0.3rem;color:var(--accent);font-weight:500;}
 .preview-box strong{font-size:18px;font-weight:700;}
-.fahrt-entry{display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border-bottom:0.5px solid var(--border);cursor:pointer;border-radius:var(--radius-sm);}
+.fahrt-entry{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:0.5px solid var(--border);cursor:pointer;border-radius:var(--radius-sm);}
 .fahrt-entry:last-child{border-bottom:none;}
 .fahrt-entry:hover{background:var(--card-2);}
 .fahrt-entry.editing{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);}
+.fahrt-anlage{flex-shrink:0;}
 .fahrt-main{flex:1;min-width:0;}
-.fahrt-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
-.fahrt-route{font-weight:600;font-size:14px;}
-.fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;align-self:center;}
-.fahrt-sub{font-size:11px;color:var(--txt-2);margin-top:2px;}
+.fahrt-l1{display:flex;align-items:baseline;gap:7px;}
+.fahrt-date{flex-shrink:0;font-weight:600;font-size:13.5px;color:var(--txt);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fahrt-zweck{flex:1;min-width:0;font-size:13px;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fahrt-route-line{display:flex;align-items:baseline;gap:7px;margin-top:1px;}
+.fahrt-route{flex:0 1 auto;min-width:0;font-weight:500;font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fahrt-km{flex:none;font-size:12px;color:var(--txt-2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fahrt-meta{font-size:11px;color:var(--txt-2);margin-top:2px;}
+.fahrt-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;}
 
 .sync-card{display:flex;align-items:center;gap:10px;}
 .sync-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -271,6 +278,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   .row3{grid-template-columns:1fr;}
   .row3.keep3{grid-template-columns:1fr 1fr 1fr;gap:6px;}
   .row3.keep3 label{font-size:11px;}
+  .row-dz{grid-template-columns:128px 1fr;gap:8px;}
   .card{padding:1rem 1.05rem;}
   .form-row{margin-bottom:0.9rem;}
   .topbar{padding:0.4rem 0.1rem 0.85rem;}
@@ -430,9 +438,9 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <button type="button" id="btn-f-selbst" class="on" onclick="setFahrtAnlage('selbst')">Selbständig (EÜR)</button>
         <button type="button" id="btn-f-lehramt" onclick="setFahrtAnlage('lehramt')">Lehramt (Anlage N)</button>
       </div>
-      <div class="row2">
+      <div class="row-dz">
         <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
-        <div class="form-row"><label>Zweck / Band</label><input type="text" id="f-zweck" placeholder="z.B. Bandauftritt"></div>
+        <div class="form-row"><label>Zweck der Reise</label><input type="text" id="f-zweck" placeholder="z.B. Clubgig, Festival"></div>
       </div>
       <div class="row3">
         <div class="form-row"><label>Start</label>
@@ -1851,19 +1859,25 @@ function renderFahrten(){
     const sum=items.reduce((s,f)=>s+f.kmgeld,0);
     const rows=items.map(f=>{
       const isL=f.anlage==='lehramt';
-      const sub=[fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''), (f.km||0)+' km'];
-      if(f.abUhr!=null&&f.rueckUhr!=null) sub.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
-      if(f.pausch>0) sub.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
-      if(f.park>0) sub.push('Park '+fmt(f.park));
-      if(f.zug>0) sub.push('Zug '+fmt(f.zug));
+      const meta=[];
+      if(f.abUhr!=null&&f.rueckUhr!=null) meta.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
+      if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
+      if(f.park>0) meta.push('Park '+fmt(f.park));
+      if(f.zug>0) meta.push('Zug '+fmt(f.zug));
       const route=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+      const dateStr=fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):'');
       const badge='<span class="fahrt-anlage '+(isL?'l':'s')+'" onclick="event.stopPropagation();toggleFahrtAnlage('+f.id+')" title="S ↔ L umschalten">'+(isL?'L':'S')+'</span>';
-      const top=badge+'<span class="fahrt-route">'+esc(route)+'</span>'+(f.zweck?('<span style="color:var(--txt-2);font-size:12.5px;">· '+esc(f.zweck)+'</span>'):'');
+      const l1='<span class="fahrt-date">'+esc(dateStr)+'</span>'+(f.zweck?('<span class="fahrt-zweck">'+esc(f.zweck)+'</span>'):'');
       return '<div class="fahrt-entry'+(f.id===editFahrtId?' editing':'')+'" onclick="editFahrt('+f.id+')" title="Zum Bearbeiten tippen">'
-        +'<div class="fahrt-main"><div class="fahrt-top">'+top+'</div>'
-        +'<div class="fahrt-sub">'+sub.map(esc).join(' · ')+'</div></div>'
-        +'<span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span>'
-        +'<button class="del-btn no-print" onclick="event.stopPropagation();deleteFahrt('+f.id+')" aria-label="Löschen">×</button></div>';
+        +badge
+        +'<div class="fahrt-main">'
+          +'<div class="fahrt-l1">'+l1+'</div>'
+          +'<div class="fahrt-route-line"><span class="fahrt-route">'+esc(route)+'</span><span class="fahrt-km">'+esc((f.km||0)+' km')+'</span></div>'
+          +(meta.length?('<div class="fahrt-meta">'+meta.map(esc).join(' · ')+'</div>'):'')
+        +'</div>'
+        +'<div class="fahrt-right"><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span>'
+        +'<button class="del-btn no-print" onclick="event.stopPropagation();deleteFahrt('+f.id+')" aria-label="Löschen">×</button></div>'
+        +'</div>';
     }).join('');
     return '<div style="margin-bottom:0.75rem;"><div class="month-head" style="position:static;border-radius:var(--radius-sm);margin-bottom:4px;">'
       +'<span class="month-name">'+monthLabel(k)+'</span><span class="month-sums"><span class="a">−'+fmt(sum)+'</span></span></div>'+rows+'</div>';
