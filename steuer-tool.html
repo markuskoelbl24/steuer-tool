@@ -182,9 +182,8 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .fahrt-l1{display:flex;align-items:baseline;gap:7px;}
 .fahrt-date{flex-shrink:0;font-weight:600;font-size:13.5px;color:var(--txt);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .fahrt-zweck{flex:1;min-width:0;font-size:13px;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fahrt-route-line{display:flex;align-items:baseline;gap:7px;margin-top:1px;}
-.fahrt-route{flex:0 1 auto;min-width:0;font-weight:500;font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fahrt-km{flex:none;font-size:12px;color:var(--txt-2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fahrt-route{margin-top:1px;font-weight:500;font-size:13px;color:var(--txt);overflow-wrap:break-word;}
+.fahrt-km{color:var(--txt-2);font-weight:400;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .fahrt-meta{font-size:11px;color:var(--txt-2);margin-top:2px;}
 .fahrt-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
 .fahrt-amt{font-weight:600;color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums;}
@@ -1860,11 +1859,14 @@ function renderFahrten(){
     const rows=items.map(f=>{
       const isL=f.anlage==='lehramt';
       const meta=[];
-      if(f.abUhr!=null&&f.rueckUhr!=null) meta.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
+      if(f.pausch>0&&f.abUhr!=null&&f.rueckUhr!=null) meta.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
       if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
       if(f.park>0) meta.push('Park '+fmt(f.park));
       if(f.zug>0) meta.push('Zug '+fmt(f.zug));
-      const route=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+      const hinRueck=f.rueckort&&f.start&&f.start.trim()===f.rueckort.trim();
+      const route=hinRueck
+        ? cleanOrtname(f.start)+' ↔ '+cleanOrtname(f.ziel)
+        : cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
       const dateStr=fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):'');
       const badge='<span class="fahrt-anlage '+(isL?'l':'s')+'" onclick="event.stopPropagation();toggleFahrtAnlage('+f.id+')" title="S ↔ L umschalten">'+(isL?'L':'S')+'</span>';
       const l1='<span class="fahrt-date">'+esc(dateStr)+'</span>'+(f.zweck?('<span class="fahrt-zweck">'+esc(f.zweck)+'</span>'):'');
@@ -1872,7 +1874,7 @@ function renderFahrten(){
         +badge
         +'<div class="fahrt-main">'
           +'<div class="fahrt-l1">'+l1+'</div>'
-          +'<div class="fahrt-route-line"><span class="fahrt-route">'+esc(route)+'</span><span class="fahrt-km">'+esc((f.km||0)+' km')+'</span></div>'
+          +'<div class="fahrt-route">'+esc(route)+' <span class="fahrt-km">'+esc((f.km||0)+' km')+'</span></div>'
           +(meta.length?('<div class="fahrt-meta">'+meta.map(esc).join(' · ')+'</div>'):'')
         +'</div>'
         +'<div class="fahrt-right"><span class="fahrt-amt">−'+fmt(f.kmgeld)+'</span>'
