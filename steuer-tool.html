@@ -60,7 +60,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);-webkit-
 .tab.active{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.1);}
 
 .section{display:none;}
-#tab-ea{order:1;} #tab-fahrt{order:2;} #tab-lehramt{order:3;} #tab-afa{order:4;} #tab-jahres{order:5;}
+#tab-ea{order:1;} #tab-fahrt{order:2;} #tab-angestellt{order:3;} #tab-afa{order:4;} #tab-jahres{order:5;}
 .section.active{display:block;}
 /* Setup als ganzseitiger Bereich (kein Popup), erreichbar über ⚙ */
 #tab-kfz{max-width:980px;margin:0 auto;padding:0 1rem 4rem;}
@@ -84,6 +84,12 @@ body.setup-open .app{padding-bottom:0;}
 .ea-zuord-btn{flex-shrink:0;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;}
 .ea-zuord-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
 .ea-zuord-info{font-size:11.5px;color:var(--txt-2);}
+.pausch-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.pausch-chip{border:0.5px solid var(--border-2);background:var(--card-2);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--txt);cursor:pointer;font-family:inherit;}
+.pausch-chip:active{background:var(--accent-soft);border-color:var(--accent);}
+.sw-chip{display:inline-flex;align-items:center;gap:2px;background:var(--card-2);border:0.5px solid var(--border-2);border-radius:999px;padding:1px 3px 1px 8px;margin:0 3px 3px 0;white-space:nowrap;}
+.sw-x{cursor:pointer;color:var(--txt-3);font-weight:700;line-height:1;padding:1px 5px;border-radius:50%;}
+.sw-x:hover{color:#fff;background:var(--red);}
 .led-row.ea-a .entry-main,.led-row.ea-a .r,.led-row.ea-so .entry-main,.led-row.ea-so .r{opacity:0.5;}
 
 .section-title{font-size:16px;font-weight:600;margin-bottom:0.9rem;letter-spacing:-0.02em;}
@@ -279,7 +285,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 /* Handy: nur Fahrt-Bereich, übrige Tabs ausblenden (Desktop bleibt unverändert) */
 @media(max-width:600px){
   .tabs{display:none;}
-  #tab-ea,#tab-afa,#tab-jahres,#tab-lehramt{display:none!important;}
+  #tab-ea,#tab-afa,#tab-jahres,#tab-angestellt{display:none!important;}
   /* Fahrt (Standard) & Setup (über ⚙) folgen dem .active-System */
   #tab-kfz{padding-left:0;padding-right:0;}
   .topbar h1{font-size:0;letter-spacing:0;}
@@ -372,7 +378,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   <div class="tabs no-print">
     <button class="tab active" data-tab="ea" onclick="switchTab('ea')">Einnahmen & Ausgaben</button>
     <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrtkosten</button>
-    <button class="tab" data-tab="lehramt" onclick="switchTab('lehramt')">Werbungskosten</button>
+    <button class="tab" data-tab="angestellt" onclick="switchTab('angestellt')">Werbungskosten</button>
     <button class="tab" data-tab="afa" onclick="switchTab('afa')">Abschreibungen</button>
     <button class="tab" data-tab="jahres" onclick="switchTab('jahres')">Jahresübersicht</button>
   </div>
@@ -434,8 +440,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
           </div>
         </div>
         <div class="card no-print" id="ea-zuord-card">
-          <button id="ea-zuord-btn" class="ea-zuord-btn" onclick="toggleZuordModus()">🔀 Ausgaben zuordnen</button>
-          <div class="ea-zuord-info" style="margin-top:6px;color:var(--txt-3);">Tipp aufs Kürzel: <b>S</b> Selbständig → <b>A</b> Werbungskosten → <b>So</b> Sonderausgaben.</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button id="ea-zuord-btn" class="ea-zuord-btn" onclick="toggleZuordModus()">🔀 Ausgaben zuordnen</button>
+            <a id="ea-reset-link" onclick="resetAllZiel()" style="display:none;margin-left:auto;color:var(--accent);cursor:pointer;text-decoration:underline;font-size:12px;">alle zurück auf S</a>
+          </div>
+          <div id="ea-cycle-hint" class="ea-zuord-info" style="display:none;margin-top:6px;color:var(--txt-3);">🔁 tippen: <b>S</b> → <b>A</b> → <b>So</b></div>
           <div id="ea-zuord-info" class="ea-zuord-info" style="margin-top:8px;"></div>
         </div>
       </div>
@@ -473,7 +482,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="seg" id="seg-fanlage" style="margin-bottom:0.7rem;">
         <button type="button" id="btn-f-selbst" class="on" onclick="setFahrtAnlage('selbst')">Selbständig (EÜR)</button>
-        <button type="button" id="btn-f-lehramt" onclick="setFahrtAnlage('lehramt')">Angestellt (Anlage N)</button>
+        <button type="button" id="btn-f-angestellt" onclick="setFahrtAnlage('angestellt')">Angestellt (Anlage N)</button>
       </div>
       <div class="row-dz">
         <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
@@ -503,7 +512,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="row2" id="trip-times">
         <div class="form-row"><label>Abfahrt (Uhr)</label><input type="number" inputmode="numeric" id="f-ab" placeholder="16" min="0" max="24" oninput="calcPauschale()"></div>
-        <div class="form-row"><label style="display:flex;justify-content:space-between;align-items:baseline;gap:6px;">Rückkehr (Uhr) <span style="color:var(--txt-2);font-weight:400;font-size:11px;">(ganze Stunden)</span></label><input type="number" inputmode="numeric" id="f-rueck" placeholder="2" min="0" max="24" oninput="calcPauschale()"></div>
+        <div class="form-row"><label>Rückkehr (Uhr)</label><input type="number" inputmode="numeric" id="f-rueck" placeholder="2" min="0" max="24" oninput="calcPauschale()"></div>
       </div>
       <div id="trip-mehr" style="display:none;">
         <div class="form-row"><label>Rückkehr-Datum (Ankunft zuhause)</label><input type="date" id="f-enddatum" onchange="calcPauschale()"></div>
@@ -573,7 +582,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   <section id="tab-jahres" class="section">
     <div class="metric-grid">
       <div class="metric"><div class="metric-label">Ergebnis Selbständigkeit</div><div class="metric-value" id="j-sum-selbst">—</div></div>
-      <div class="metric"><div class="metric-label">Werbungskosten anzusetzen</div><div class="metric-value" id="j-sum-lehr">—</div></div>
+      <div class="metric"><div class="metric-label">Werbungskosten anzusetzen</div><div class="metric-value" id="j-sum-ang">—</div></div>
     </div>
     <div class="card">
       <div class="jblock">
@@ -590,7 +599,6 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow"><span>Büro / Services & Abos / Fortbildung</span><span class="aus" id="j-buero">—</span></div>
         <div class="jrow"><span>Bewirtung</span><span class="aus" id="j-bew">—</span></div>
         <div class="jrow"><span>Sonstiges</span><span class="aus" id="j-sonstaus">—</span></div>
-        <div class="jrow"><span>Aus Anlage N verschoben</span><span class="aus" id="j-lehrversch">—</span></div>
         <div class="jrow total"><span>Gesamt Ausgaben</span><span class="aus" id="j-austotal">—</span></div>
       </div>
       <div class="jblock">
@@ -610,38 +618,24 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow"><span>Homeoffice-Pauschale</span><span class="aus" id="j-l-ho">—</span></div>
         <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="j-l-entf">—</span></div>
         <div class="jrow"><span>Dienstfahrten (Reisekosten)</span><span class="aus" id="j-l-fahrt">—</span></div>
-        <div class="jrow"><span>Weitere Posten</span><span class="aus" id="j-l-pos">—</span></div>
+        <div class="jrow"><span>Jährliche Posten</span><span class="aus" id="j-l-pos">—</span></div>
         <div class="jrow"><span>Aus E/A zugeordnet (A)</span><span class="aus" id="j-l-ea">—</span></div>
         <div class="jrow total"><span>Werbungskosten gesamt</span><span id="j-l-wk">—</span></div>
         <div class="jrow" id="j-l-pb-row"><span>Arbeitnehmer-Pauschbetrag</span><span id="j-l-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="j-l-eff">—</span></div>
       </div>
       <div class="jblock" id="j-so-block" style="display:none;">
-        <div class="jblock-title">SONDERAUSGABEN (separat, Anlage Vorsorgeaufwand)</div>
+        <div class="jblock-title">SONDERAUSGABEN (separat in der Anlage Vorsorgeaufwand)</div>
         <div id="j-so-list"></div>
         <div class="jrow total"><span>Sonderausgaben gesamt</span><span class="aus" id="j-so-total">—</span></div>
-        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">weder in EÜR noch in Werbungskosten — separat in der Anlage Vorsorgeaufwand (Höchstbeträge prüft das Steuerbüro)</span><span></span></div>
-      </div>
-      <div class="jblock" style="border:0.5px solid #e6cf86;background:#fffaf0;">
-        <div class="jblock-title" style="color:#7a5b00;">⚠️ HINWEISE &amp; RISIKEN — bitte beachten</div>
-        <ul style="font-size:11px;color:#5a4a20;margin:0;padding-left:18px;line-height:1.6;">
-          <li>Selbständigkeit (EÜR) und Angestellt (Werbungskosten / Anlage N) sind <b>getrennte Anlagen</b> — nicht denselben Posten doppelt absetzen.</li>
-          <li><b>Bewirtung</b> nur zu 70 % absetzbar (Tool rechnet das automatisch).</li>
-          <li>Anschaffungen <b>über 800 €</b> gehören in die AfA (über die Nutzungsdauer), nicht voll als Ausgabe.</li>
-          <li><b>Homeoffice-Pauschale</b> ist auf 1.260 €/Jahr (210 Tage) gedeckelt — pro Tag nur einmal über alle Tätigkeiten.</li>
-          <li><b>Verpflegungspauschale</b>: Sonderfall-Auslegung laut deinem Steuerberater (weicht bewusst von vielen Online-Quellen ab).</li>
-          <li><b>Belege aufbewahren</b> (Fahrten, Einzelnachweis, Bewirtung mit Anlass + Personen).</li>
-          <li>Dieses Tool ist eine Arbeitshilfe und <b>ersetzt keine Steuerberatung</b>.</li>
-        </ul>
       </div>
     </div>
     <button class="btn-primary no-print" onclick="printReport()">📄 Bericht als PDF / Druck (für Steuerberater)</button>
     <button class="btn-ghost no-print" style="width:100%;margin-top:8px;" onclick="exportXLSX()">📊 Excel-Export mit Formeln (.xlsx)</button>
-    <button class="btn-ghost no-print" style="width:100%;margin-top:8px;" onclick="exportCSV()">CSV-Export der Buchungen (<span id="csv-year">2025</span>)</button>
   </section>
 
-  <!-- ============ LEHRAMT (Werbungskosten) ============ -->
-  <section id="tab-lehramt" class="section">
+  <!-- ============ ANGESTELLT (Werbungskosten) ============ -->
+  <section id="tab-angestellt" class="section">
     <div class="metric-grid three">
       <div class="metric"><div class="metric-label" id="l-wk-lbl">Werbungskosten 2024</div><div class="metric-value" id="l-wk">0,00 €</div></div>
       <div class="metric"><div class="metric-label">Pauschbetrag</div><div class="metric-value" id="l-pb">1.230,00 €</div></div>
@@ -651,32 +645,35 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     <div class="card no-print">
       <div class="section-title">Homeoffice & Fahrt zur Arbeit</div>
       <div class="row-res">
-        <div class="form-row"><label>Homeoffice-Tage (max <span id="l-homax">210</span>)</label><input type="text" inputmode="numeric" id="l-hotage" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>Homeoffice-Tage (max <span id="l-homax">210</span>)</label><input type="text" inputmode="numeric" id="l-hotage" placeholder="0" oninput="updateAngestellt()"></div>
         <div class="form-row"><label style="white-space:nowrap;font-size:11px;">Homeoffice-Pauschale <span style="color:var(--txt-2);font-weight:400;font-size:10px;">(<span id="l-ho-satz">6</span> €/Tag)</span></label><input type="text" id="l-ho-betrag" readonly></div>
       </div>
       <div class="row-res2">
-        <div class="form-row"><label>Arbeitstage</label><input type="text" inputmode="numeric" id="l-tage" placeholder="0" oninput="updateLehramt()"></div>
-        <div class="form-row"><label>Entfernungskilometer</label><input type="text" inputmode="decimal" id="l-km" placeholder="0" oninput="updateLehramt()"></div>
+        <div class="form-row"><label>Arbeitstage</label><input type="text" inputmode="numeric" id="l-tage" placeholder="0" oninput="updateAngestellt()"></div>
+        <div class="form-row"><label>Entfernungskilometer</label><input type="text" inputmode="decimal" id="l-km" placeholder="0" oninput="updateAngestellt()"></div>
         <div class="form-row"><label>Entfernungspauschale</label><input type="text" id="l-entf-betrag" readonly></div>
       </div>
       <div class="hint" id="l-rates-hint" style="margin-top:8px;">Entfernung 0,30 €/km bis 20 km, 0,38 €/km ab km 21.</div>
     </div>
 
     <div class="card no-print">
-      <div class="section-title">Weitere Posten</div>
-      <div class="hint" style="margin-top:-2px;margin-bottom:10px;">Tipp auf <b>A / S</b> verschiebt zwischen Angestellt (Anlage N) und Selbständigkeit (EÜR).</div>
+      <div class="section-title">Jährliche Posten <span style="color:var(--txt-2);font-weight:400;font-size:13px;">(Angestellt)</span></div>
       <div class="row-nb">
-        <div class="form-row"><label>Bezeichnung</label><input type="text" id="lp-name" placeholder="z.B. Fachliteratur"></div>
+        <div class="form-row"><label>Bezeichnung</label><input type="text" id="lp-name" placeholder="z.B. Arbeitsmittelpauschale"></div>
         <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="lp-betrag" placeholder="0,00" onblur="fmtField(this)"></div>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:0.9rem;">
-        <div class="form-row" style="margin:0;width:150px;"><label>Datum</label><input type="date" id="lp-datum"></div>
-        <span style="color:var(--txt-2);font-size:13px;height:44px;display:flex;align-items:center;">oder</span>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;margin:0;height:44px;"><input type="checkbox" id="lp-recurring" onchange="lpRecurChanged()" style="width:20px;height:20px;margin:0;flex-shrink:0;cursor:pointer;"> jährlich</label>
-      </div>
-      <button class="btn-primary" id="lp-save-btn" style="width:100%;" onclick="addLehramtPos()">+ Posten hinzufügen</button>
+      <button class="btn-primary" id="lp-save-btn" style="width:100%;margin-top:2px;" onclick="addAngestelltPos()">+ Posten hinzufügen</button>
       <button class="btn-ghost" id="lp-cancel" style="display:none;width:100%;margin-top:8px;" onclick="clearPosForm()">Abbrechen</button>
+      <div class="hint" style="margin-top:12px;">Pauschalen ohne Nachweis — tippen zum Übernehmen:</div>
+      <div class="pausch-row">
+        <button type="button" class="pausch-chip" onclick="fillPos('Kontoführungsgebühr',16)">Kontoführungsgebühr · 16 €</button>
+        <button type="button" class="pausch-chip" onclick="fillPos('Arbeitsmittelpauschale',110)">Arbeitsmittelpauschale · 110 €</button>
+      </div>
       <div id="lp-list" style="margin-top:0.8rem;"></div>
+    </div>
+
+    <div class="card no-print" id="l-ea-card" style="display:none;">
+      <div class="section-title">Ausgaben <span style="color:var(--txt-2);font-weight:400;font-size:13px;">(aus E/A)</span></div>
       <div id="ea-a-list"></div>
     </div>
 
@@ -685,13 +682,12 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="jblock">
         <div class="jrow"><span>Homeoffice-Pauschale</span><span class="aus" id="l-r-ho">—</span></div>
         <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="l-r-entf">—</span></div>
-        <div class="jrow"><span>Weitere Posten (Angestellt)</span><span class="aus" id="l-r-pos">—</span></div>
+        <div class="jrow"><span>Jährliche Posten (Angestellt)</span><span class="aus" id="l-r-pos">—</span></div>
         <div class="jrow"><span>Dienstfahrten (aus Fahrt-Tab → A)</span><span class="aus" id="l-r-fahrt">—</span></div>
         <div class="jrow"><span>Aus E/A zugeordnet (A)</span><span class="aus" id="l-r-ea">—</span></div>
         <div class="jrow total"><span>Werbungskosten gesamt</span><span class="aus" id="l-r-wk">—</span></div>
-        <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="l-r-pb">—</span></div>
+        <div class="jrow" id="l-r-pb-row"><span>Arbeitnehmer-Pauschbetrag</span><span id="l-r-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="l-r-eff">—</span></div>
-        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">davon auf Selbständigkeit verschoben (→ E/A-Ausgabe)</span><span id="l-r-selbst" style="font-size:11px;">—</span></div>
       </div>
     </div>
 
@@ -714,17 +710,16 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     </div>
     <div class="form-row"><label>GitHub Fine-Grained Token</label><input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off"></div>
     <div class="form-row"><label>Repository (benutzer/repo)</label><input type="text" id="gh-repo" placeholder="markuskoelbl24/steuer-tool" autocomplete="off"></div>
-    <div class="form-row"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
-    <div style="display:flex;align-items:flex-start;gap:8px;margin:0.2rem 0 0.8rem;font-size:13px;color:var(--txt-2);">
-      <input type="checkbox" id="gh-auto" style="width:auto;margin-top:2px;flex-shrink:0;" onchange="setAutoPush(this.checked)">
-      <label for="gh-auto" style="margin:0;">Nach jeder Fahrt <b>automatisch hochladen</b> (am Handy empfohlen). Sonst per „↑ Hochladen".</label>
-    </div>
-    <div class="sync-actions">
-      <button class="btn-ghost" onclick="ghPull()">↓ Laden (Pull)</button>
-      <button class="btn-ghost" onclick="ghPush()">↑ Hochladen (Push)</button>
-    </div>
-    <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="saveToken()">Einstellungen speichern</button>
+    <button class="btn-ghost" style="width:100%;margin-top:4px;" onclick="saveToken()">Einstellungen speichern</button>
     <button class="btn-ghost" style="width:100%;margin-top:8px;color:var(--red);" onclick="clearToken()">Verbindung trennen</button>
+    <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border);color:var(--txt-3);">
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <div class="form-row" style="flex:1;margin:0;"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
+        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPull()">↓ Pull</button>
+        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPush()">↑ Push</button>
+      </div>
+      <p style="margin:8px 0 0;font-size:12px;">Sync läuft automatisch — nur für Fallback &amp; Backup.</p>
+    </div>
   </div>
 </div>
 
@@ -875,6 +870,7 @@ function migrateCats(){
 if(!store.get('steuer_ea')) store.set('steuer_ea', JSON.stringify(SEED_DATA_2025));
 let eintraege  = JSON.parse(store.get('steuer_ea') || '[]');
 let fahrten    = JSON.parse(store.get('steuer_fahrt') || '[]');
+let deletedFahrten = JSON.parse(store.get('steuer_fahrt_del') || '[]');   // Tombstones {id, ts} für Lösch-Sync
 let customCats = JSON.parse(store.get('steuer_cats') || '[]');
 let learnMap   = JSON.parse(store.get('steuer_learn') || '{}');
 let learnPct   = JSON.parse(store.get('steuer_learnpct') || '{}');
@@ -911,6 +907,7 @@ let baseLearn = {
 let baseLearnPct = {};
 let homeOrt    = JSON.parse(store.get('steuer_fahrt_home') || '{"start":"","rueckort":""}');
 let routeKm    = JSON.parse(store.get('steuer_routekm') || '{}');
+let geoCache   = JSON.parse(store.get('steuer_geocache') || '{}');   // Koordinaten → Ortsname (reverseGeo, gecacht)
 let currentYear=2025, shownMonthSums=new Set(), anteilManual=false, editId=null, eaSearch='';
 let userAfa = JSON.parse(store.get('steuer_afa') || '[]');
 let kfzData = JSON.parse(store.get('steuer_kfz') || '{}');
@@ -945,17 +942,17 @@ function migrate(d){
   d.learnMap=d.learnMap||{}; d.learnPct=d.learnPct||{}; d.routeKm=d.routeKm||{};
   d.kfzData=d.kfzData||{}; d.settings=(d.settings&&typeof d.settings==='object')?d.settings:{};
   if(!d.settings.lawYears||typeof d.settings.lawYears!=='object') d.settings.lawYears={};
-  d.lehramtData=d.lehramtData||{}; d.homeOrt=d.homeOrt||{start:'',rueckort:''};
+  d.angestelltData=d.angestelltData||{}; d.homeOrt=d.homeOrt||{start:'',rueckort:''};
   d.fahrten.forEach(f=>{ if(f.satz==null) f.satz=LAW_DEFAULTS.standardSatz;
     if(f.kmgeld==null) f.kmgeld=(f.km||0)*(f.satz||0)+(f.park||0)+(f.zug||0)+(f.pausch||0); });
   return d;
 }
-let lehramtData = JSON.parse(store.get('steuer_lehramt') || '{}');
-if(!lehramtData['2024']){
-  lehramtData['2024']={hoTage:0,kmSchule:0,arbeitstage:0,positions:[
-    {id:'l1',name:'Arbeitsmittelpauschale',betrag:110,ziel:'lehramt'},
-    {id:'l2',name:'Kontoführungsgebühr',betrag:16,ziel:'lehramt'},
-    {id:'l3',name:'BU/DU',betrag:76.60,ziel:'lehramt'}
+let angestelltData = JSON.parse(store.get('steuer_angestellt') || '{}');
+if(!angestelltData['2024']){
+  angestelltData['2024']={hoTage:0,kmSchule:0,arbeitstage:0,positions:[
+    {id:'l1',name:'Arbeitsmittelpauschale',betrag:110,ziel:'angestellt'},
+    {id:'l2',name:'Kontoführungsgebühr',betrag:16,ziel:'angestellt'},
+    {id:'l3',name:'BU/DU',betrag:76.60,ziel:'angestellt'}
   ]};
 }
 
@@ -964,16 +961,18 @@ let nextFahrtId = fahrten.length ? Math.max(...fahrten.map(f=>f.id))+1 : 1;
 
 const saveEA    = ()=>store.set('steuer_ea', JSON.stringify(eintraege));
 const saveFahrt = ()=>store.set('steuer_fahrt', JSON.stringify(fahrten));
+const saveDeleted = ()=>store.set('steuer_fahrt_del', JSON.stringify(deletedFahrten));
 const saveCats  = ()=>store.set('steuer_cats', JSON.stringify(customCats));
 const saveLearn = ()=>store.set('steuer_learn', JSON.stringify(learnMap));
 const saveLearnPct = ()=>store.set('steuer_learnpct', JSON.stringify(learnPct));
 const saveBelegConfig = ()=>store.set('steuer_belegconfig', JSON.stringify(belegConfig));
 const saveHome  = ()=>store.set('steuer_fahrt_home', JSON.stringify(homeOrt));
 const saveRouteKm = ()=>store.set('steuer_routekm', JSON.stringify(routeKm));
+const saveGeoCache = ()=>store.set('steuer_geocache', JSON.stringify(geoCache));
 const saveUserAfa = ()=>store.set('steuer_afa', JSON.stringify(userAfa));
 const saveKfz = ()=>store.set('steuer_kfz', JSON.stringify(kfzData));
 const saveSettings = ()=>store.set('steuer_settings', JSON.stringify(settings));
-const saveLehramt = ()=>store.set('steuer_lehramt', JSON.stringify(lehramtData));
+const saveAngestellt = ()=>store.set('steuer_angestellt', JSON.stringify(angestelltData));
 
 /* ====== Helpers ====== */
 const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
@@ -1000,7 +999,7 @@ function switchTab(t){
   document.body.classList.toggle('setup-open', t==='kfz');
   if(t==='afa') renderAfA();
   if(t==='jahres') renderJahres();
-  if(t==='lehramt') renderLehramt();
+  if(t==='angestellt') renderAngestellt();
   if(t==='kfz'){ fillKfz(); fillLawSettings(); }
   window.scrollTo(0,0);
 }
@@ -1139,7 +1138,7 @@ function setYear(){
   if(editId==null){ const dd=eaDefaultDate(); document.getElementById('ea-datum').value=dd; document.getElementById('ea-belegnr').value=''; refreshKat(); }
   document.getElementById('f-datum').value=eaDefaultDate();
   fillKfz(); fillLawSettings();   // Setup-Werte aufs neue Jahr (Pendlerpauschale etc.)
-  renderEA(); renderFahrten(); renderAfA(); renderLehramt();
+  renderEA(); renderFahrten(); renderAfA(); renderAngestellt();
   if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
 }
 function allDataYears(){
@@ -1147,7 +1146,7 @@ function allDataYears(){
   eintraege.forEach(e=>ys.add(+e.datum.slice(0,4)));
   fahrten.forEach(f=>ys.add(+f.datum.slice(0,4)));
   allAfa().forEach(a=>ys.add(+a.datum.slice(0,4)));
-  Object.keys(lehramtData||{}).forEach(y=>ys.add(+y));
+  Object.keys(angestelltData||{}).forEach(y=>ys.add(+y));
   return [...ys].filter(y=>y>1990&&y<3000);
 }
 function populateYearOptions(){
@@ -1210,13 +1209,13 @@ function addEintrag(){
   const isEdit=editId!=null;
   const oldZiel=isEdit?(eintraege.find(x=>x.id===editId)||{}).ziel:null;
   const entry={id:isEdit?editId:nextId++,typ:curType,konto:curKonto,datum,betrag,kategorie,text,belegnr};
-  if(curType==='aus') entry.ziel=(oldZiel==='lehramt'||oldZiel==='sonder')?oldZiel:'selbst';
+  if(curType==='aus') entry.ziel=(oldZiel==='angestellt'||oldZiel==='sonder')?oldZiel:'selbst';
   if(anteil<100){ entry.voll=voll; entry.anteil=anteil; }
   if(kategorie==='Bewirtung'){ entry.bew_anlass=bewA; entry.bew_personen=bewP; }
   if(isEdit){ const i=eintraege.findIndex(x=>x.id===editId); if(i>=0) eintraege[i]=entry; }
   else eintraege.push(entry);
   saveEA();
-  const nk=normTxt(text); if(nk.length>=3){ learnMap[nk]=kategorie; saveLearn(); learnPct[nk]=anteil; saveLearnPct(); }
+  const nk=normTxt(text); if(nk.length>=3 && kategorie!=='Sonstiges'){ learnMap[nk]=kategorie; saveLearn(); learnPct[nk]=anteil; saveLearnPct(); }
   resetForm();
   populateYearOptions(); renderEA(); toast(isEdit?'Eintrag aktualisiert':'Eintrag gespeichert');
   document.getElementById('ea-text').focus();
@@ -1271,21 +1270,21 @@ function setFilter(f){
 }
 /* ===== E/A: S/A/So-Zuordnung — Ausgabe zählt als Betriebsausgabe (S), Werbungskosten (A)
    oder Sonderausgabe (So, Anlage Vorsorgeaufwand). Nicht-destruktiv: nur Flag
-   e.ziel ('selbst'|'lehramt'|'sonder'); Eintrag bleibt in E/A, jederzeit umkehrbar.
+   e.ziel ('selbst'|'angestellt'|'sonder'); Eintrag bleibt in E/A, jederzeit umkehrbar.
    Tippen aufs Kürzel zyklisch: S → A → So → S. ===== */
 let eaZuordModus=false;
-function eaIsA(e){ return e.typ==='aus' && e.ziel==='lehramt'; }
+function eaIsA(e){ return e.typ==='aus' && e.ziel==='angestellt'; }
 function eaIsSo(e){ return e.typ==='aus' && e.ziel==='sonder'; }
 function eaASum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).reduce((s,e)=>s+e.betrag,0); }
 function eaAItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
 function eaSoSum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).reduce((s,e)=>s+e.betrag,0); }
 function eaSoItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
-function zielCode(z){ return z==='lehramt'?'A':z==='sonder'?'So':'S'; }
-function zielCls(z){ return z==='lehramt'?'l':z==='sonder'?'so':'s'; }
-function updMoveBtn(wm,z){ wm.textContent=zielCode(z); wm.classList.toggle('on',z==='lehramt'||z==='sonder'); wm.title=z==='lehramt'?'Werbungskosten (A) — tippen: weiter zu So':z==='sonder'?'Sonderausgabe (So) — tippen: zurück auf S':'Selbständig (S) — tippen: zu Werbungskosten (A)'; }
-function refreshAfterZiel(){ saveEA(); renderEA(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
-function toggleEAZiel(id){ const e=eintraege.find(x=>x.id===id); if(!e||e.typ!=='aus') return; e.ziel=(e.ziel==='lehramt')?'sonder':(e.ziel==='sonder')?'selbst':'lehramt'; refreshAfterZiel(); }
-function toggleZuordModus(){ eaZuordModus=!eaZuordModus; const b=document.getElementById('ea-zuord-btn'); if(b){ b.classList.toggle('on',eaZuordModus); b.textContent=eaZuordModus?'✓ Zuordnen aktiv':'🔀 Ausgaben zuordnen'; } renderEA(); }
+function zielCode(z){ return z==='angestellt'?'A':z==='sonder'?'So':'S'; }
+function zielCls(z){ return z==='angestellt'?'l':z==='sonder'?'so':'s'; }
+function updMoveBtn(wm,z){ wm.textContent=zielCode(z); wm.classList.toggle('on',z==='angestellt'||z==='sonder'); wm.title=z==='angestellt'?'Werbungskosten (A) — tippen: weiter zu So':z==='sonder'?'Sonderausgabe (So) — tippen: zurück auf S':'Selbständig (S) — tippen: zu Werbungskosten (A)'; }
+function refreshAfterZiel(){ saveEA(); renderEA(); renderAngestellt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
+function toggleEAZiel(id){ const e=eintraege.find(x=>x.id===id); if(!e||e.typ!=='aus') return; e.ziel=(e.ziel==='angestellt')?'sonder':(e.ziel==='sonder')?'selbst':'angestellt'; refreshAfterZiel(); }
+function toggleZuordModus(){ eaZuordModus=!eaZuordModus; const b=document.getElementById('ea-zuord-btn'); if(b){ b.classList.toggle('on',eaZuordModus); b.textContent=eaZuordModus?'✓ Zuordnen aktiv':'🔀 Ausgaben zuordnen'; } const ch=document.getElementById('ea-cycle-hint'); if(ch) ch.style.display=eaZuordModus?'block':'none'; setFilter(eaZuordModus?'aus':'alle'); }
 function resetAllZiel(){ const y=String(currentYear); let n=0; eintraege.forEach(e=>{ if(e.datum.slice(0,4)===y && (eaIsA(e)||eaIsSo(e))){ e.ziel='selbst'; n++; } }); if(n){ refreshAfterZiel(); toast(n+' Posten zurück auf S'); } }
 function toggleEditZiel(){ if(editId==null) return; toggleEAZiel(editId); const e=eintraege.find(x=>x.id===editId), wm=document.getElementById('wk-move-btn'); if(wm&&e) updMoveBtn(wm,e.ziel); }
 function renderEA(){
@@ -1295,7 +1294,7 @@ function renderEA(){
   document.getElementById('m-saldo-lbl').textContent='Saldo E/A '+currentYear;
   const yearItems=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
   const sumEin=yearItems.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
-  const sumAus=yearItems.filter(e=>e.typ==='aus' && e.ziel!=='lehramt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
+  const sumAus=yearItems.filter(e=>e.typ==='aus' && e.ziel!=='angestellt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const aSum=yearItems.filter(e=>eaIsA(e)).reduce((s,e)=>s+e.betrag,0);
   const soSum=yearItems.filter(e=>eaIsSo(e)).reduce((s,e)=>s+e.betrag,0);
   document.getElementById('m-ein').textContent=fmt(sumEin);
@@ -1304,10 +1303,11 @@ function renderEA(){
   sEl.textContent=(saldo>=0?'+':'')+fmt(saldo); sEl.className='metric-value '+(saldo>=0?'green':'red');
   const zi=document.getElementById('ea-zuord-info');
   if(zi){ const parts=[];
-    if(aSum>0) parts.push(fmt(aSum)+' als <b>A</b> → Werbungskosten');
-    if(soSum>0) parts.push(fmt(soSum)+' als <b>So</b> → Sonderausgaben');
-    zi.innerHTML = parts.length ? (parts.join(' · ')+' · nicht im Saldo · <a onclick="resetAllZiel()" style="color:var(--accent);cursor:pointer;text-decoration:underline;">alle zurück auf S</a>') : '';
+    if(aSum>0) parts.push('Werbungskosten (A): <b>'+fmt(aSum)+'</b>');
+    if(soSum>0) parts.push('Sonderausgaben (So): <b>'+fmt(soSum)+'</b>');
+    zi.innerHTML = parts.length ? (parts.join('<br>')+'<br><span style="color:var(--txt-3);">nicht im E/A-Saldo</span>') : '';
   }
+  const rl=document.getElementById('ea-reset-link'); if(rl) rl.style.display=(aSum+soSum>0)?'inline':'none';
   let list=yearItems.filter(e=> eaFilter==='alle'?true:e.typ===eaFilter);
   if(eaSearch) list=list.filter(e=>((e.text||'')+' '+(e.kategorie||'')+' '+(e.belegnr||'')).toLowerCase().includes(eaSearch));
   const el=document.getElementById('ea-list');
@@ -1354,28 +1354,7 @@ function resetData(){
   eintraege=[]; saveEA(); nextId=1;
   renderEA(); renderJahres(); toast('E/A geleert');
 }
-/* loadDemo() entfernt (2026-06): keine Beispieldaten mehr ladbar — schützt echte E/A-, Fahrt- & Lehramt-Daten vor versehentlichem Überschreiben. */
-function exportCSV(){
-  const yStr=String(currentYear);
-  const rows=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice()
-    .sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
-  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
-  const dec=n=>n!=null?(Math.round(n*100)/100).toFixed(2).replace('.',','):'';
-  const lines=[['Datum','Beleg','Konto','Kategorie','Beschreibung','Einnahme','Ausgabe','Anteil %','Bruttobetrag'].map(q).join(';')];
-  rows.forEach(e=>{
-    lines.push([fmtDate(e.datum),e.belegnr||'',e.konto,e.kategorie,e.text,
-      e.typ==='ein'?dec(e.betrag):'', e.typ==='aus'?dec(e.betrag):'',
-      e.anteil!=null?e.anteil:'', e.voll!=null?dec(e.voll):''].map(q).join(';'));
-  });
-  const se=rows.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
-  const sa=rows.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
-  lines.push(''); lines.push([q('SUMME '+currentYear),'','','','',q(dec(se)),q(dec(sa)),'',''].join(';'));
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
-  a.download='steuer-EA-'+currentYear+'.csv'; a.click(); URL.revokeObjectURL(a.href);
-  toast('CSV exportiert');
-}
-
+/* loadDemo() entfernt (2026-06): keine Beispieldaten mehr ladbar — schützt echte E/A-, Fahrt- & Angestellt-Daten vor versehentlichem Überschreiben. */
 /* ===== Excel-Export (.xlsx) mit echten Formeln — eigener Mini-Generator, ohne Bibliothek =====
    Flache Tabellen mit Endwerten; Summen/Produkte als Excel-Formeln (rechnen beim Öffnen). */
 function crc32(bytes){
@@ -1410,7 +1389,7 @@ function exportXLSX(){
   const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const r2=n=>Math.round((+n||0)*100)/100;
   const colL=i=>{ let s=''; while(i>0){ s=String.fromCharCode(65+((i-1)%26))+s; i=Math.floor((i-1)/26); } return s; };
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='lehramt'||e.ziel==='sonder'))).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='angestellt'||e.ziel==='sonder'))).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   /* Stil-Indizes (cellXfs in styles.xml): 0 normal · 1 Titel · 2 Kopf links · 3 Währung ·
      4 Währung fett · 5 fett · 6 zentriert · 7 Kopf zentriert */
@@ -1465,7 +1444,7 @@ function exportXLSX(){
     fa.S(10,'Park',7); fa.S(11,'Zug',7); fa.S(12,'Summe',7); fa.close();
   const fFirst=fa.row()+1;
   fy.forEach(f=>{ fa.open(); const rr=fa.row();
-    fa.S(2, f.anlage==='lehramt'?'A':'S', 6);
+    fa.S(2, f.anlage==='angestellt'?'A':'S', 6);
     fa.S(3, fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''));
     fa.S(4, cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):''));
     fa.S(5, f.zweck||''); fa.N(6, f.km||0); fa.N(7, f.satz||0, 3);
@@ -1499,14 +1478,14 @@ function exportXLSX(){
   /* ===== Blatt 4: Werbungskosten (Anlage N) ===== */
   const wk=mkSheet();
   const wkCols=colDef([2.5,26,34,14,13]);
-  const ld=lehrDataFor(year);
-  const ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), lfahrtR=lehrFahrtSum(year), eaA=eaASum(year);
-  const lwk=ho+entf+lehrPosSum(ld,'lehramt')+lfahrtR+eaA, lpb=lehrPB(), leff=Math.max(lwk,lpb);
+  const ld=angestelltDataFor(year);
+  const ho=angestelltHoBetrag(ld), entf=angestelltEntfBetrag(ld), lfahrtR=angestelltFahrtSum(year), eaA=eaASum(year);
+  const lwk=ho+entf+angestelltPosSum(ld,'angestellt')+lfahrtR+eaA, lpb=angestelltPB(), leff=Math.max(lwk,lpb);
   wk.open(); wk.S(2,'Werbungskosten (Anlage N) '+year,1); wk.close();
   wk.open(); wk.S(2,'Angesetzt wird der höhere Wert aus Werbungskosten und Arbeitnehmer-Pauschbetrag.'); wk.close();
   wk.open(); wk.close();
   wk.open(); wk.S(2,'Posten',2); wk.S(3,'Detail',2); wk.S(4,'Zuordnung',2); wk.S(5,'Betrag',7); wk.close();
-  wk.open(); wk.S(2,'Homeoffice-Pauschale'); wk.S(3,(ld.hoTage||0)+' Tage × '+money(lehrHoSatz())+' (max '+law('hoMax')+')'); wk.S(4,'Angestellt'); wk.N(5,ho,3); wk.close();
+  wk.open(); wk.S(2,'Homeoffice-Pauschale'); wk.S(3,(ld.hoTage||0)+' Tage × '+money(angestelltHoSatz())+' (max '+law('hoMax')+')'); wk.S(4,'Angestellt'); wk.N(5,ho,3); wk.close();
   wk.open(); wk.S(2,'Entfernungspauschale'); wk.S(3,String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage'); wk.S(4,'Angestellt'); wk.N(5,entf,3); wk.close();
   (ld.positions||[]).forEach(p=>{ wk.open(); wk.S(2,p.name||''); wk.S(3,p.datum?fmtDate(p.datum):''); wk.S(4,p.ziel==='selbst'?'Selbständig':'Angestellt'); wk.N(5,p.betrag||0,3); wk.close(); });
   if(lfahrtR>0){ wk.open(); wk.S(2,'Dienstfahrten (Reisekosten)'); wk.S(3,'aus Fahrt-Tab (→ A)'); wk.S(4,'Angestellt'); wk.N(5,lfahrtR,3); wk.close(); }
@@ -1522,12 +1501,11 @@ function exportXLSX(){
   const jb=mkSheet();
   const jbCols=colDef([2.5,46,15]);
   const eyJ=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
-  const fyJ=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt');
+  const fyJ=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt');
   const sumEin=eyJ.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
-  const sumAus=eyJ.filter(e=>e.typ==='aus' && e.ziel!=='lehramt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
+  const sumAus=eyJ.filter(e=>e.typ==='aus' && e.ziel!=='angestellt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const fahrttotal=fyJ.reduce((s,f)=>s+(f.kmgeld||0),0);
   const afaTotal=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
-  const lehrV=lehrPosSum(ld,'selbst');
   jb.open(); jb.S(2,'Jahresübersicht '+year,1); jb.close();
   jb.open(); jb.S(2,'Selbständigkeit (Anlage S/EÜR) und Angestellt (Anlage N) getrennt.'); jb.close();
   jb.open(); jb.close();
@@ -1535,7 +1513,6 @@ function exportXLSX(){
   const jF=jb.row()+1;
   jb.open(); jb.S(2,'Einnahmen (EÜR)'); jb.N(3,sumEin,3); jb.close();
   jb.open(); jb.S(2,'Ausgaben (E/A-Buchungen)'); jb.N(3,-sumAus,3); jb.close();
-  if(lehrV>0){ jb.open(); jb.S(2,'Aus Anlage N verschobene Betriebsausgaben'); jb.N(3,-lehrV,3); jb.close(); }
   jb.open(); jb.S(2,'Fahrtkosten'); jb.N(3,-fahrttotal,3); jb.close();
   jb.open(); jb.S(2,'Abschreibungen (AfA)'); jb.N(3,-afaTotal,3); jb.close();
   const jL=jb.row();
@@ -1632,7 +1609,7 @@ function exportXLSX(){
 }
 function exportData(){
   /* Fahrten bewusst NICHT im Backup: sie leben auf GitHub (versioniert) – so kann ein Import nie neuere Fahrten mit altem Stand überschreiben. */
-  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
+  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,angestelltData};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='steuer-backup-'+today+'.json'; a.click(); URL.revokeObjectURL(a.href);
@@ -1653,11 +1630,11 @@ function importData(input){
     eintraege=d.eintraege; customCats=d.customCats;
     learnMap=d.learnMap; learnPct=d.learnPct; belegConfig=d.belegConfig||{Gage:{enabled:true,prefix:""},Unterricht:{enabled:true,prefix:"u"}};
     homeOrt=d.homeOrt; routeKm=d.routeKm; userAfa=d.userAfa; kfzData=d.kfzData;
-    settings=d.settings; lehramtData=d.lehramtData;
-    saveEA(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
+    settings=d.settings; angestelltData=d.angestelltData;
+    saveEA(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveAngestellt();
     nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
     migrateCats();
-    populateYearOptions(); renderEA(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
+    populateYearOptions(); renderEA(); renderAfA(); renderAngestellt(); fillKfz(); toast('Backup importiert');
   }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
   r.readAsText(f);
 }
@@ -1667,9 +1644,9 @@ let curTrip='ein', curFahrtAnlage='selbst', editFahrtId=null;
 function setFahrtAnlage(m){
   curFahrtAnlage=m;
   document.getElementById('btn-f-selbst').classList.toggle('on',m==='selbst');
-  document.getElementById('btn-f-lehramt').classList.toggle('on',m==='lehramt');
+  document.getElementById('btn-f-angestellt').classList.toggle('on',m==='angestellt');
 }
-function lehrFahrtSum(year){ return fahrten.filter(f=>f.anlage==='lehramt' && f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.kmgeld||0),0); }
+function angestelltFahrtSum(year){ return fahrten.filter(f=>f.anlage==='angestellt' && f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.kmgeld||0),0); }
 function setTrip(t){
   curTrip=t;
   document.getElementById('btn-eintag').classList.toggle('on',t==='ein');
@@ -1941,10 +1918,10 @@ function editFahrt(id){
 }
 function toggleFahrtAnlage(id){
   const f=fahrten.find(x=>x.id===id); if(!f) return;
-  f.anlage=(f.anlage==='lehramt')?'selbst':'lehramt'; f.updated=Date.now(); saveFahrt();
+  f.anlage=(f.anlage==='angestellt')?'selbst':'angestellt'; f.updated=Date.now(); saveFahrt();
   renderFahrten();
   if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
-  if(document.getElementById('tab-lehramt').classList.contains('active')) renderLehramt();
+  if(document.getElementById('tab-angestellt').classList.contains('active')) renderAngestellt();
   scheduleAutoPush();
 }
 function clearFahrtFields(full){
@@ -2029,17 +2006,52 @@ function gpsTo(fieldId){
     suggestRouteKm();
   }, function(e){ toast('GPS-Fehler: '+e.message,true); }, {enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
+function addTombstone(id){
+  deletedFahrten=deletedFahrten.filter(t=>t.id!==id);
+  deletedFahrten.push({id, ts:Date.now()});
+  saveDeleted();
+}
 function deleteFahrt(id){
   const f=fahrten.find(x=>x.id===id);
   if(f && !confirm('Fahrt „'+f.route+'" löschen?')) return;
-  fahrten=fahrten.filter(x=>x.id!==id); saveFahrt(); renderFahrten(); scheduleAutoPush();
+  fahrten=fahrten.filter(x=>x.id!==id); addTombstone(id); saveFahrt(); renderFahrten(); scheduleAutoPush();
 }
+function isCoords(s){ return /^[+-]?\d+(?:\.\d+)?\s*,\s*[+-]?\d+(?:\.\d+)?$/.test((s||'').trim()); }
+const _geoPending=new Set();
+/* Koordinaten → Ortsname: gecacht; bei Bedarf einmalig per reverseGeo auflösen und neu rendern.
+   📍 nur als Platzhalter, bis (online) aufgelöst. */
+function ortFromCoords(s){
+  const key=s.trim();
+  if(geoCache[key]) return geoCache[key];
+  if(!_geoPending.has(key)){
+    _geoPending.add(key);
+    const m=key.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
+    if(m) reverseGeo(m[1],m[2]).then(function(name){ if(name){ geoCache[key]=name; saveGeoCache(); renderFahrten(); } })
+      .catch(function(){}).finally(function(){ _geoPending.delete(key); });
+    else _geoPending.delete(key);
+  }
+  return '📍';
+}
+/* Anzeige-Ortsname aus beliebiger Eingabe: Koordinaten → Ort (gecacht); Adresse → letztes
+   Komma-Segment ohne führende PLZ; nachgestelltes Land wird entfernt. Rohwert bleibt gespeichert. */
+/* Anzeige-Ort aus beliebiger Eingabe (Kombi-Regel, Rohwert bleibt gespeichert):
+   1) PLZ = zuverlässiger Anker → Stadt direkt nach der 5-stelligen PLZ (auch mehrteilig).
+   2) Straße ohne PLZ → Stadt = alles nach der Hausnummer (so klappt auch „Bad Tölz").
+   3) Venue/Ort → wie getippt (nur nachgestelltes Land entfernen). Koordinaten → reverseGeo. */
 function cleanOrtname(s){
   if(!s) return '';
   const v=s.trim();
-  const m=v.match(/,\s*\d{4,5}\s+([^,]+)$/);   // „Straße 1, 85049 Ingolstadt" → „Ingolstadt"
+  if(isCoords(v)) return ortFromCoords(v);
+  let m=v.match(/\b\d{5}\s+([^,]+)/);
   if(m) return m[1].trim();
-  return v.match(/^[+-]?[\d.]+\s*,\s*[+-]?[\d.]+$/)?'📍':v;
+  if(/(stra(ß|ss)e|str\.|\bweg\b|platz|gasse|allee|ring|damm|ufer|steig|chaussee)/i.test(v)){
+    let m2=v.match(/\d+[a-zA-Z]?[\s,]+([A-Za-zÄÖÜäöüß][^,]*)$/);
+    if(m2) return m2[1].trim();
+  }
+  let parts=v.split(',').map(p=>p.trim()).filter(Boolean);
+  const land=/^(deutschland|germany|österreich|oesterreich|austria|schweiz|switzerland)$/i;
+  while(parts.length>1 && land.test(parts[parts.length-1])) parts.pop();
+  return parts.join(', ');
 }
 function renderFahrten(){
   document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
@@ -2058,7 +2070,7 @@ function renderFahrten(){
     const items=groups[k].slice().sort((a,b)=> a.datum===b.datum?b.id-a.id:b.datum.localeCompare(a.datum));
     const sum=items.reduce((s,f)=>s+f.kmgeld,0);
     const rows=items.map(f=>{
-      const isL=f.anlage==='lehramt';
+      const isL=f.anlage==='angestellt';
       const meta=[];
       if(f.pausch>0&&f.abUhr!=null&&f.rueckUhr!=null) meta.push(f.abUhr+'–'+f.rueckUhr+' Uhr');
       if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
@@ -2178,13 +2190,13 @@ function delAfa(id){
 /* ====== Jahres ====== */
 const BUERO_KATS=['Bürobedarf','Services & Abos','Fortbildung'];
 const FIX_KATS=['Gage','Unterricht','Versicherung','Musikzubehör','Bewirtung','Sonstiges'].concat(BUERO_KATS);
-/* read-only Lehramt-Daten für ein Jahr (ohne Vorlagen-Materialisierung/Speichern) */
-function lehrDataFor(year){ return lehramtData[year] || lehramtData[year-1] || {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]}; }
+/* read-only Angestellt-Daten für ein Jahr (ohne Vorlagen-Materialisierung/Speichern) */
+function angestelltDataFor(year){ return angestelltData[year] || angestelltData[year-1] || {hoTage:0,kmSchule:0,arbeitstage:0,positions:[]}; }
 function renderJahres(){
   const year=afaYear(), yStr=String(year);
   const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
-  const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt');   // nur Selbständigkeit in der EÜR
-  const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)&&e.ziel!=='lehramt'&&e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
+  const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt');   // nur Selbständigkeit in der EÜR
+  const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)&&e.ziel!=='angestellt'&&e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
   const unterricht=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
   const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage'&&e.kategorie!=='Unterricht').reduce((s,e)=>s+e.betrag,0);
@@ -2193,9 +2205,8 @@ function renderJahres(){
   const equip=sA(['Musikzubehör']);
   const buero=sA(BUERO_KATS);
   const bew=sA(['Bewirtung']);
-  const sonst=ey.filter(e=>e.typ==='aus'&&e.ziel!=='lehramt'&&e.ziel!=='sonder'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
-  const lehrV=lehrSelbst(year);
-  const austotal=kv+equip+buero+bew+sonst+lehrV;
+  const sonst=ey.filter(e=>e.typ==='aus'&&e.ziel!=='angestellt'&&e.ziel!=='sonder'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
+  const austotal=kv+equip+buero+bew+sonst;
   const km30=fyr.reduce((s,f)=>s+f.km*f.satz,0);
   const verpfl=fyr.reduce((s,f)=>s+(f.pausch||0),0);
   const parkzug=fyr.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
@@ -2203,29 +2214,28 @@ function renderJahres(){
   const afa=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
   const ergebnis=eintotal-austotal-fahrttotal-afa;
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
-  set('csv-year',year);
   set('j-gagen',fmt(gagen)); set('j-unterricht',fmt(unterricht)); set('j-sonstein',fmt(sonstEin)); set('j-eintotal',fmt(eintotal));
   set('j-kv',fmt(kv)); set('j-equip',fmt(equip)); set('j-buero',fmt(buero)); set('j-bew',fmt(bew));
-  set('j-sonstaus',fmt(sonst)); set('j-lehrversch',fmt(lehrV)); set('j-austotal',fmt(austotal));
+  set('j-sonstaus',fmt(sonst)); set('j-austotal',fmt(austotal));
   set('j-fahrttotal',fmt(fahrttotal));
   set('j-afa',fmt(afa));
-  const ld=lehrDataFor(year), lfahrt=lehrFahrtSum(year), eaA=eaASum(year);
-  const lho=lehrHoBetrag(ld), lentf=lehrEntfBetrag(ld), lpos=lehrPosSum(ld,'lehramt');
-  const lwk=lho+lentf+lpos+lfahrt+eaA, lpb=lehrPB();
+  const ld=angestelltDataFor(year), lfahrt=angestelltFahrtSum(year), eaA=eaASum(year);
+  const lho=angestelltHoBetrag(ld), lentf=angestelltEntfBetrag(ld), lpos=angestelltPosSum(ld,'angestellt');
+  const lwk=lho+lentf+lpos+lfahrt+eaA, lpb=angestelltPB();
   set('j-l-ho',fmt(lho)); set('j-l-entf',fmt(lentf)); set('j-l-fahrt',fmt(lfahrt)); set('j-l-pos',fmt(lpos)); set('j-l-ea',fmt(eaA));
   set('j-l-wk',fmt(lwk)); set('j-l-pb',fmt(lpb)); set('j-l-eff',fmt(Math.max(lwk,lpb)));
   const pbRow=document.getElementById('j-l-pb-row'); if(pbRow) pbRow.style.opacity = (lwk>lpb ? '0.45' : '1');
   const soItems=eaSoItems(year), soSum=eaSoSum(year), soBlock=document.getElementById('j-so-block');
   if(soBlock){ soBlock.style.display=soItems.length?'':'none';
     const sl=document.getElementById('j-so-list');
-    if(sl) sl.innerHTML=soItems.map(e=>'<div class="jrow"><span>'+esc(e.text)+' <span style="color:var(--txt-2);font-size:11px;">· '+fmtDate(e.datum)+'</span></span><span class="aus">'+fmt(e.betrag)+'</span></div>').join('');
+    if(sl) sl.innerHTML=soItems.map(e=>'<div class="jrow"><span><span style="color:var(--txt-2);font-size:11px;">'+fmtDate(e.datum)+'</span> · '+esc(e.text)+'</span><span class="aus">'+fmt(e.betrag)+'</span></div>').join('');
     set('j-so-total',fmt(soSum));
   }
   const er=document.getElementById('j-ergebnis');
   if(er){ er.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis); er.style.color=ergebnis>=0?'var(--green)':'var(--red)'; er.style.fontWeight='700'; }
   const sumS=document.getElementById('j-sum-selbst');
   if(sumS){ sumS.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis); sumS.style.color=ergebnis>=0?'var(--green)':'var(--red)'; sumS.style.fontWeight='700'; }
-  set('j-sum-lehr', fmt(Math.max(lwk,lpb)));
+  set('j-sum-ang', fmt(Math.max(lwk,lpb)));
 }
 
 /* ====== Druck-Bericht: kompakte, tabellarische PDF-Aufstellung (currentYear) ====== */
@@ -2235,8 +2245,8 @@ function buildReport(){
   const year=currentYear, yStr=String(year);
   const M=n=>deNum(n)+' €';
   const sumRow=(l,v,cls)=>'<tr class="'+(cls||'')+'"><td>'+esc(l)+'</td><td class="num">'+v+'</td></tr>';
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='lehramt'||e.ziel==='sonder'))).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
-  const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt').slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='angestellt'||e.ziel==='sonder'))).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt').slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const afaRows=allAfa().map(a=>({a,r:afaForYear(a,year)}));
   const sumEin=ey.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
   const sumAus=ey.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
@@ -2245,9 +2255,9 @@ function buildReport(){
   const parkzug=fy.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
   const fahrttotal=fy.reduce((s,f)=>s+(f.kmgeld||0),0);
   const afaTotal=afaRows.reduce((s,o)=>s+o.r.betrag,0);
-  const ld=lehrDataFor(year), ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), posL=lehrPosSum(ld,'lehramt'), lfahrtR=lehrFahrtSum(year), eaA=eaASum(year);
-  const lwk=ho+entf+posL+lfahrtR+eaA, lpb=lehrPB(), leff=Math.max(lwk,lpb), lehrV=lehrPosSum(ld,'selbst');
-  const ergebnis=sumEin-sumAus-lehrV-fahrttotal-afaTotal;
+  const ld=angestelltDataFor(year), ho=angestelltHoBetrag(ld), entf=angestelltEntfBetrag(ld), posL=angestelltPosSum(ld,'angestellt'), lfahrtR=angestelltFahrtSum(year), eaA=eaASum(year);
+  const lwk=ho+entf+posL+lfahrtR+eaA, lpb=angestelltPB(), leff=Math.max(lwk,lpb);
+  const ergebnis=sumEin-sumAus-fahrttotal-afaTotal;
 
   let H='<h1>Steuer-Bericht '+year+'</h1>';
   H+='<div class="rep-meta">Einnahmenüberschussrechnung (Anlage S/EÜR) & Werbungskosten (Anlage N) · erstellt am '+fmtDate(today)+'</div>';
@@ -2257,7 +2267,6 @@ function buildReport(){
   H+='<div class="rep-sec"><h2>Zusammenfassung '+year+'</h2><table class="sumtab">';
   H+=sumRow('Einnahmen (EÜR)', M(sumEin));
   H+=sumRow('Ausgaben (E/A-Buchungen)', '− '+M(sumAus));
-  if(lehrV>0) H+=sumRow('Aus Anlage N verschobene Betriebsausgaben', '− '+M(lehrV));
   H+=sumRow('Fahrtkosten', '− '+M(fahrttotal));
   H+=sumRow('Abschreibungen (AfA)', '− '+M(afaTotal));
   H+=sumRow('Überschuss / Verlust (Selbständigkeit · Anlage S)', (ergebnis>=0?'+ ':'− ')+M(Math.abs(ergebnis)), 'tot');
@@ -2329,10 +2338,10 @@ function buildReport(){
   }
   H+='</div>';
 
-  /* Lehramt */
+  /* Angestellt */
   H+='<div class="rep-sec rep-break"><h2>Angestellt — Werbungskosten (Anlage N) '+year+'</h2>';
   H+='<table><thead><tr><th>Posten</th><th>Detail</th><th>Zuordnung</th><th class="num">Betrag</th></tr></thead><tbody>';
-  H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(lehrHoSatz())+' (max '+law('hoMax')+')</td><td>Angestellt</td><td class="num">'+M(ho)+'</td></tr>';
+  H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(angestelltHoSatz())+' (max '+law('hoMax')+')</td><td>Angestellt</td><td class="num">'+M(ho)+'</td></tr>';
   H+='<tr><td>Entfernungspauschale</td><td>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Angestellt</td><td class="num">'+M(entf)+'</td></tr>';
   (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td>'+(p.datum?fmtDate(p.datum):'')+'</td><td>'+(p.ziel==='selbst'?'Selbständig':'Angestellt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
   if(lfahrtR>0) H+='<tr><td>Dienstfahrten (Reisekosten)</td><td>aus Fahrt-Tab (→ A)</td><td>Angestellt</td><td class="num">'+M(lfahrtR)+'</td></tr>';
@@ -2352,59 +2361,51 @@ function buildReport(){
     H+='</tbody></table><div class="rep-meta">Nicht in EÜR und nicht in Werbungskosten — gehören in die Anlage Vorsorgeaufwand (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG). Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</div></div>';
   }
 
-  /* Hinweise & Risiken */
-  H+='<div class="rep-sec rep-break"><h2>Hinweise & Risiken</h2><ul class="rep-note">';
-  if(ergebnis<0) H+='<li><b>Verlustfall:</b> Der Verlust aus Selbständigkeit kann i. d. R. mit anderen Einkünften verrechnet werden — bitte vom Steuerberater prüfen lassen.</li>';
-  if((ld.hoTage||0)>law('hoMax')) H+='<li><b>Homeoffice:</b> '+(ld.hoTage)+' Tage eingetragen, höchstens '+law('hoMax')+' Tage ('+M(law('hoMax')*lehrHoSatz())+') sind ansetzbar.</li>';
-  if(lwk<=lpb) H+='<li>Angestellt-Werbungskosten ('+M(lwk)+') liegen unter dem Pauschbetrag ('+M(lpb)+') — es wirkt automatisch der Pauschbetrag.</li>';
-  H+='<li>Selbständigkeit (EÜR) und Angestellt (Werbungskosten) sind <b>getrennte Anlagen</b> — kein Posten doppelt absetzen.</li>';
-  if(soR.length) H+='<li><b>Sonderausgaben</b> (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG) gehören separat in die Anlage Vorsorgeaufwand — Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</li>';
-  H+='<li><b>Bewirtung</b> nur zu 70 % absetzbar (im Tool bereits berücksichtigt).</li>';
-  H+='<li>Anschaffungen <b>über 800 € netto</b> in die AfA (Nutzungsdauer) statt Sofortabzug — siehe Wertgrenzen.</li>';
-  H+='<li><b>Homeoffice-Pauschale</b> max. 1.260 €/Jahr (210 Tage), pro Tag nur einmal über alle Tätigkeiten.</li>';
-  H+='<li><b>Verpflegungspauschale</b>: Sonderfall-Auslegung laut Steuerberater (bewusst abweichend von vielen Online-Quellen).</li>';
-  H+='<li><b>Belege aufbewahren.</b> Dieses Tool ist eine Arbeitshilfe und ersetzt keine Steuerberatung.</li>';
-  H+='</ul></div>';
+  /* Hinweise — nur fallabhängige, für den Steuerberater relevante Punkte (generisches Standardwissen weggelassen) */
+  const notes=[];
+  if(ergebnis<0) notes.push('<b>Verlustfall:</b> Der Verlust aus Selbständigkeit kann i. d. R. mit anderen Einkünften verrechnet werden — bitte prüfen.');
+  if((ld.hoTage||0)>law('hoMax')) notes.push('<b>Homeoffice:</b> '+(ld.hoTage)+' Tage eingetragen, höchstens '+law('hoMax')+' Tage ('+M(law('hoMax')*angestelltHoSatz())+') sind ansetzbar.');
+  if(lwk<=lpb) notes.push('Angestellt-Werbungskosten ('+M(lwk)+') liegen unter dem Pauschbetrag ('+M(lpb)+') — es wirkt automatisch der Pauschbetrag.');
+  if(verpfl>0) notes.push('<b>Verpflegungspauschale</b>: Sonderfall-Auslegung laut Steuerberater (bewusst abweichend von vielen Online-Quellen).');
+  if(notes.length) H+='<div class="rep-sec"><h2>Hinweise</h2><ul class="rep-note">'+notes.map(n=>'<li>'+n+'</li>').join('')+'</ul></div>';
 
   root.innerHTML=H;
 }
 
-/* ====== Lehramt (Werbungskosten / Anlage N) ======
+/* ====== Angestellt (Werbungskosten / Anlage N) ======
    Homeoffice-Pauschale (6 €/Tag, max 210) und Entfernungspauschale (0,30 €/km bis 20 km,
-   0,38 €/km ab km 21 × Arbeitstage) sind Lehramt-spezifisch. Weitere Posten sind per Schalter
-   zwischen Lehramt (Werbungskosten) und Selbständigkeit (Betriebsausgabe in E/A) verschiebbar.
+   0,38 €/km ab km 21 × Arbeitstage) sind Angestellt-spezifisch. Weitere Posten sind per Schalter
+   zwischen Angestellt (Werbungskosten) und Selbständigkeit (Betriebsausgabe in E/A) verschiebbar.
    Angesetzt wird der höhere Wert aus Werbungskosten und Arbeitnehmer-Pauschbetrag. */
-function lehrPB(){ return law('pauschbetrag'); }
-function lehrHoSatz(){ return law('hoSatz'); }
-function lehrGet(){
-  if(!lehramtData[currentYear]){
-    const prev=lehramtData[currentYear-1];
+function angestelltPB(){ return law('pauschbetrag'); }
+function angestelltHoSatz(){ return law('hoSatz'); }
+function angestelltGet(){
+  if(!angestelltData[currentYear]){
+    const prev=angestelltData[currentYear-1];
     if(prev){
       const copy=JSON.parse(JSON.stringify(prev));
       /* nur jährliche Pauschalen ins neue Jahr übernehmen – einmalige (datierte) Anschaffungen nicht */
       copy.positions=(copy.positions||[]).filter(p=>p.recurring!==false).map(p=>Object.assign({},p,{datum:''}));
-      lehramtData[currentYear]=copy;
+      angestelltData[currentYear]=copy;
     } else {
-      lehramtData[currentYear]={hoTage:0,kmSchule:0,arbeitstage:0,positions:[]};
+      angestelltData[currentYear]={hoTage:0,kmSchule:0,arbeitstage:0,positions:[]};
     }
-    saveLehramt();
+    saveAngestellt();
   }
-  return lehramtData[currentYear];
+  return angestelltData[currentYear];
 }
-function lehrHoBetrag(d){ return Math.min(d.hoTage||0, law('hoMax'))*lehrHoSatz(); }
-function lehrEntfBetrag(d){ const km=d.kmSchule||0, sw=law('entfSchwelle'); return (d.arbeitstage||0)*(law('entf1')*Math.min(km,sw)+law('entf2')*Math.max(km-sw,0)); }
-function lehrPosSum(d,ziel){ return (d.positions||[]).filter(p=>p.ziel===ziel).reduce((s,p)=>s+(p.betrag||0),0); }
-function werbungskosten(d){ return lehrHoBetrag(d)+lehrEntfBetrag(d)+lehrPosSum(d,'lehramt'); }
-function lehrSelbst(year){ const d=lehramtData[year]; return d?lehrPosSum(d,'selbst'):0; }
-function updateLehramt(){
-  const d=lehrGet();
+function angestelltHoBetrag(d){ return Math.min(d.hoTage||0, law('hoMax'))*angestelltHoSatz(); }
+function angestelltEntfBetrag(d){ const km=d.kmSchule||0, sw=law('entfSchwelle'); return (d.arbeitstage||0)*(law('entf1')*Math.min(km,sw)+law('entf2')*Math.max(km-sw,0)); }
+function angestelltPosSum(d,ziel){ return (d.positions||[]).filter(p=>p.ziel===ziel).reduce((s,p)=>s+(p.betrag||0),0); }
+function updateAngestellt(){
+  const d=angestelltGet();
   d.hoTage=Math.round(num(document.getElementById('l-hotage').value));
   d.kmSchule=Math.round(num(document.getElementById('l-km').value)*10)/10;  // 1 Nachkommastelle (z.B. 3,2 km)
   d.arbeitstage=Math.round(num(document.getElementById('l-tage').value));
-  saveLehramt(); lehrOutputs(d);   // Eingabefelder NICHT neu setzen → 3,2 bleibt tippbar
+  saveAngestellt(); angestelltOutputs(d);   // Eingabefelder NICHT neu setzen → 3,2 bleibt tippbar
 }
 /* ===== Zentrales Setup: gesetzliche Werte (⚙ Modal) ===== */
-function refreshAllCalc(){ renderLehramt(); calcFahrt(); if($('tab-jahres').classList.contains('active')) renderJahres(); }
+function refreshAllCalc(){ renderAngestellt(); calcFahrt(); if($('tab-jahres').classList.contains('active')) renderJahres(); }
 function updateLawSettings(){
   const y=currentYear;
   settings.lawYears=settings.lawYears||{};
@@ -2468,11 +2469,13 @@ function renderStichwort(){
   // 1) Eigene/gelernte Zuordnungen (editierbar, gewinnen vor den Standard-Vorschlägen)
   const own=Object.keys(learnMap);
   if(own.length){
-    html+='<div style="font-size:10px;font-weight:600;color:var(--txt-2);margin-bottom:4px;">Eigene Zuordnungen (gelernt)</div>';
-    for(const stichwort of own){
-      html+='<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;padding:6px;background:var(--card-2);border-radius:6px;font-size:10px;">'
-        +'<span style="flex:1;"><b>'+esc(stichwort)+'</b> → '+esc(learnMap[stichwort])+'</span>'
-        +'<button type="button" class="del-btn" style="width:24px;height:24px;padding:0;font-size:10px;" onclick="delStichwort('+JSON.stringify(stichwort)+')">×</button></div>';
+    html+='<div style="font-size:10px;font-weight:600;color:var(--txt-2);margin-bottom:4px;">Eigene Zuordnungen (gelernt) <span style="font-weight:400;color:var(--txt-3);">— × löscht einzeln</span></div>';
+    const ownByCat={};
+    for(const k of own){ (ownByCat[learnMap[k]]=ownByCat[learnMap[k]]||[]).push(k); }
+    for(const cat of Object.keys(ownByCat).sort()){
+      html+='<div style="font-size:10px;margin-bottom:5px;line-height:2;"><b>'+esc(cat)+':</b> '
+        +ownByCat[cat].map(kw=>'<span class="sw-chip">'+esc(kw)+'<span class="sw-x" onclick="delStichwort('+esc(JSON.stringify(kw))+')" title="Löschen">×</span></span>').join('')
+        +'</div>';
     }
   } else {
     html+='<div class="hint" style="font-size:10px;">Noch keine eigenen Zuordnungen. Tippe eine E/A-Beschreibung und wähle die Kategorie — die Zuordnung wird gelernt und überschreibt die Standard-Vorschläge.</div>';
@@ -2501,75 +2504,68 @@ function delStichwort(stichwort){
   saveLearn(); renderStichwort();
 }
 let editPosId=null;
-function lpRecurChanged(){
-  const rc=document.getElementById('lp-recurring'), dt=document.getElementById('lp-datum');
-  if(rc&&dt) dt.disabled=rc.checked;
-}
 function clearPosForm(){
-  ['lp-name','lp-betrag','lp-datum'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  const rc=document.getElementById('lp-recurring'); if(rc) rc.checked=false;
-  lpRecurChanged();
+  ['lp-name','lp-betrag'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   editPosId=null;
   document.getElementById('lp-save-btn').textContent='+ Posten hinzufügen';
   document.getElementById('lp-cancel').style.display='none';
-  renderLehramtPos(lehrGet());
+  renderAngestelltPos(angestelltGet());
 }
-function editLehramtPos(id){
-  const d=lehrGet(); const p=(d.positions||[]).find(x=>x.id===id); if(!p) return;
+function editAngestelltPos(id){
+  const d=angestelltGet(); const p=(d.positions||[]).find(x=>x.id===id); if(!p) return;
   document.getElementById('lp-name').value=p.name||'';
   document.getElementById('lp-betrag').value=(p.betrag||0).toFixed(2).replace('.',',');
-  const rec=(p.recurring!==false);
-  document.getElementById('lp-recurring').checked=rec;
-  document.getElementById('lp-datum').value=rec?'':(p.datum||'');
-  lpRecurChanged();
   editPosId=id;
   document.getElementById('lp-save-btn').textContent='Posten aktualisieren';
   document.getElementById('lp-cancel').style.display='block';
-  renderLehramtPos(d);
+  renderAngestelltPos(d);
   document.getElementById('lp-name').focus();
 }
-function addLehramtPos(){
+function fillPos(name,betrag){
+  const n=document.getElementById('lp-name'), b=document.getElementById('lp-betrag');
+  if(n) n.value=name;
+  if(b) b.value=Number(betrag).toFixed(2).replace('.',',');
+  if(n) n.focus();
+}
+function addAngestelltPos(){
   const name=document.getElementById('lp-name').value.trim();
   const betrag=num(document.getElementById('lp-betrag').value);
   if(!name||betrag<=0){ toast('Bezeichnung und Betrag nötig',true); return; }
-  const recurring=document.getElementById('lp-recurring').checked;
-  const datum=recurring?'':document.getElementById('lp-datum').value;
-  const d=lehrGet(); d.positions=d.positions||[];
+  const recurring=true, datum='';   // „Jährliche Posten": nur jährliche Pauschalen/Beiträge; Datiertes gehört in E/A
+  const d=angestelltGet(); d.positions=d.positions||[];
   if(editPosId){
     const p=d.positions.find(x=>x.id===editPosId);
     if(p){ p.name=name; p.betrag=betrag; p.recurring=recurring; p.datum=datum; }
   } else {
-    d.positions.push({id:'p'+Date.now(),name,betrag,ziel:'lehramt',recurring,datum});
+    d.positions.push({id:'p'+Date.now(),name,betrag,ziel:'angestellt',recurring,datum});
   }
-  saveLehramt();
+  saveAngestellt();
   clearPosForm();
-  renderLehramt();
+  renderAngestellt();
   if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
   document.getElementById('lp-name').focus();
 }
-function delLehramtPos(id){ if(id===editPosId) clearPosForm(); const d=lehrGet(); d.positions=(d.positions||[]).filter(p=>p.id!==id); saveLehramt(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
-function toggleLehramtPos(id){ const d=lehrGet(); const p=(d.positions||[]).find(x=>x.id===id); if(p){ p.ziel=p.ziel==='lehramt'?'selbst':'lehramt'; saveLehramt(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); } }
-function renderLehramtPos(d){
+function delAngestelltPos(id){ if(id===editPosId) clearPosForm(); const d=angestelltGet(); d.positions=(d.positions||[]).filter(p=>p.id!==id); saveAngestellt(); renderAngestellt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
+function renderAngestelltPos(d){
   const el=document.getElementById('lp-list'); if(!el) return;
   const pos=(d.positions||[]).slice();
   if(!pos.length){ el.innerHTML='<div class="hint">Noch keine Posten.</div>'; return; }
   el.innerHTML=pos.map(p=>{
-    const isA=p.ziel!=='selbst';
     const meta=[];
     if(p.datum) meta.push(fmtDate(p.datum));
     meta.push((p.recurring!==false)?'jährlich':'einmalig');
-    const badge='<span class="fahrt-anlage '+(isA?'l':'s')+'" onclick="event.stopPropagation();toggleLehramtPos(\''+p.id+'\')" title="A ↔ S umschalten">'+(isA?'A':'S')+'</span>';
-    return '<div class="fahrt-entry'+(p.id===editPosId?' editing':'')+'" onclick="event.stopPropagation();editLehramtPos(\''+p.id+'\')" title="Zum Bearbeiten tippen">'
+    const badge='<span class="fahrt-anlage l" style="cursor:default;" title="Angestellt (Werbungskosten)">A</span>';
+    return '<div class="fahrt-entry'+(p.id===editPosId?' editing':'')+'" onclick="event.stopPropagation();editAngestelltPos(\''+p.id+'\')" title="Zum Bearbeiten tippen">'
       +badge
       +'<div class="fahrt-main"><div class="fahrt-route" style="margin-top:0;">'+esc(p.name)+'</div>'
       +'<div class="fahrt-meta">'+meta.map(esc).join(' · ')+'</div></div>'
       +'<div class="fahrt-right"><span class="fahrt-amt" style="color:var(--txt);">'+fmt(p.betrag)+'</span>'
-      +'<button class="del-btn no-print" onclick="event.stopPropagation();delLehramtPos(\''+p.id+'\')" aria-label="Löschen">×</button></div>'
+      +'<button class="del-btn no-print" onclick="event.stopPropagation();delAngestelltPos(\''+p.id+'\')" aria-label="Löschen">×</button></div>'
       +'</div>';
   }).join('');
 }
-function renderLehramt(){
-  const d=lehrGet();
+function renderAngestellt(){
+  const d=angestelltGet();
   document.getElementById('l-wk-lbl').textContent='Werbungskosten '+currentYear;
   document.getElementById('l-ov-year').textContent=currentYear;
   /* Eingabefelder NUR hier füllen (Tab-Wechsel/Jahr) – nicht bei jedem Tastendruck, sonst wird das Komma verschluckt */
@@ -2577,10 +2573,10 @@ function renderLehramt(){
   setV('l-hotage', d.hoTage?String(d.hoTage):'');
   setV('l-km', d.kmSchule?String(d.kmSchule).replace('.',','):'');
   setV('l-tage', d.arbeitstage?String(d.arbeitstage):'');
-  lehrOutputs(d);
+  angestelltOutputs(d);
 }
-function lehrOutputs(d){
-  d=d||lehrGet();
+function angestelltOutputs(d){
+  d=d||angestelltGet();
   document.getElementById('l-homax').textContent=law('hoMax');
   const hs=document.getElementById('l-ho-satz'); if(hs) hs.textContent=deNum(law('hoSatz'));
   const rh=document.getElementById('l-rates-hint');
@@ -2588,7 +2584,7 @@ function lehrOutputs(d){
     const eTxt=(e1===e2)?('Entfernung '+deNum(e1)+' €/km ab dem 1. km'):('Entfernung '+deNum(e1)+' €/km bis '+sw+' km, '+deNum(e2)+' €/km ab km '+(sw+1));
     rh.textContent=eTxt+'.'; }
   const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
-  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), lfahrt=lehrFahrtSum(currentYear), eaA=eaASum(currentYear), wk=ho+entf+posL+lfahrt+eaA, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
+  const ho=angestelltHoBetrag(d), entf=angestelltEntfBetrag(d), posL=angestelltPosSum(d,'angestellt'), lfahrt=angestelltFahrtSum(currentYear), eaA=eaASum(currentYear), wk=ho+entf+posL+lfahrt+eaA, pb=angestelltPB();
   setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>law('hoMax')?'  (max '+law('hoMax')+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
   document.getElementById('l-wk').textContent=fmt(wk);
   document.getElementById('l-pb').textContent=fmt(pb);
@@ -2596,17 +2592,19 @@ function lehrOutputs(d){
   ue.textContent=(ueber>=0?'+':'')+fmt(ueber); ue.className='metric-value '+(ueber>=0?'green':'red');
   const setT=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL)); setT('l-r-fahrt', fmt(lfahrt)); setT('l-r-ea', fmt(eaA));
-  setT('l-r-wk', fmt(wk)); setT('l-r-pb', fmt(pb)); setT('l-r-eff', fmt(Math.max(wk,pb))); setT('l-r-selbst', fmt(selbst));
-  renderLehramtPos(d);
-  const eal=document.getElementById('ea-a-list');
+  setT('l-r-wk', fmt(wk)); setT('l-r-pb', fmt(pb)); setT('l-r-eff', fmt(Math.max(wk,pb)));
+  const pbR=document.getElementById('l-r-pb-row'); if(pbR) pbR.style.opacity=(wk>pb?'0.45':'1');
+  renderAngestelltPos(d);
+  const eal=document.getElementById('ea-a-list'), eaCard=document.getElementById('l-ea-card');
   if(eal){ const items=eaAItems(currentYear);
-    eal.innerHTML = items.length ? ('<div class="hint" style="margin:12px 0 4px;">Aus E/A zugeordnet (A) — bearbeiten in E/A:</div>'+items.map(e=>
+    if(eaCard) eaCard.style.display=items.length?'':'none';
+    eal.innerHTML = items.map(e=>
       '<div class="fahrt-entry" style="background:var(--card-2);">'
       +'<span class="fahrt-anlage l" style="cursor:default;">A</span>'
       +'<div class="fahrt-main"><div class="fahrt-route" style="margin-top:0;">'+esc(e.text)+'</div>'
       +'<div class="fahrt-meta">'+fmtDate(e.datum)+' · aus E/A</div></div>'
       +'<div class="fahrt-right"><span class="fahrt-amt" style="color:var(--txt);">'+fmt(e.betrag)+'</span></div></div>'
-    ).join('')) : '';
+    ).join('');
   }
 }
 
@@ -2618,16 +2616,15 @@ function ghUrl(c){ return 'https://api.github.com/repos/'+c.repo+'/contents/'+c.
 function b64encode(s){ return btoa(unescape(encodeURIComponent(s))); }
 function b64decode(b){ return decodeURIComponent(escape(atob((b||'').replace(/\s/g,'')))); }
 function syncState(){
-  const c=ghCfg(), on=!!(c.tok&&c.repo), auto=autoPushEnabled();
+  const c=ghCfg(), on=!!(c.tok&&c.repo);
   const set=(id,fn)=>{ const el=document.getElementById(id); if(el) fn(el); };
   set('sync-dot', el=>el.className='sync-dot '+(on?'on':'off'));
   set('hdr-sync-dot', el=>el.className='dot '+(on?'on':''));
   set('sync-title', el=>el.textContent=on?'Verbunden':'Nicht verbunden');
-  set('sync-sub', el=>el.textContent=on?(c.repo+' · '+c.path+' · '+(auto?'auto':'manuell')):'Fahrtkosten lokal — kein GitHub-Sync');
+  set('sync-sub', el=>el.textContent=on?(c.repo+' · läuft automatisch (Laden + Upload)'):'Fahrtkosten lokal — kein GitHub-Sync');
 }
-/* Auto-Upload: nach jeder Fahrt automatisch hochladen (gepuffert) */
-function autoPushEnabled(){ return store.get('steuer_gh_auto')==='1'; }
-function setAutoPush(on){ store.set('steuer_gh_auto', on?'1':'0'); syncState(); if(on) toast('Auto-Upload an'); }
+/* Auto-Upload: immer aktiv — nach jeder Fahrt automatisch hochladen (gepuffert), sobald verbunden */
+function autoPushEnabled(){ return true; }
 let _autoPushTimer=null;
 function scheduleAutoPush(){
   if(!autoPushEnabled()) return;
@@ -2642,7 +2639,6 @@ function openOv(id){
     document.getElementById('gh-token').value=store.get('steuer_gh_token')||'';
     document.getElementById('gh-repo').value=store.get('steuer_gh_repo')||'';
     document.getElementById('gh-path').value=store.get('steuer_gh_path')||'fahrten.json';
-    document.getElementById('gh-auto').checked=autoPushEnabled();
     syncState();
   }
   el.classList.add('open');
@@ -2664,11 +2660,23 @@ function clearToken(){
   syncState(); toast('Verbindung getrennt');
 }
 function mergeFahrten(remote){
+  /* remote ist Alt-Format (reine Liste) ODER neu ({fahrten, deleted}). */
+  const rF = Array.isArray(remote) ? remote : ((remote&&remote.fahrten)||[]);
+  const rD = (remote&&!Array.isArray(remote)&&remote.deleted)||[];
+  /* Tombstones zusammenführen — neuester Zeitstempel pro id gewinnt. */
+  const delTs={}; deletedFahrten.forEach(t=>delTs[t.id]=t.ts||0);
+  rD.forEach(t=>{ if((t.ts||0)>(delTs[t.id]||0)) delTs[t.id]=t.ts||0; });
+  /* Fahrten zusammenführen — Union per id, neuerer „updated" gewinnt. */
   const byId={}; fahrten.forEach(f=>byId[f.id]=f);
-  remote.forEach(r=>{ const c=byId[r.id]; if(!c||(r.updated||0)>(c.updated||0)) byId[r.id]=r; });
+  rF.forEach(r=>{ const c=byId[r.id]; if(!c||(r.updated||0)>(c.updated||0)) byId[r.id]=r; });
+  /* Tombstones anwenden: Fahrt entfernen, wenn die Löschung neuer ist als die letzte Änderung. */
+  Object.keys(delTs).forEach(k=>{ const id=+k, f=byId[id]; if(f && (f.updated||0)<=delTs[k]) delete byId[id]; });
+  /* Tombstone-Liste zusammenführen + alte (>1 Jahr) ausmisten, damit sie nicht unbegrenzt wächst. */
+  const cutoff=Date.now()-365*24*3600*1000;
+  deletedFahrten=Object.keys(delTs).map(k=>({id:+k, ts:delTs[k]})).filter(t=>t.ts>cutoff);
   fahrten=Object.values(byId);
   nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
-  saveFahrt(); renderFahrten();
+  saveFahrt(); saveDeleted(); renderFahrten();
 }
 async function ghGet(){
   const c=ghCfg();
@@ -2677,24 +2685,29 @@ async function ghGet(){
   if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?' (Token?)':r.status===403?' (Recht „Contents"?)':''));
   return r.json();
 }
-async function ghPull(){
+async function ghPull(silent){
   const c=ghCfg();
-  if(!c.tok||!c.repo){ toast('Erst Token + Repo speichern',true); return; }
+  if(!c.tok||!c.repo){ if(!silent) toast('Erst Token + Repo speichern',true); return; }
   try{
     const data=await ghGet();
-    if(!data){ toast('Datei noch nicht vorhanden — erst hochladen',true); return; }
+    if(!data){ if(!silent) toast('Datei noch nicht vorhanden — erst hochladen',true); return; }
     store.set('steuer_gh_sha',data.sha);
+    const before=JSON.stringify(fahrten);
     mergeFahrten(JSON.parse(b64decode(data.content)));
-    toast('Geladen & zusammengeführt'); syncState();
-  }catch(e){ toast('Pull fehlgeschlagen: '+e.message,true); }
+    if(!silent) toast('Geladen & zusammengeführt');
+    else if(JSON.stringify(fahrten)!==before) toast('Fahrten synchronisiert');
+    syncState();
+  }catch(e){ if(!silent) toast('Pull fehlgeschlagen: '+e.message,true); }
 }
+/* Auto-Pull beim App-Start, sobald verbunden — holt Änderungen vom anderen Gerät. Still bei Fehlern (offline). */
+function autoPullOnStart(){ const c=ghCfg(); if(c.tok&&c.repo) ghPull(true); }
 async function ghPush(){
   const c=ghCfg();
   if(!c.tok||!c.repo){ toast('Erst Token + Repo speichern',true); return; }
   try{
     let sha=null;
     try{ const cur=await ghGet(); if(cur) sha=cur.sha; }catch(_){ sha=store.get('steuer_gh_sha')||null; }
-    const body={message:'Fahrtkosten '+new Date().toISOString().slice(0,10),content:b64encode(JSON.stringify(fahrten,null,2))};
+    const body={message:'Fahrtkosten '+new Date().toISOString().slice(0,10),content:b64encode(JSON.stringify({fahrten,deleted:deletedFahrten},null,2))};
     if(sha) body.sha=sha;
     const r=await fetch(ghUrl(c),{method:'PUT',headers:{Authorization:'Bearer '+c.tok,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?' (Token?)':r.status===403?' (Recht „Contents: write"?)':r.status===409?' (erst „Laden" – Konflikt)':''));
@@ -2759,12 +2772,12 @@ document.addEventListener('keydown',function(ev){
 document.getElementById('ea-form').addEventListener('keydown',function(ev){
   if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
 });
-/* Enter speichert auch in Fahrt / AfA / Kfz-Beleg / Lehramt */
+/* Enter speichert auch in Fahrt / AfA / Kfz-Beleg / Angestellt */
 function bindEnter(ids,fn){ ids.forEach(function(id){ const el=document.getElementById(id); if(el) el.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); fn(); } }); }); }
 bindEnter(['f-zweck','f-start','f-ziel','f-rueckort','f-km','f-ab','f-rueck','f-park','f-zug'], addFahrt);
 bindEnter(['afa-name','afa-betrag','afa-jahre'], addAfa);
 bindEnter(['kb-betrag','kb-note'], addKfzBeleg);
-bindEnter(['lp-name','lp-betrag'], addLehramtPos);
+bindEnter(['lp-name','lp-betrag'], addAngestelltPos);
 /* Klick außerhalb der Posten-Karte beendet den Bearbeiten-Modus (entmarkiert) */
 document.addEventListener('click',function(ev){
   if(editPosId==null) return;
@@ -2793,8 +2806,9 @@ document.getElementById('f-datum').value=eaDD;
 document.addEventListener('change', function(ev){ if(ev.target && ev.target.matches && ev.target.matches('input[type=date]')) fixDateYear(ev.target); }, true);
 migrateCats();
 setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz(); populateYearOptions();
-renderEA(); renderFahrten(); renderAfA(); renderLehramt(); renderJahres(); syncState(); updateBackupInfo();
+renderEA(); renderFahrten(); renderAfA(); renderAngestellt(); renderJahres(); syncState(); updateBackupInfo();
 if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
+autoPullOnStart();   // beim Start automatisch Fahrten vom anderen Gerät holen (wenn verbunden)
 
 /* Druck/PDF: Bericht frisch erzeugen – auch bei Cmd/Strg+P (nicht nur über den Button) */
 window.addEventListener('beforeprint',function(){ buildReport(); });
