@@ -73,13 +73,18 @@ body.setup-open .app{padding-bottom:0;}
 
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0.85rem;}
 .metric-grid.three{grid-template-columns:1fr 1fr 1fr;}
-.metric-grid.three .metric-value{font-size:19px;}
 @media(max-width:560px){ .metric-grid.three{grid-template-columns:1fr 1fr;} }
 .metric{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.1rem;}
 .metric-label{font-size:11px;color:var(--txt-2);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.03em;font-weight:500;}
-.metric-value{font-size:23px;font-weight:600;letter-spacing:-0.02em;}
+.metric-value{font-size:21px;font-weight:600;letter-spacing:-0.02em;}
 .metric-value.green{color:var(--green);}
 .metric-value.red{color:var(--red);}
+/* E/A S/A-Zuordnung: Schalter-Leiste + ausgegraute A-Zeilen (Badge bleibt sichtbar) */
+.ea-zuord{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-0.35rem 0 0.85rem;}
+.ea-zuord-btn{flex-shrink:0;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;}
+.ea-zuord-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+.ea-zuord-info{font-size:11.5px;color:var(--txt-2);}
+.led-row.ea-a .entry-main,.led-row.ea-a .r,.led-row.ea-so .entry-main,.led-row.ea-so .r{opacity:0.5;}
 
 .section-title{font-size:16px;font-weight:600;margin-bottom:0.9rem;letter-spacing:-0.02em;}
 
@@ -93,8 +98,8 @@ select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns=
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .row-dz{display:grid;grid-template-columns:150px 1fr;gap:8px;}
 .row-nb{display:grid;grid-template-columns:1fr 130px;gap:8px;}
-.row-res{display:grid;grid-template-columns:1fr 158px;gap:8px;align-items:end;}
-.row-res2{display:grid;grid-template-columns:1fr 1fr 158px;gap:8px;align-items:end;}
+.row-res{display:grid;grid-template-columns:1fr 182px;gap:8px;align-items:end;}
+.row-res2{display:grid;grid-template-columns:1fr 1fr 182px;gap:8px;align-items:end;}
 input[type=date]:disabled{background:var(--card-2);color:var(--txt-3);-webkit-text-fill-color:var(--txt-3);opacity:1;cursor:not-allowed;}
 #law-panel .row2{align-items:end;}
 #law-panel .form-row label{min-height:2.5em;display:flex;align-items:flex-end;font-size:12px;line-height:1.25;}
@@ -175,8 +180,9 @@ input[type=date]:disabled{background:var(--card-2);color:var(--txt-3);-webkit-te
 .date-native{position:absolute;right:8px;top:50%;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none;}
 
 .fahrt-anlage{display:inline-block;min-width:15px;text-align:center;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;vertical-align:middle;cursor:pointer;}
-.fahrt-anlage.s{background:var(--accent-soft);color:var(--accent);}
-.fahrt-anlage.l{background:var(--orange-bg);color:var(--orange);}
+.fahrt-anlage.s{background:transparent;color:var(--txt-2);border:1px solid var(--border-2);}
+.fahrt-anlage.l{background:var(--txt);color:#fff;border:1px solid var(--txt);}
+.fahrt-anlage.so{background:var(--txt-2);color:#fff;border:1px solid var(--txt-2);}
 .preview-box{background:var(--accent-soft);border:0.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;margin-top:0.3rem;color:var(--accent);font-weight:500;}
 .preview-box strong{font-size:18px;font-weight:700;}
 .fahrt-entry{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:0.5px solid var(--border);cursor:pointer;border-radius:var(--radius-sm);}
@@ -312,8 +318,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 #report thead{display:table-header-group;}
 #report th,#report td{border:0.5px solid #999;padding:3px 5px;text-align:left;vertical-align:top;}
 #report thead th{background:#ececec;font-weight:700;}
-/* Datenzeilen dürfen frei umbrechen (füllt Seiten, kein Leerraum); nur Kopf-/Summenzeilen zusammenhalten */
-#report thead tr,#report .qh,#report .qsub,#report .grand{break-inside:avoid;page-break-inside:avoid;}
+/* Einzelne Einträge (Zeilen) bleiben immer zusammen — kein Zerreißen mitten in der Zeile.
+   Auch auf die Zellen gelegt, weil Safari/WebKit break-inside auf <tr> oft ignoriert (greift
+   bei hohen Zeilen wie langen Bewirtungs-Anlässen). Quartale dürfen frei umbrechen (wenig
+   Weißraum). Nur Kopf-/Summenzeilen bleiben an ihrem Block. */
+#report tr,#report td,#report th{break-inside:avoid;page-break-inside:avoid;}
 #report .qh{break-after:avoid;page-break-after:avoid;}
 #report .qsub,#report .grand{break-before:avoid;page-break-before:avoid;}
 #report small{color:#555;}
@@ -328,6 +337,21 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 #report .rep-note{font-size:9.5px;color:#333;margin:0;padding-left:16px;}
 #report .rep-note li{margin:2px 0;}
 #report .empty{color:#666;font-style:italic;font-size:10px;}
+/* E/A-Ledger als Block-DIVs statt <table>: WebKit hält break-inside auf Block-Elementen
+   zuverlässig ein (auf Tabellenzeilen NICHT). Spalten via CSS-Grid, gleiche Optik wie die Tabelle. */
+#report .rep-led{margin-bottom:4px;}
+#report .erow{display:grid;grid-template-columns:66px 44px 20px 92px 1fr 62px 62px;break-inside:avoid;page-break-inside:avoid;}
+#report .erow>span{border-right:0.5px solid #999;border-bottom:0.5px solid #999;padding:3px 5px;overflow-wrap:break-word;min-width:0;}
+#report .erow>span:first-child{border-left:0.5px solid #999;white-space:nowrap;}
+#report .erow>span.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#report .erow .full{grid-column:1/-1;}
+#report .erow .sum5{grid-column:1/6;}
+#report .ehead>span{background:#ececec;font-weight:700;border-top:0.5px solid #999;}
+#report .eqh>span{background:#dcdcdc;font-weight:700;}
+#report .eqh{break-after:avoid;page-break-after:avoid;}
+#report .eqsub>span{background:#f1f1f1;font-weight:600;}
+#report .egrand>span{background:#e2e2e2;font-weight:700;border-top:1.5px solid #000;}
+#report .eqsub,#report .egrand{break-before:avoid;page-break-before:avoid;}
 </style>
 </head>
 <body>
@@ -397,7 +421,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
           <button class="btn-primary" id="save-btn" onclick="addEintrag()">Eintrag speichern</button>
           <div id="edit-actions" style="display:none;align-items:center;gap:10px;margin-top:8px;">
             <button class="btn-ghost" id="cancel-edit" style="flex:1;margin:0;" onclick="cancelEdit()">Abbrechen</button>
-            <button type="button" id="wk-move-btn" onclick="moveEAtoWK()" title="Zu Werbungskosten (A) verschieben — S wird A" style="display:none;flex-shrink:0;width:46px;height:42px;border-radius:10px;border:0.5px solid var(--border);background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;">S</button>
+            <button type="button" id="wk-move-btn" onclick="toggleEditZiel()" title="S ↔ A: als Werbungskosten zuordnen (umkehrbar)" style="display:none;flex-shrink:0;width:46px;height:42px;border-radius:10px;border:0.5px solid var(--border);background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;">S</button>
           </div>
           <div class="hint" style="margin-top:12px;">
             <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
@@ -408,6 +432,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
             </div>
             <div id="backup-info" style="color:var(--txt-3);font-size:11px;margin-top:6px;"></div>
           </div>
+        </div>
+        <div class="card no-print" id="ea-zuord-card">
+          <button id="ea-zuord-btn" class="ea-zuord-btn" onclick="toggleZuordModus()">🔀 Ausgaben zuordnen</button>
+          <div class="ea-zuord-info" style="margin-top:6px;color:var(--txt-3);">Tipp aufs Kürzel: <b>S</b> Selbständig → <b>A</b> Werbungskosten → <b>So</b> Sonderausgaben.</div>
+          <div id="ea-zuord-info" class="ea-zuord-info" style="margin-top:8px;"></div>
         </div>
       </div>
 
@@ -519,7 +548,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
             <tr><td>ab 1.000,01 €</td><td>Nur normale AfA nach Nutzungsdauer (kein GWG, kein Sammelposten).</td></tr>
           </table>
           <p><b>Sammelposten / Pool</b> (§ 6 Abs. 2a EStG): für Güter über 250 € bis 1.000 € netto, Auflösung über <b>5 Jahre mit je 20 %</b>. Wählst du den Pool, gilt das <b>einheitlich für alle</b> passenden Anschaffungen dieses Jahres (kein Mischen mit dem GWG-Sofortabzug).</p>
-          <p><b>Selbständige Musik</b> (Anlage S/EÜR): Sammelposten möglich. <b>Lehrer-Werbungskosten</b> (Anlage N): nur Sofortabzug bis 800 € netto oder normale AfA — <b>kein</b> Sammelposten (§ 9 EStG verweist nur auf die GWG-Regel).</p>
+          <p><b>Selbständige Musik</b> (Anlage S/EÜR): Sammelposten möglich. <b>Angestellten-Werbungskosten</b> (Anlage N): nur Sofortabzug bis 800 € netto oder normale AfA — <b>kein</b> Sammelposten (§ 9 EStG verweist nur auf die GWG-Regel).</p>
           <p><b>Netto/Brutto:</b> Die Grenzen gelten netto (mit Vorsteuerabzug). Als <b>Kleinunternehmer</b> ohne Vorsteuerabzug zählt der <b>Brutto</b>betrag.</p>
           <p style="color:var(--txt-3);">Stand 2026, ohne Gewähr — im Zweifel vom Steuerberater bestätigen lassen. Dieses Tool bildet die <b>normale AfA</b> ab; einen Sammelposten bei Bedarf separat führen.</p>
         </div>
@@ -542,15 +571,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 
   <!-- ============ JAHRES ============ -->
   <section id="tab-jahres" class="section">
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Ergebnis Selbständigkeit</div><div class="metric-value" id="j-sum-selbst">—</div></div>
+      <div class="metric"><div class="metric-label">Werbungskosten anzusetzen</div><div class="metric-value" id="j-sum-lehr">—</div></div>
+    </div>
     <div class="card">
-      <div class="section-title" id="jahres-title">Jahresübersicht 2025</div>
-      <div class="jblock jresult" style="border-color:var(--accent);">
-        <div class="jblock-title" style="color:var(--accent);">ERGEBNISSE AUF EINEN BLICK</div>
-        <div class="jrow total"><span>Selbständigkeit — Überschuss / Verlust (EÜR, Anlage S)</span><span id="j-sum-selbst">—</span></div>
-        <div class="jrow"><span>Angestellt — anzusetzende Werbungskosten (Anlage N)</span><span id="j-sum-lehr">—</span></div>
-        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">davon über dem Pauschbetrag (zusätzlich steuerwirksam)</span><span id="j-sum-lehr-extra" style="font-size:11px;color:var(--txt-2);">—</span></div>
-        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">Die endgültige Steuer ermittelt der Steuerberater aus deinem Gesamteinkommen — hier siehst du alle Bausteine.</span><span></span></div>
-      </div>
       <div class="jblock">
         <div class="jblock-title">EINNAHMEN</div>
         <div class="jrow"><span>Musikergagen</span><span class="ein" id="j-gagen">—</span></div>
@@ -559,7 +584,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow total"><span>Gesamt Einnahmen</span><span class="ein" id="j-eintotal">—</span></div>
       </div>
       <div class="jblock">
-        <div class="jblock-title">AUSGABEN LAUFEND</div>
+        <div class="jblock-title">AUSGABEN</div>
         <div class="jrow"><span>Versicherungen</span><span class="aus" id="j-kv">—</span></div>
         <div class="jrow"><span>Musikzubehör</span><span class="aus" id="j-equip">—</span></div>
         <div class="jrow"><span>Büro / Services & Abos / Fortbildung</span><span class="aus" id="j-buero">—</span></div>
@@ -569,26 +594,33 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow total"><span>Gesamt Ausgaben</span><span class="aus" id="j-austotal">—</span></div>
       </div>
       <div class="jblock">
-        <div class="jblock-title" id="j-fahrt-title">FAHRTKOSTEN 2026</div>
-        <div class="jrow"><span>KM-Geld</span><span class="aus" id="j-km30">—</span></div>
-        <div class="jrow"><span>Verpflegungspauschalen</span><span class="aus" id="j-verpfl">—</span></div>
-        <div class="jrow"><span>Parkkosten / Tickets</span><span class="aus" id="j-park">—</span></div>
+        <div class="jblock-title">FAHRTKOSTEN (Selbständigkeit)</div>
         <div class="jrow total"><span>Fahrtkosten gesamt</span><span class="aus" id="j-fahrttotal">—</span></div>
       </div>
       <div class="jblock">
         <div class="jblock-title">ABSCHREIBUNGEN (gesondert ausgewiesen)</div>
-        <div class="jrow"><span>AfA anteilig <span id="j-afa-jahr" style="color:var(--txt-2)"></span></span><span class="aus" id="j-afa">—</span></div>
+        <div class="jrow"><span>AfA anteilig</span><span class="aus" id="j-afa">—</span></div>
       </div>
       <div class="jblock jresult">
         <div class="jrow total"><span>Überschuss / Verlust (Selbständigkeit)</span><span id="j-ergebnis">—</span></div>
         <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">(Einnahmen − Ausgaben − Fahrtkosten − AfA · Anlage EÜR/S)</span><span></span></div>
       </div>
       <div class="jblock">
-        <div class="jblock-title">LEHRAMT · WERBUNGSKOSTEN (Anlage N, separat)</div>
-        <div class="jrow"><span>Werbungskosten gesamt</span><span id="j-l-wk">—</span></div>
-        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">davon Dienstfahrten (Reisekosten, aus Fahrt-Tab → A)</span><span id="j-l-fahrt" style="font-size:11px;color:var(--txt-2);">—</span></div>
-        <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="j-l-pb">—</span></div>
+        <div class="jblock-title">WERBUNGSKOSTEN (Anlage N, separat)</div>
+        <div class="jrow"><span>Homeoffice-Pauschale</span><span class="aus" id="j-l-ho">—</span></div>
+        <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="j-l-entf">—</span></div>
+        <div class="jrow"><span>Dienstfahrten (Reisekosten)</span><span class="aus" id="j-l-fahrt">—</span></div>
+        <div class="jrow"><span>Weitere Posten</span><span class="aus" id="j-l-pos">—</span></div>
+        <div class="jrow"><span>Aus E/A zugeordnet (A)</span><span class="aus" id="j-l-ea">—</span></div>
+        <div class="jrow total"><span>Werbungskosten gesamt</span><span id="j-l-wk">—</span></div>
+        <div class="jrow" id="j-l-pb-row"><span>Arbeitnehmer-Pauschbetrag</span><span id="j-l-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="j-l-eff">—</span></div>
+      </div>
+      <div class="jblock" id="j-so-block" style="display:none;">
+        <div class="jblock-title">SONDERAUSGABEN (separat, Anlage Vorsorgeaufwand)</div>
+        <div id="j-so-list"></div>
+        <div class="jrow total"><span>Sonderausgaben gesamt</span><span class="aus" id="j-so-total">—</span></div>
+        <div class="jrow"><span style="color:var(--txt-2);font-size:11px;">weder in EÜR noch in Werbungskosten — separat in der Anlage Vorsorgeaufwand (Höchstbeträge prüft das Steuerbüro)</span><span></span></div>
       </div>
       <div class="jblock" style="border:0.5px solid #e6cf86;background:#fffaf0;">
         <div class="jblock-title" style="color:#7a5b00;">⚠️ HINWEISE &amp; RISIKEN — bitte beachten</div>
@@ -645,6 +677,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <button class="btn-primary" id="lp-save-btn" style="width:100%;" onclick="addLehramtPos()">+ Posten hinzufügen</button>
       <button class="btn-ghost" id="lp-cancel" style="display:none;width:100%;margin-top:8px;" onclick="clearPosForm()">Abbrechen</button>
       <div id="lp-list" style="margin-top:0.8rem;"></div>
+      <div id="ea-a-list"></div>
     </div>
 
     <div class="card">
@@ -654,6 +687,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="jrow"><span>Entfernungspauschale</span><span class="aus" id="l-r-entf">—</span></div>
         <div class="jrow"><span>Weitere Posten (Angestellt)</span><span class="aus" id="l-r-pos">—</span></div>
         <div class="jrow"><span>Dienstfahrten (aus Fahrt-Tab → A)</span><span class="aus" id="l-r-fahrt">—</span></div>
+        <div class="jrow"><span>Aus E/A zugeordnet (A)</span><span class="aus" id="l-r-ea">—</span></div>
         <div class="jrow total"><span>Werbungskosten gesamt</span><span class="aus" id="l-r-wk">—</span></div>
         <div class="jrow"><span>Arbeitnehmer-Pauschbetrag</span><span id="l-r-pb">—</span></div>
         <div class="jrow total"><span>anzusetzen (höherer Wert)</span><span id="l-r-eff">—</span></div>
@@ -1174,7 +1208,9 @@ function addEintrag(){
   }
   const betrag=Math.round(voll*anteil/100*100)/100;
   const isEdit=editId!=null;
+  const oldZiel=isEdit?(eintraege.find(x=>x.id===editId)||{}).ziel:null;
   const entry={id:isEdit?editId:nextId++,typ:curType,konto:curKonto,datum,betrag,kategorie,text,belegnr};
+  if(curType==='aus') entry.ziel=(oldZiel==='lehramt'||oldZiel==='sonder')?oldZiel:'selbst';
   if(anteil<100){ entry.voll=voll; entry.anteil=anteil; }
   if(kategorie==='Bewirtung'){ entry.bew_anlass=bewA; entry.bew_personen=bewP; }
   if(isEdit){ const i=eintraege.findIndex(x=>x.id===editId); if(i>=0) eintraege[i]=entry; }
@@ -1215,23 +1251,12 @@ function editEintrag(id){
   document.getElementById('ea-belegnr').value=e.belegnr||'';
   if(e.kategorie==='Bewirtung'){ document.getElementById('bew-anlass').value=e.bew_anlass||''; document.getElementById('bew-personen').value=e.bew_personen||''; }
   updateAnteilHint(); editUI(true);
-  const wm=document.getElementById('wk-move-btn'); if(wm) wm.style.display=(e.typ==='aus')?'block':'none';
+  const wm=document.getElementById('wk-move-btn'); if(wm){ wm.style.display=(e.typ==='aus')?'block':'none'; if(e.typ==='aus') updMoveBtn(wm,e.ziel); }
   renderEA();
 }
 function cancelEdit(){ resetForm(); renderEA(); }
-function moveEAtoWK(){
-  if(editId==null) return;
-  const e=eintraege.find(x=>x.id===editId); if(!e) return;
-  if(e.typ!=='aus'){ toast('Nur Ausgaben können zu Werbungskosten',true); return; }
-  if(!confirm('„'+e.text+'" zu Werbungskosten (Angestellt / Anlage N) verschieben?\nDer Eintrag wird aus E/A entfernt und dort als einmaliger Posten angelegt.')) return;
-  const d=lehrGet(); d.positions=d.positions||[];
-  d.positions.push({id:'p'+Date.now(),name:e.text,betrag:e.betrag,ziel:'lehramt',recurring:false,datum:e.datum});
-  saveLehramt();
-  eintraege=eintraege.filter(x=>x.id!==editId); saveEA();
-  resetForm(); renderEA(); renderLehramt();
-  if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres();
-  toast('Zu Werbungskosten verschoben (A)');
-}
+/* moveEAtoWK() entfernt (2026-06): ersetzt durch das umkehrbare ziel-Flag (toggleEditZiel/toggleEAZiel) —
+   kein destruktives Verschieben mehr; die Ausgabe bleibt in E/A und zählt per A in den Werbungskosten. */
 function deleteEintrag(id){
   const e=eintraege.find(x=>x.id===id);
   if(e && !confirm('Eintrag „'+e.text+'" löschen?')) return;
@@ -1244,6 +1269,25 @@ function setFilter(f){
   document.querySelectorAll('#tab-ea .filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===f));
   renderEA();
 }
+/* ===== E/A: S/A/So-Zuordnung — Ausgabe zählt als Betriebsausgabe (S), Werbungskosten (A)
+   oder Sonderausgabe (So, Anlage Vorsorgeaufwand). Nicht-destruktiv: nur Flag
+   e.ziel ('selbst'|'lehramt'|'sonder'); Eintrag bleibt in E/A, jederzeit umkehrbar.
+   Tippen aufs Kürzel zyklisch: S → A → So → S. ===== */
+let eaZuordModus=false;
+function eaIsA(e){ return e.typ==='aus' && e.ziel==='lehramt'; }
+function eaIsSo(e){ return e.typ==='aus' && e.ziel==='sonder'; }
+function eaASum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).reduce((s,e)=>s+e.betrag,0); }
+function eaAItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
+function eaSoSum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).reduce((s,e)=>s+e.betrag,0); }
+function eaSoItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
+function zielCode(z){ return z==='lehramt'?'A':z==='sonder'?'So':'S'; }
+function zielCls(z){ return z==='lehramt'?'l':z==='sonder'?'so':'s'; }
+function updMoveBtn(wm,z){ wm.textContent=zielCode(z); wm.classList.toggle('on',z==='lehramt'||z==='sonder'); wm.title=z==='lehramt'?'Werbungskosten (A) — tippen: weiter zu So':z==='sonder'?'Sonderausgabe (So) — tippen: zurück auf S':'Selbständig (S) — tippen: zu Werbungskosten (A)'; }
+function refreshAfterZiel(){ saveEA(); renderEA(); renderLehramt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
+function toggleEAZiel(id){ const e=eintraege.find(x=>x.id===id); if(!e||e.typ!=='aus') return; e.ziel=(e.ziel==='lehramt')?'sonder':(e.ziel==='sonder')?'selbst':'lehramt'; refreshAfterZiel(); }
+function toggleZuordModus(){ eaZuordModus=!eaZuordModus; const b=document.getElementById('ea-zuord-btn'); if(b){ b.classList.toggle('on',eaZuordModus); b.textContent=eaZuordModus?'✓ Zuordnen aktiv':'🔀 Ausgaben zuordnen'; } renderEA(); }
+function resetAllZiel(){ const y=String(currentYear); let n=0; eintraege.forEach(e=>{ if(e.datum.slice(0,4)===y && (eaIsA(e)||eaIsSo(e))){ e.ziel='selbst'; n++; } }); if(n){ refreshAfterZiel(); toast(n+' Posten zurück auf S'); } }
+function toggleEditZiel(){ if(editId==null) return; toggleEAZiel(editId); const e=eintraege.find(x=>x.id===editId), wm=document.getElementById('wk-move-btn'); if(wm&&e) updMoveBtn(wm,e.ziel); }
 function renderEA(){
   const yStr=String(currentYear);
   document.getElementById('m-ein-lbl').textContent='Einnahmen '+currentYear;
@@ -1251,11 +1295,19 @@ function renderEA(){
   document.getElementById('m-saldo-lbl').textContent='Saldo E/A '+currentYear;
   const yearItems=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
   const sumEin=yearItems.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
-  const sumAus=yearItems.filter(e=>e.typ==='aus').reduce((s,e)=>s+e.betrag,0);
+  const sumAus=yearItems.filter(e=>e.typ==='aus' && e.ziel!=='lehramt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
+  const aSum=yearItems.filter(e=>eaIsA(e)).reduce((s,e)=>s+e.betrag,0);
+  const soSum=yearItems.filter(e=>eaIsSo(e)).reduce((s,e)=>s+e.betrag,0);
   document.getElementById('m-ein').textContent=fmt(sumEin);
   document.getElementById('m-aus').textContent=fmt(sumAus);
   const saldo=sumEin-sumAus, sEl=document.getElementById('m-saldo');
   sEl.textContent=(saldo>=0?'+':'')+fmt(saldo); sEl.className='metric-value '+(saldo>=0?'green':'red');
+  const zi=document.getElementById('ea-zuord-info');
+  if(zi){ const parts=[];
+    if(aSum>0) parts.push(fmt(aSum)+' als <b>A</b> → Werbungskosten');
+    if(soSum>0) parts.push(fmt(soSum)+' als <b>So</b> → Sonderausgaben');
+    zi.innerHTML = parts.length ? (parts.join(' · ')+' · nicht im Saldo · <a onclick="resetAllZiel()" style="color:var(--accent);cursor:pointer;text-decoration:underline;">alle zurück auf S</a>') : '';
+  }
   let list=yearItems.filter(e=> eaFilter==='alle'?true:e.typ===eaFilter);
   if(eaSearch) list=list.filter(e=>((e.text||'')+' '+(e.kategorie||'')+' '+(e.belegnr||'')).toLowerCase().includes(eaSearch));
   const el=document.getElementById('ea-list');
@@ -1278,8 +1330,14 @@ function renderEA(){
       items.forEach(e=>{
         const bew=e.bew_anlass?(' · '+esc(e.bew_anlass)+' ('+esc(e.bew_personen||'')+')'):'';
         const ant=(e.anteil&&e.anteil<100)?(' · '+e.anteil+'% von '+fmt(e.voll||e.betrag)):'';
-        html+='<div class="led-row entry'+(e.id===editId?' editing':'')+'" data-id="'+e.id+'">'
-          +'<span class="badge b-'+e.konto+'">'+e.konto+'</span>'
+        const isA=eaIsA(e), isSo=eaIsSo(e);
+        let badge;
+        if(e.typ==='aus' && eaZuordModus){ badge='<span class="fahrt-anlage '+zielCls(e.ziel)+'" onclick="event.stopPropagation();toggleEAZiel('+e.id+')" title="S → A → So (tippen zum Wechseln)">'+zielCode(e.ziel)+'</span>'; }
+        else if(isA){ badge='<span class="fahrt-anlage l" title="als Werbungskosten (A) zugeordnet" style="cursor:default;">A</span>'; }
+        else if(isSo){ badge='<span class="fahrt-anlage so" title="als Sonderausgabe (So) zugeordnet" style="cursor:default;">So</span>'; }
+        else { badge='<span class="badge b-'+e.konto+'">'+e.konto+'</span>'; }
+        html+='<div class="led-row entry'+(e.id===editId?' editing':'')+(isA?' ea-a':'')+(isSo?' ea-so':'')+'" data-id="'+e.id+'">'
+          +badge
           +'<div class="entry-main"><div class="desc">'+esc(e.text)+(e.belegnr?(' <span class="beleg">#'+esc(e.belegnr)+'</span>'):'')+'</div>'
           +'<div class="sub">'+fmtDate(e.datum)+' · '+esc(e.kategorie)+ant+bew+'</div></div>'
           +'<span class="r e'+(e.typ==='ein'?' amt-edit':'')+'" data-id="'+e.id+'">'+(e.typ==='ein'?'+'+fmt(e.betrag):'')+'</span>'
@@ -1352,64 +1410,220 @@ function exportXLSX(){
   const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const r2=n=>Math.round((+n||0)*100)/100;
   const colL=i=>{ let s=''; while(i>0){ s=String.fromCharCode(65+((i-1)%26))+s; i=Math.floor((i-1)/26); } return s; };
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='lehramt'||e.ziel==='sonder'))).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
-  const rows=[]; let r=0, cells=[];
-  const open=()=>{ r++; cells=[]; };
-  const close=()=>{ rows.push('<row r="'+r+'">'+cells.join('')+'</row>'); };
-  const S=(c,v)=>cells.push('<c r="'+colL(c)+r+'" t="inlineStr"><is><t xml:space="preserve">'+xe(v)+'</t></is></c>');
-  const N=(c,v)=>cells.push('<c r="'+colL(c)+r+'"><v>'+r2(v)+'</v></c>');
-  const F=(c,f)=>cells.push('<c r="'+colL(c)+r+'"><f>'+xe(f)+'</f></c>');
-  /* --- E/A --- */
-  open(); S(1,'Steuer-Export '+year+' — Endwerte; Summen & Produkte sind Excel-Formeln (frei änderbar)'); close();
-  open(); close();
-  open(); ['Datum','Beleg','Konto','Kategorie','Beschreibung','Einnahme','Ausgabe'].forEach((h,i)=>S(i+1,h)); close();
-  const eaFirst=r+1;
-  ey.forEach(e=>{ open(); S(1,fmtDate(e.datum)); S(2,e.belegnr||''); S(3,e.konto); S(4,e.kategorie); S(5,e.text);
-    if(e.typ==='ein') N(6,e.betrag); else N(7,e.betrag); close(); });
-  const eaLast=r;
-  open(); S(5,'Summe '+year);
-    if(ey.length){ F(6,'SUM(F'+eaFirst+':F'+eaLast+')'); F(7,'SUM(G'+eaFirst+':G'+eaLast+')'); } close();
-  if(ey.length){ open(); S(5,'Saldo (Einnahmen − Ausgaben)'); F(6,'F'+r+'-G'+r); close(); }   /* verweist auf Summenzeile darüber */
-  open(); close();
-  /* --- Fahrten --- */
-  open(); S(1,'FAHRTEN '+year+'  (S = Selbständig/EÜR · A = Angestellt/Anlage N)'); close();
-  open(); ['Datum','Route','Zweck','Anlage','km','Satz €/km','km-Geld','Verpfl.','Park','Zug','Summe'].forEach((h,i)=>S(i+1,h)); close();
-  const fFirst=r+1;
-  fy.forEach(f=>{ open();
-    S(1,fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''));
-    S(2,cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):''));
-    S(3,f.zweck||''); S(4, f.anlage==='lehramt'?'A':'S'); N(5,f.km||0); N(6,f.satz||0);
-    F(7,'E'+r+'*F'+r); N(8,f.pausch||0); N(9,f.park||0); N(10,f.zug||0);
-    F(11,'G'+r+'+H'+r+'+I'+r+'+J'+r); close(); });
-  const fLast=r;
-  open(); S(3,'Summe '+year);
-    if(fy.length){ F(7,'SUM(G'+fFirst+':G'+fLast+')'); F(11,'SUM(K'+fFirst+':K'+fLast+')'); } close();
+  /* Stil-Indizes (cellXfs in styles.xml): 0 normal · 1 Titel · 2 Kopf links · 3 Währung ·
+     4 Währung fett · 5 fett · 6 zentriert · 7 Kopf zentriert */
+  function mkSheet(){
+    let r=0, cells=[], rows=[];
+    return {
+      open(){ r++; cells=[]; },
+      close(){ rows.push('<row r="'+r+'">'+cells.join('')+'</row>'); },
+      row(){ return r; },
+      S(c,v,s){ cells.push('<c r="'+colL(c)+r+'"'+(s?' s="'+s+'"':'')+' t="inlineStr"><is><t xml:space="preserve">'+xe(v)+'</t></is></c>'); },
+      N(c,v,s){ cells.push('<c r="'+colL(c)+r+'"'+(s?' s="'+s+'"':'')+'><v>'+r2(v)+'</v></c>'); },
+      F(c,f,s){ cells.push('<c r="'+colL(c)+r+'"'+(s?' s="'+s+'"':'')+'><f>'+xe(f)+'</f></c>'); },
+      xml(cols){ return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        +(cols||'')+'<sheetData>'+rows.join('')+'</sheetData>'
+        +'<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>'; }
+    };
+  }
+  const colDef=arr=>'<cols>'+arr.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols>';
 
-  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+rows.join('')+'</sheetData></worksheet>';
+  /* ===== Blatt 1: Einnahmen / Ausgaben =====
+     Spalten: A Rand · B Konto · C Datum · D Beleg · E Beschreibung · F Einnahme · G Ausgabe · H Platzhalter · I Kategorie */
+  const ea=mkSheet();
+  const eaCols=colDef([2.5,7,12,9,34,13,13,2.5,18]);
+  ea.open(); ea.S(2,'Einnahmen / Ausgaben '+year,1); ea.close();
+  ea.open(); ea.S(2,'Endwerte; Summe & Saldo sind Excel-Formeln (frei änderbar)'); ea.close();
+  ea.open(); ea.close();
+  ea.open(); ea.S(2,'Konto',2); ea.S(3,'Datum',2); ea.S(4,'Beleg',2); ea.S(5,'Beschreibung',2);
+    ea.S(6,'Einnahme',7); ea.S(7,'Ausgabe',7); ea.S(9,'Kategorie',2); ea.close();
+  const eaFirst=ea.row()+1;
+  ey.forEach(e=>{ ea.open();
+    ea.S(2,e.konto); ea.S(3,fmtDate(e.datum)); ea.S(4,e.belegnr||''); ea.S(5,e.text);
+    if(e.typ==='ein') ea.N(6,e.betrag,3); else ea.N(7,e.betrag,3);
+    ea.S(9,e.kategorie); ea.close(); });
+  const eaLast=ea.row();
+  ea.open(); ea.close();
+  ea.open(); ea.S(5,'Summe '+year,5);
+    if(ey.length){ ea.F(6,'SUM(F'+eaFirst+':F'+eaLast+')',4); ea.F(7,'SUM(G'+eaFirst+':G'+eaLast+')',4); } ea.close();
+  const eaSum=ea.row();
+  if(ey.length){ ea.open(); ea.S(5,'Saldo (Einnahmen − Ausgaben)',5); ea.F(6,'F'+eaSum+'-G'+eaSum,4); ea.close(); }
+  const sheet1=ea.xml(eaCols);
+
+  /* ===== Blatt 2: Fahrten =====
+     Spalten: A Rand · B S/A · C Datum · D Route · E Zweck · F km · G Satz · H km-Geld · I Verpfl. · J Park · K Zug · L Summe */
+  const fa=mkSheet();
+  const faCols=colDef([2.5,6,20,40,22,8,10,12,9,8,8,12]);
+  fa.open(); fa.S(2,'Fahrten '+year,1); fa.close();
+  fa.open(); fa.S(2,'S = Selbständig/EÜR · A = Angestellt/Anlage N · km-Geld & Summe sind Formeln'); fa.close();
+  fa.open(); fa.close();
+  fa.open(); fa.S(2,'S/A',7); fa.S(3,'Datum',2); fa.S(4,'Route',2); fa.S(5,'Zweck',2);
+    fa.S(6,'km',7); fa.S(7,'Satz €/km',7); fa.S(8,'km-Geld',7); fa.S(9,'Verpfl.',7);
+    fa.S(10,'Park',7); fa.S(11,'Zug',7); fa.S(12,'Summe',7); fa.close();
+  const fFirst=fa.row()+1;
+  fy.forEach(f=>{ fa.open(); const rr=fa.row();
+    fa.S(2, f.anlage==='lehramt'?'A':'S', 6);
+    fa.S(3, fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''));
+    fa.S(4, cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):''));
+    fa.S(5, f.zweck||''); fa.N(6, f.km||0); fa.N(7, f.satz||0, 3);
+    fa.F(8, 'F'+rr+'*G'+rr, 3); fa.N(9, f.pausch||0, 3); fa.N(10, f.park||0, 3); fa.N(11, f.zug||0, 3);
+    fa.F(12, 'H'+rr+'+I'+rr+'+J'+rr+'+K'+rr, 3); fa.close(); });
+  const fLast=fa.row();
+  fa.open(); fa.S(4,'Summe '+year,5);
+    if(fy.length){ fa.F(8,'SUM(H'+fFirst+':H'+fLast+')',4); fa.F(12,'SUM(L'+fFirst+':L'+fLast+')',4); } fa.close();
+  const sheet2=fa.xml(faCols);
+
+  const money=n=>deNum(n)+' €';
+
+  /* ===== Blatt 3: Abschreibungen (AfA) — chronologisch; AfA = AfA/Jahr × Monate ÷ 12 als Formel ===== */
+  const af=mkSheet();
+  const afCols=colDef([2.5,28,12,14,9,13,9,13]);
+  const afaList=allAfa().slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  af.open(); af.S(2,'Abschreibungen (AfA) '+year,1); af.close();
+  af.open(); af.S(2,'AfA '+year+' = AfA/Jahr × Monate ÷ 12 (Anschaffungsmonat zählt voll) — als Formel'); af.close();
+  af.open(); af.close();
+  af.open(); af.S(2,'Bezeichnung',2); af.S(3,'Kaufdatum',2); af.S(4,'Anschaffung',7); af.S(5,'Nutzung (J.)',7);
+    af.S(6,'AfA / Jahr',7); af.S(7,'Monate',7); af.S(8,'AfA '+year,7); af.close();
+  const afFirst=af.row()+1;
+  afaList.forEach(a=>{ af.open(); const rr=af.row(); const mo=afaForYear(a,year).months;
+    af.S(2,a.name); af.S(3,fmtDate(a.datum)); af.N(4,a.betrag,3); af.N(5,a.jahre); af.N(6,a.jahresbetrag,3);
+    af.N(7,mo); af.F(8,'F'+rr+'*G'+rr+'/12',3); af.close(); });
+  const afLast=af.row();
+  af.open(); af.S(6,'AfA '+year+' gesamt',5);
+    if(afaList.length){ af.F(8,'SUM(H'+afFirst+':H'+afLast+')',4); } af.close();
+  const sheet3=af.xml(afCols);
+
+  /* ===== Blatt 4: Werbungskosten (Anlage N) ===== */
+  const wk=mkSheet();
+  const wkCols=colDef([2.5,26,34,14,13]);
+  const ld=lehrDataFor(year);
+  const ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), lfahrtR=lehrFahrtSum(year), eaA=eaASum(year);
+  const lwk=ho+entf+lehrPosSum(ld,'lehramt')+lfahrtR+eaA, lpb=lehrPB(), leff=Math.max(lwk,lpb);
+  wk.open(); wk.S(2,'Werbungskosten (Anlage N) '+year,1); wk.close();
+  wk.open(); wk.S(2,'Angesetzt wird der höhere Wert aus Werbungskosten und Arbeitnehmer-Pauschbetrag.'); wk.close();
+  wk.open(); wk.close();
+  wk.open(); wk.S(2,'Posten',2); wk.S(3,'Detail',2); wk.S(4,'Zuordnung',2); wk.S(5,'Betrag',7); wk.close();
+  wk.open(); wk.S(2,'Homeoffice-Pauschale'); wk.S(3,(ld.hoTage||0)+' Tage × '+money(lehrHoSatz())+' (max '+law('hoMax')+')'); wk.S(4,'Angestellt'); wk.N(5,ho,3); wk.close();
+  wk.open(); wk.S(2,'Entfernungspauschale'); wk.S(3,String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage'); wk.S(4,'Angestellt'); wk.N(5,entf,3); wk.close();
+  (ld.positions||[]).forEach(p=>{ wk.open(); wk.S(2,p.name||''); wk.S(3,p.datum?fmtDate(p.datum):''); wk.S(4,p.ziel==='selbst'?'Selbständig':'Angestellt'); wk.N(5,p.betrag||0,3); wk.close(); });
+  if(lfahrtR>0){ wk.open(); wk.S(2,'Dienstfahrten (Reisekosten)'); wk.S(3,'aus Fahrt-Tab (→ A)'); wk.S(4,'Angestellt'); wk.N(5,lfahrtR,3); wk.close(); }
+  eaAItems(year).forEach(e=>{ wk.open(); wk.S(2,e.text||''); wk.S(3,'aus E/A · '+fmtDate(e.datum)); wk.S(4,'Angestellt'); wk.N(5,e.betrag||0,3); wk.close(); });
+  wk.open(); wk.close();
+  wk.open(); wk.S(2,'Werbungskosten gesamt (Angestellt)',5); wk.N(5,lwk,4); wk.close();
+  wk.open(); wk.S(2,'Arbeitnehmer-Pauschbetrag',5); wk.N(5,lpb,3); wk.close();
+  wk.open(); wk.S(2,'anzusetzen (höherer Wert)',5); wk.N(5,leff,4); wk.close();
+  wk.open(); wk.S(2,'davon über dem Pauschbetrag',5); wk.N(5,Math.max(lwk-lpb,0),3); wk.close();
+  const sheet4=wk.xml(wkCols);
+
+  /* ===== Blatt 5: Jahresübersicht — Werte wie im PDF-Bericht; Überschuss & anzusetzen als Formeln ===== */
+  const jb=mkSheet();
+  const jbCols=colDef([2.5,46,15]);
+  const eyJ=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
+  const fyJ=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt');
+  const sumEin=eyJ.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
+  const sumAus=eyJ.filter(e=>e.typ==='aus' && e.ziel!=='lehramt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
+  const fahrttotal=fyJ.reduce((s,f)=>s+(f.kmgeld||0),0);
+  const afaTotal=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
+  const lehrV=lehrPosSum(ld,'selbst');
+  jb.open(); jb.S(2,'Jahresübersicht '+year,1); jb.close();
+  jb.open(); jb.S(2,'Selbständigkeit (Anlage S/EÜR) und Angestellt (Anlage N) getrennt.'); jb.close();
+  jb.open(); jb.close();
+  jb.open(); jb.S(2,'Selbständigkeit — Anlage S / EÜR',2); jb.S(3,'',2); jb.close();
+  const jF=jb.row()+1;
+  jb.open(); jb.S(2,'Einnahmen (EÜR)'); jb.N(3,sumEin,3); jb.close();
+  jb.open(); jb.S(2,'Ausgaben (E/A-Buchungen)'); jb.N(3,-sumAus,3); jb.close();
+  if(lehrV>0){ jb.open(); jb.S(2,'Aus Anlage N verschobene Betriebsausgaben'); jb.N(3,-lehrV,3); jb.close(); }
+  jb.open(); jb.S(2,'Fahrtkosten'); jb.N(3,-fahrttotal,3); jb.close();
+  jb.open(); jb.S(2,'Abschreibungen (AfA)'); jb.N(3,-afaTotal,3); jb.close();
+  const jL=jb.row();
+  jb.open(); jb.S(2,'Überschuss / Verlust (Anlage S)',5); jb.F(3,'SUM(C'+jF+':C'+jL+')',4); jb.close();
+  jb.open(); jb.close();
+  jb.open(); jb.S(2,'Angestellt — Anlage N',2); jb.S(3,'',2); jb.close();
+  jb.open(); jb.S(2,'Werbungskosten gesamt'); jb.N(3,lwk,3); jb.close();
+  const jWk=jb.row();
+  jb.open(); jb.S(2,'Arbeitnehmer-Pauschbetrag'); jb.N(3,lpb,3); jb.close();
+  const jPb=jb.row();
+  jb.open(); jb.S(2,'anzusetzen (höherer Wert)',5); jb.F(3,'MAX(C'+jWk+',C'+jPb+')',4); jb.close();
+  jb.open(); jb.S(2,'davon über dem Pauschbetrag'); jb.F(3,'MAX(C'+jWk+'-C'+jPb+',0)',3); jb.close();
+  const soX=eaSoItems(year);
+  if(soX.length){
+    jb.open(); jb.close();
+    jb.open(); jb.S(2,'Sonderausgaben (separat, Anlage Vorsorgeaufwand)',2); jb.S(3,'',2); jb.close();
+    const jsF=jb.row()+1;
+    soX.forEach(e=>{ jb.open(); jb.S(2,(e.text||'')+' · '+fmtDate(e.datum)); jb.N(3,e.betrag||0,3); jb.close(); });
+    const jsL=jb.row();
+    jb.open(); jb.S(2,'Sonderausgaben gesamt',5); jb.F(3,'SUM(C'+jsF+':C'+jsL+')',4); jb.close();
+  }
+  const sheet5=jb.xml(jbCols);
+
+  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00&quot; €&quot;"/></numFmts>'
+    +'<fonts count="4">'
+    +'<font><sz val="11"/><name val="Calibri"/></font>'
+    +'<font><b/><sz val="11"/><name val="Calibri"/></font>'
+    +'<font><b/><sz val="13"/><name val="Calibri"/></font>'
+    +'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+    +'</fonts>'
+    +'<fills count="3">'
+    +'<fill><patternFill patternType="none"/></fill>'
+    +'<fill><patternFill patternType="gray125"/></fill>'
+    +'<fill><patternFill patternType="solid"><fgColor rgb="FF4472C4"/><bgColor indexed="64"/></patternFill></fill>'
+    +'</fills>'
+    +'<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    +'<cellXfs count="8">'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    +'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    +'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="left"/></xf>'
+    +'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+    +'<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>'
+    +'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf>'
+    +'</cellXfs>'
+    +'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+    +'</styleSheet>';
   const ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
     +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
     +'<Default Extension="xml" ContentType="application/xml"/>'
     +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
-    +'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+    +'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+    +'<Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
   const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
   const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-    +'<sheets><sheet name="Steuer '+year+'" sheetId="1" r:id="rId1"/></sheets><calcPr fullCalcOnLoad="1"/></workbook>';
+    +'<sheets><sheet name="Einnahmen-Ausgaben" sheetId="1" r:id="rId1"/><sheet name="Fahrten" sheetId="2" r:id="rId2"/><sheet name="Abschreibungen" sheetId="3" r:id="rId3"/><sheet name="Werbungskosten" sheetId="4" r:id="rId4"/><sheet name="Jahresübersicht" sheetId="5" r:id="rId5"/></sheets><calcPr fullCalcOnLoad="1"/></workbook>';
   const wbr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+    +'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
+    +'<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/>'
+    +'<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/>'
+    +'<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/>'
+    +'<Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
   const enc=new TextEncoder();
   const zip=zipStore([
     {name:'[Content_Types].xml',data:enc.encode(ct)},
     {name:'_rels/.rels',data:enc.encode(rels)},
     {name:'xl/workbook.xml',data:enc.encode(wb)},
     {name:'xl/_rels/workbook.xml.rels',data:enc.encode(wbr)},
-    {name:'xl/worksheets/sheet1.xml',data:enc.encode(sheet)}
+    {name:'xl/styles.xml',data:enc.encode(styles)},
+    {name:'xl/worksheets/sheet1.xml',data:enc.encode(sheet1)},
+    {name:'xl/worksheets/sheet2.xml',data:enc.encode(sheet2)},
+    {name:'xl/worksheets/sheet3.xml',data:enc.encode(sheet3)},
+    {name:'xl/worksheets/sheet4.xml',data:enc.encode(sheet4)},
+    {name:'xl/worksheets/sheet5.xml',data:enc.encode(sheet5)}
   ]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -1417,7 +1631,8 @@ function exportXLSX(){
   toast('Excel-Datei erstellt');
 }
 function exportData(){
-  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,fahrten,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
+  /* Fahrten bewusst NICHT im Backup: sie leben auf GitHub (versioniert) – so kann ein Import nie neuere Fahrten mit altem Stand überschreiben. */
+  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,lehramtData};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='steuer-backup-'+today+'.json'; a.click(); URL.revokeObjectURL(a.href);
@@ -1434,16 +1649,15 @@ function importData(input){
   const r=new FileReader();
   r.onload=()=>{ try{
     const d=migrate(JSON.parse(r.result));
-    if(!confirm('Backup importieren? Ersetzt die aktuellen E/A- und Fahrt-Daten.')){ input.value=''; return; }
-    eintraege=d.eintraege; fahrten=d.fahrten; customCats=d.customCats;
+    if(!confirm('Backup importieren? Ersetzt E/A, Abschreibungen, Werbungskosten & Einstellungen. Deine Fahrten bleiben unberührt (die liegen auf GitHub).')){ input.value=''; return; }
+    eintraege=d.eintraege; customCats=d.customCats;
     learnMap=d.learnMap; learnPct=d.learnPct; belegConfig=d.belegConfig||{Gage:{enabled:true,prefix:""},Unterricht:{enabled:true,prefix:"u"}};
     homeOrt=d.homeOrt; routeKm=d.routeKm; userAfa=d.userAfa; kfzData=d.kfzData;
     settings=d.settings; lehramtData=d.lehramtData;
-    saveEA(); saveFahrt(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
+    saveEA(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveLehramt();
     nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
-    nextFahrtId=fahrten.length?Math.max(...fahrten.map(f=>f.id))+1:1;
     migrateCats();
-    populateYearOptions(); renderEA(); renderFahrten(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
+    populateYearOptions(); renderEA(); renderAfA(); renderLehramt(); fillKfz(); toast('Backup importiert');
   }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
   r.readAsText(f);
 }
@@ -1885,7 +2099,7 @@ function afaYear(){ return currentYear; }
 function allAfa(){ return ABSCHREIBUNGEN.concat(userAfa); }
 function renderAfA(){
   const year=afaYear(); let total=0,n=0;
-  document.getElementById('afa-list').innerHTML=allAfa().map(a=>{
+  document.getElementById('afa-list').innerHTML=allAfa().slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(a=>{
     const r=afaForYear(a,year), aktiv=r.months>0;
     const ky=+a.datum.slice(0,4), km=+a.datum.slice(5,7);
     const lastActiveYear=Math.floor((ky*12+(km-1)+a.jahre*12-1)/12);  // letztes Jahr mit AfA
@@ -1970,7 +2184,7 @@ function renderJahres(){
   const year=afaYear(), yStr=String(year);
   const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
   const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt');   // nur Selbständigkeit in der EÜR
-  const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)).reduce((s,e)=>s+e.betrag,0);
+  const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)&&e.ziel!=='lehramt'&&e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
   const unterricht=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
   const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage'&&e.kategorie!=='Unterricht').reduce((s,e)=>s+e.betrag,0);
@@ -1979,7 +2193,7 @@ function renderJahres(){
   const equip=sA(['Musikzubehör']);
   const buero=sA(BUERO_KATS);
   const bew=sA(['Bewirtung']);
-  const sonst=ey.filter(e=>e.typ==='aus'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
+  const sonst=ey.filter(e=>e.typ==='aus'&&e.ziel!=='lehramt'&&e.ziel!=='sonder'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
   const lehrV=lehrSelbst(year);
   const austotal=kv+equip+buero+bew+sonst+lehrV;
   const km30=fyr.reduce((s,f)=>s+f.km*f.satz,0);
@@ -1988,25 +2202,30 @@ function renderJahres(){
   const fahrttotal=fyr.reduce((s,f)=>s+f.kmgeld,0);
   const afa=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
   const ergebnis=eintotal-austotal-fahrttotal-afa;
-  const set=(id,v)=>document.getElementById(id).textContent=v;
-  set('jahres-title','Jahresübersicht '+year);
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   set('csv-year',year);
-  set('j-fahrt-title','FAHRTKOSTEN '+year);
   set('j-gagen',fmt(gagen)); set('j-unterricht',fmt(unterricht)); set('j-sonstein',fmt(sonstEin)); set('j-eintotal',fmt(eintotal));
   set('j-kv',fmt(kv)); set('j-equip',fmt(equip)); set('j-buero',fmt(buero)); set('j-bew',fmt(bew));
   set('j-sonstaus',fmt(sonst)); set('j-lehrversch',fmt(lehrV)); set('j-austotal',fmt(austotal));
-  set('j-km30',fmt(km30)); set('j-verpfl',fmt(verpfl)); set('j-park',fmt(parkzug)); set('j-fahrttotal',fmt(fahrttotal));
-  set('j-afa',fmt(afa)); set('j-afa-jahr','('+year+')');
-  const ld=lehrDataFor(year), lfahrt=lehrFahrtSum(year), lwk=werbungskosten(ld)+lfahrt, lpb=lehrPB();
+  set('j-fahrttotal',fmt(fahrttotal));
+  set('j-afa',fmt(afa));
+  const ld=lehrDataFor(year), lfahrt=lehrFahrtSum(year), eaA=eaASum(year);
+  const lho=lehrHoBetrag(ld), lentf=lehrEntfBetrag(ld), lpos=lehrPosSum(ld,'lehramt');
+  const lwk=lho+lentf+lpos+lfahrt+eaA, lpb=lehrPB();
+  set('j-l-ho',fmt(lho)); set('j-l-entf',fmt(lentf)); set('j-l-fahrt',fmt(lfahrt)); set('j-l-pos',fmt(lpos)); set('j-l-ea',fmt(eaA));
   set('j-l-wk',fmt(lwk)); set('j-l-pb',fmt(lpb)); set('j-l-eff',fmt(Math.max(lwk,lpb)));
-  set('j-l-fahrt',fmt(lfahrt));
+  const pbRow=document.getElementById('j-l-pb-row'); if(pbRow) pbRow.style.opacity = (lwk>lpb ? '0.45' : '1');
+  const soItems=eaSoItems(year), soSum=eaSoSum(year), soBlock=document.getElementById('j-so-block');
+  if(soBlock){ soBlock.style.display=soItems.length?'':'none';
+    const sl=document.getElementById('j-so-list');
+    if(sl) sl.innerHTML=soItems.map(e=>'<div class="jrow"><span>'+esc(e.text)+' <span style="color:var(--txt-2);font-size:11px;">· '+fmtDate(e.datum)+'</span></span><span class="aus">'+fmt(e.betrag)+'</span></div>').join('');
+    set('j-so-total',fmt(soSum));
+  }
   const er=document.getElementById('j-ergebnis');
-  er.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis);
-  er.style.color=ergebnis>=0?'var(--green)':'var(--red)'; er.style.fontWeight='700';
+  if(er){ er.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis); er.style.color=ergebnis>=0?'var(--green)':'var(--red)'; er.style.fontWeight='700'; }
   const sumS=document.getElementById('j-sum-selbst');
   if(sumS){ sumS.textContent=(ergebnis>=0?'+':'')+fmt(ergebnis); sumS.style.color=ergebnis>=0?'var(--green)':'var(--red)'; sumS.style.fontWeight='700'; }
   set('j-sum-lehr', fmt(Math.max(lwk,lpb)));
-  set('j-sum-lehr-extra', fmt(Math.max(lwk-lpb,0)));
 }
 
 /* ====== Druck-Bericht: kompakte, tabellarische PDF-Aufstellung (currentYear) ====== */
@@ -2016,7 +2235,7 @@ function buildReport(){
   const year=currentYear, yStr=String(year);
   const M=n=>deNum(n)+' €';
   const sumRow=(l,v,cls)=>'<tr class="'+(cls||'')+'"><td>'+esc(l)+'</td><td class="num">'+v+'</td></tr>';
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='lehramt'||e.ziel==='sonder'))).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='lehramt').slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const afaRows=allAfa().map(a=>({a,r:afaForYear(a,year)}));
   const sumEin=ey.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
@@ -2026,8 +2245,8 @@ function buildReport(){
   const parkzug=fy.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
   const fahrttotal=fy.reduce((s,f)=>s+(f.kmgeld||0),0);
   const afaTotal=afaRows.reduce((s,o)=>s+o.r.betrag,0);
-  const ld=lehrDataFor(year), ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), posL=lehrPosSum(ld,'lehramt'), lfahrtR=lehrFahrtSum(year);
-  const lwk=ho+entf+posL+lfahrtR, lpb=lehrPB(), leff=Math.max(lwk,lpb), lehrV=lehrPosSum(ld,'selbst');
+  const ld=lehrDataFor(year), ho=lehrHoBetrag(ld), entf=lehrEntfBetrag(ld), posL=lehrPosSum(ld,'lehramt'), lfahrtR=lehrFahrtSum(year), eaA=eaASum(year);
+  const lwk=ho+entf+posL+lfahrtR+eaA, lpb=lehrPB(), leff=Math.max(lwk,lpb), lehrV=lehrPosSum(ld,'selbst');
   const ergebnis=sumEin-sumAus-lehrV-fahrttotal-afaTotal;
 
   let H='<h1>Steuer-Bericht '+year+'</h1>';
@@ -2053,25 +2272,26 @@ function buildReport(){
   H+='<div class="rep-sec"><h2>Einnahmen / Ausgaben — alle Buchungen '+year+'</h2>';
   if(!ey.length){ H+='<p class="empty">Keine Buchungen erfasst.</p>'; }
   else{
-    H+='<table><thead><tr><th>Datum</th><th>Beleg</th><th>K</th><th>Kategorie</th><th>Beschreibung</th><th class="num">Einnahme</th><th class="num">Ausgabe</th></tr></thead><tbody>';
+    H+='<div class="rep-led">';
+    H+='<div class="erow ehead"><span>Datum</span><span>Beleg</span><span>K</span><span>Kategorie</span><span>Beschreibung</span><span class="num">Einnahme</span><span class="num">Ausgabe</span></div>';
     const byQ={1:[],2:[],3:[],4:[]};
     ey.forEach(e=>byQ[Math.ceil((+e.datum.slice(5,7))/3)].push(e));
     [1,2,3,4].forEach(q=>{
       const items=byQ[q]; if(!items.length) return;
       let qe=0,qa=0;
-      H+='<tr class="qh"><td colspan="7">'+q+'. Quartal '+year+'</td></tr>';
+      H+='<div class="erow eqh"><span class="full">'+q+'. Quartal '+year+'</span></div>';
       items.forEach(e=>{
         const ein=e.typ==='ein'?e.betrag:0, aus=e.typ==='aus'?e.betrag:0; qe+=ein; qa+=aus;
         let b=esc(e.text);
         if(e.anteil&&e.anteil<100) b+=' <small>('+e.anteil+'% v. '+M(e.voll||e.betrag)+')</small>';
         if(e.bew_anlass) b+=' <small>· '+esc(e.bew_anlass)+' ('+esc(e.bew_personen||'')+')</small>';
-        H+='<tr><td>'+fmtDate(e.datum)+'</td><td>'+esc(e.belegnr||'')+'</td><td>'+e.konto+'</td><td>'+esc(e.kategorie)+'</td><td>'+b+'</td>'
-          +'<td class="num">'+(ein?M(ein):'')+'</td><td class="num">'+(aus?M(aus):'')+'</td></tr>';
+        H+='<div class="erow"><span>'+fmtDate(e.datum)+'</span><span>'+esc(e.belegnr||'')+'</span><span>'+e.konto+'</span><span>'+esc(e.kategorie)+'</span><span>'+b+'</span>'
+          +'<span class="num">'+(ein?M(ein):'')+'</span><span class="num">'+(aus?M(aus):'')+'</span></div>';
       });
-      H+='<tr class="qsub"><td colspan="5">Summe '+q+'. Quartal</td><td class="num">'+M(qe)+'</td><td class="num">'+M(qa)+'</td></tr>';
+      H+='<div class="erow eqsub"><span class="sum5">Summe '+q+'. Quartal</span><span class="num">'+M(qe)+'</span><span class="num">'+M(qa)+'</span></div>';
     });
-    H+='<tr class="grand"><td colspan="5">Gesamt '+year+'  ·  Saldo '+M(sumEin-sumAus)+'</td><td class="num">'+M(sumEin)+'</td><td class="num">'+M(sumAus)+'</td></tr>';
-    H+='</tbody></table>';
+    H+='<div class="erow egrand"><span class="sum5">Gesamt '+year+'  ·  Saldo '+M(sumEin-sumAus)+'</span><span class="num">'+M(sumEin)+'</span><span class="num">'+M(sumAus)+'</span></div>';
+    H+='</div>';
   }
   H+='</div>';
 
@@ -2116,10 +2336,21 @@ function buildReport(){
   H+='<tr><td>Entfernungspauschale</td><td>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Angestellt</td><td class="num">'+M(entf)+'</td></tr>';
   (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td>'+(p.datum?fmtDate(p.datum):'')+'</td><td>'+(p.ziel==='selbst'?'Selbständig':'Angestellt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
   if(lfahrtR>0) H+='<tr><td>Dienstfahrten (Reisekosten)</td><td>aus Fahrt-Tab (→ A)</td><td>Angestellt</td><td class="num">'+M(lfahrtR)+'</td></tr>';
+  eaAItems(year).forEach(e=>{ H+='<tr><td>'+esc(e.text)+'</td><td>aus E/A · '+fmtDate(e.datum)+'</td><td>Angestellt</td><td class="num">'+M(e.betrag)+'</td></tr>'; });
   H+='<tr class="qsub"><td colspan="3">Werbungskosten gesamt (Angestellt)</td><td class="num">'+M(lwk)+'</td></tr>';
   H+='<tr><td colspan="3">Arbeitnehmer-Pauschbetrag</td><td class="num">'+M(lpb)+'</td></tr>';
   H+='<tr class="grand"><td colspan="3">anzusetzen (höherer Wert)</td><td class="num">'+M(leff)+'</td></tr>';
   H+='</tbody></table></div>';
+
+  /* Sonderausgaben (separat) */
+  const soR=eaSoItems(year), soT=eaSoSum(year);
+  if(soR.length){
+    H+='<div class="rep-sec"><h2>Sonderausgaben (separat) '+year+'</h2>';
+    H+='<table><thead><tr><th>Posten</th><th>Detail</th><th class="num">Betrag</th></tr></thead><tbody>';
+    soR.forEach(e=>{ H+='<tr><td>'+esc(e.text)+'</td><td>aus E/A · '+fmtDate(e.datum)+'</td><td class="num">'+M(e.betrag)+'</td></tr>'; });
+    H+='<tr class="grand"><td colspan="2">Sonderausgaben gesamt</td><td class="num">'+M(soT)+'</td></tr>';
+    H+='</tbody></table><div class="rep-meta">Nicht in EÜR und nicht in Werbungskosten — gehören in die Anlage Vorsorgeaufwand (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG). Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</div></div>';
+  }
 
   /* Hinweise & Risiken */
   H+='<div class="rep-sec rep-break"><h2>Hinweise & Risiken</h2><ul class="rep-note">';
@@ -2127,6 +2358,7 @@ function buildReport(){
   if((ld.hoTage||0)>law('hoMax')) H+='<li><b>Homeoffice:</b> '+(ld.hoTage)+' Tage eingetragen, höchstens '+law('hoMax')+' Tage ('+M(law('hoMax')*lehrHoSatz())+') sind ansetzbar.</li>';
   if(lwk<=lpb) H+='<li>Angestellt-Werbungskosten ('+M(lwk)+') liegen unter dem Pauschbetrag ('+M(lpb)+') — es wirkt automatisch der Pauschbetrag.</li>';
   H+='<li>Selbständigkeit (EÜR) und Angestellt (Werbungskosten) sind <b>getrennte Anlagen</b> — kein Posten doppelt absetzen.</li>';
+  if(soR.length) H+='<li><b>Sonderausgaben</b> (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG) gehören separat in die Anlage Vorsorgeaufwand — Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</li>';
   H+='<li><b>Bewirtung</b> nur zu 70 % absetzbar (im Tool bereits berücksichtigt).</li>';
   H+='<li>Anschaffungen <b>über 800 € netto</b> in die AfA (Nutzungsdauer) statt Sofortabzug — siehe Wertgrenzen.</li>';
   H+='<li><b>Homeoffice-Pauschale</b> max. 1.260 €/Jahr (210 Tage), pro Tag nur einmal über alle Tätigkeiten.</li>';
@@ -2356,16 +2588,26 @@ function lehrOutputs(d){
     const eTxt=(e1===e2)?('Entfernung '+deNum(e1)+' €/km ab dem 1. km'):('Entfernung '+deNum(e1)+' €/km bis '+sw+' km, '+deNum(e2)+' €/km ab km '+(sw+1));
     rh.textContent=eTxt+'.'; }
   const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
-  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), lfahrt=lehrFahrtSum(currentYear), wk=ho+entf+posL+lfahrt, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
+  const ho=lehrHoBetrag(d), entf=lehrEntfBetrag(d), posL=lehrPosSum(d,'lehramt'), lfahrt=lehrFahrtSum(currentYear), eaA=eaASum(currentYear), wk=ho+entf+posL+lfahrt+eaA, pb=lehrPB(), selbst=lehrPosSum(d,'selbst');
   setV('l-ho-betrag', fmt(ho)+((d.hoTage||0)>law('hoMax')?'  (max '+law('hoMax')+' Tage)':'')); setV('l-entf-betrag', fmt(entf));
   document.getElementById('l-wk').textContent=fmt(wk);
   document.getElementById('l-pb').textContent=fmt(pb);
   const ueber=wk-pb, ue=document.getElementById('l-ueber');
   ue.textContent=(ueber>=0?'+':'')+fmt(ueber); ue.className='metric-value '+(ueber>=0?'green':'red');
   const setT=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
-  setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL)); setT('l-r-fahrt', fmt(lfahrt));
+  setT('l-r-ho', fmt(ho)); setT('l-r-entf', fmt(entf)); setT('l-r-pos', fmt(posL)); setT('l-r-fahrt', fmt(lfahrt)); setT('l-r-ea', fmt(eaA));
   setT('l-r-wk', fmt(wk)); setT('l-r-pb', fmt(pb)); setT('l-r-eff', fmt(Math.max(wk,pb))); setT('l-r-selbst', fmt(selbst));
   renderLehramtPos(d);
+  const eal=document.getElementById('ea-a-list');
+  if(eal){ const items=eaAItems(currentYear);
+    eal.innerHTML = items.length ? ('<div class="hint" style="margin:12px 0 4px;">Aus E/A zugeordnet (A) — bearbeiten in E/A:</div>'+items.map(e=>
+      '<div class="fahrt-entry" style="background:var(--card-2);">'
+      +'<span class="fahrt-anlage l" style="cursor:default;">A</span>'
+      +'<div class="fahrt-main"><div class="fahrt-route" style="margin-top:0;">'+esc(e.text)+'</div>'
+      +'<div class="fahrt-meta">'+fmtDate(e.datum)+' · aus E/A</div></div>'
+      +'<div class="fahrt-right"><span class="fahrt-amt" style="color:var(--txt);">'+fmt(e.betrag)+'</span></div></div>'
+    ).join('')) : '';
+  }
 }
 
 /* ====== GitHub-Sync (nur Fahrt, privates Repo, Contents-API, manuell) ======
