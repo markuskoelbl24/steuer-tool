@@ -457,7 +457,7 @@
       "id": 21
     },
     {
-      "datum": "2025-06-21",
+      "datum": "2025-05-30",
       "enddatum": "2025-06-22",
       "route": "Ingolstadt → Eisenthaler Straße 15 Grafenau → Ingolstadt",
       "start": "Ingolstadt",
@@ -468,16 +468,16 @@
       "satz": 0.3,
       "park": 0,
       "zug": 0,
-      "pausch": 28,
+      "pausch": 644,
       "mehr": true,
-      "tage": 2,
+      "tage": 24,
       "anreiseNacht": false,
       "heimMitternacht": false,
       "abUhr": 14,
       "rueckUhr": 15,
       "anlage": "selbst",
-      "kmgeld": 148.3,
-      "updated": 1782075624007,
+      "kmgeld": 764.3,
+      "updated": 1782075846151,
       "id": 22
     },
     {
