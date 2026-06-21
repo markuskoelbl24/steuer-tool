@@ -767,6 +767,30 @@
       "kmgeld": 37.199999999999996,
       "updated": 1782077234503,
       "id": 34
+    },
+    {
+      "datum": "2025-09-13",
+      "enddatum": "",
+      "route": "Ingolstadt → Bahnhofstraße 2, Wörthsee → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Bahnhofstraße 2, Wörthsee",
+      "rueckort": "Ingolstadt",
+      "zweck": "Fab Band Gig",
+      "km": 230,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 13,
+      "rueckUhr": 2,
+      "anlage": "selbst",
+      "kmgeld": 83,
+      "updated": 1782077330366,
+      "id": 35
     }
   ],
   "deleted": []
