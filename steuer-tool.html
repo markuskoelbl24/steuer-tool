@@ -321,21 +321,12 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 #report .rep-break{break-before:page;page-break-before:always;}
 #report h2{font-size:13px;margin:0 0 6px;padding-bottom:3px;border-bottom:1.5px solid #000;break-after:avoid;page-break-after:avoid;}
 #report table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:4px;}
-#report thead{display:table-header-group;}
 #report th,#report td{border:0.5px solid #999;padding:3px 5px;text-align:left;vertical-align:top;}
-#report thead th{background:#ececec;font-weight:700;}
-/* Einzelne Einträge (Zeilen) bleiben immer zusammen — kein Zerreißen mitten in der Zeile.
-   Auch auf die Zellen gelegt, weil Safari/WebKit break-inside auf <tr> oft ignoriert (greift
-   bei hohen Zeilen wie langen Bewirtungs-Anlässen). Quartale dürfen frei umbrechen (wenig
-   Weißraum). Nur Kopf-/Summenzeilen bleiben an ihrem Block. */
+/* Nur die Zusammenfassung ist noch eine echte <table> (kurz, oben, bricht nicht um);
+   alle langen Aufstellungen sind Block-Grids (.grow, siehe unten) und damit umbruchsicher. */
 #report tr,#report td,#report th{break-inside:avoid;page-break-inside:avoid;}
-#report .qh{break-after:avoid;page-break-after:avoid;}
-#report .qsub,#report .grand{break-before:avoid;page-break-before:avoid;}
 #report small{color:#555;}
 #report .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-#report .qh td{background:#dcdcdc;font-weight:700;}
-#report .qsub td{background:#f1f1f1;font-weight:600;}
-#report .grand td{background:#e2e2e2;font-weight:700;border-top:1.5px solid #000;}
 #report .sumtab td{border:none;padding:2px 0;font-size:11px;}
 #report .sumtab .num{padding-left:18px;}
 #report .sumtab .tot td{border-top:1.5px solid #000;font-weight:700;font-size:12.5px;padding-top:5px;}
@@ -358,6 +349,22 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 #report .eqsub>span{background:#f1f1f1;font-weight:600;}
 #report .egrand>span{background:#e2e2e2;font-weight:700;border-top:1.5px solid #000;}
 #report .eqsub,#report .egrand{break-before:avoid;page-break-before:avoid;}
+/* Generische Block-Grid-„Tabellen" (Fahrt/AfA/Angestellt/Sonderausgaben): gleiche Umbruchsicherheit
+   wie das E/A-Ledger — break-inside greift auf Block-Grids, auf <tr>/<td> in WebKit nicht. */
+#report .gtab{margin-bottom:4px;}
+#report .grow{display:grid;break-inside:avoid;page-break-inside:avoid;}
+#report .grow>span{border-right:0.5px solid #999;border-bottom:0.5px solid #999;padding:3px 5px;overflow-wrap:break-word;min-width:0;}
+#report .grow>span:first-child{border-left:0.5px solid #999;}
+#report .grow>span.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#report .ghead>span{background:#ececec;font-weight:700;border-top:0.5px solid #999;}
+#report .ghead{break-after:avoid;page-break-after:avoid;}
+#report .gsub>span{background:#f1f1f1;font-weight:600;}
+#report .ggrand>span{background:#e2e2e2;font-weight:700;border-top:1.5px solid #000;}
+#report .gsub,#report .ggrand{break-before:avoid;page-break-before:avoid;}
+#report .gr-fahrt{grid-template-columns:60px minmax(0,1fr) 84px 46px 48px 52px 30px 56px 58px;}
+#report .gr-afa{grid-template-columns:minmax(0,1fr) 62px 74px 44px 74px 52px 66px;}
+#report .gr-ang{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) 74px 72px;}
+#report .gr-so{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 76px;}
 </style>
 </head>
 <body>
@@ -911,9 +918,10 @@ if(!settings.lawYears) settings.lawYears={};   // {jahr: {key: wert}} – gelten
 const $=id=>document.getElementById(id);
 /* Gesetzliche Standardwerte (Basis) + jahresabhängige Defaults (gelten ab dem Jahr aufwärts). */
 const LAW_DEFAULTS={pauschbetrag:1230,hoSatz:6,hoMax:210,standardSatz:0.30,entf1:0.30,entf2:0.38,entfSchwelle:20,verpfl8:14,verpflFull:28,bewirtungPct:70,gwg800:800,gwg1000:1000};
-const LAW_DEFAULTS_BY_YEAR={
-  2026:{ entf1:0.38 }   // Pendlerpauschale ab 2026: 0,38 €/km ab dem 1. km (2025: 0,30 bis 20 km)
-};
+/* Jahresabhängige gesetzliche Defaults (gelten ab dem Jahr aufwärts). Bewusst leer:
+   z. B. die Pendlerpauschale 2026 (0,38 €/km ab km 1) wird im Setup pro Jahr gesetzt
+   statt hart verdrahtet — hält den Code sauber. Hier kann eine künftige Gesetzesänderung rein. */
+const LAW_DEFAULTS_BY_YEAR={};
 /* Wert eines gesetzlichen Parameters für ein Jahr: eigene Jahres-Overrides > Jahres-Default > Basis. */
 function law(k, year){
   if(year==null) year=currentYear;
@@ -973,7 +981,10 @@ const saveAngestellt = ()=>store.set('steuer_angestellt', JSON.stringify(angeste
 const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const today=new Date().toISOString().slice(0,10);
 function eaDefaultDate(){ return currentYear+'-'+today.slice(5); }
-const num=v=>{ let s=String(v).trim().replace(/\s/g,''); if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.'); return parseFloat(s)||0; };
+const num=v=>{ let s=String(v).trim().replace(/\s/g,'');
+  if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.');               // 1.234,56 → 1234.56 (Komma = Dezimal)
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');               // 1.000 / 2.499 → Tausenderpunkt ohne Dezimal
+  return parseFloat(s)||0; };
 const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',')+' €';
 const deNum=n=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 function fmtField(el){ const t=el.value.trim(); if(!t) return; const v=num(t); el.value = v>0 ? deNum(v) : t; }
@@ -1071,18 +1082,6 @@ function applyPctSuggestion(){
   document.getElementById('ea-anteil').value = pct!=null?pct:100;
   updateAnteilHint();
 }
-/* Datum: Freitext mit smarter Erkennung; 2-stellige Jahre → 20xx */
-function parseDate(str){
-  if(!str) return null;
-  const p=String(str).trim().split(/[.\-\/ ]+/).filter(Boolean);
-  const now=new Date(); let d,m,y;
-  if(p.length===1){ d=+p[0]; m=now.getMonth()+1; y=currentYear; }
-  else if(p.length===2){ d=+p[0]; m=+p[1]; y=currentYear; }
-  else { d=+p[0]; m=+p[1]; y=+p[2]; if(y<100) y+=2000; }
-  if(!Number.isInteger(d)||!Number.isInteger(m)||!Number.isInteger(y)) return null;
-  if(d<1||d>31||m<1||m>12||y<2000||y>2100) return null;
-  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-}
 function fixDateYear(el){
   if(!el||!el.value) return;
   const p=el.value.split('-'); if(p.length!==3) return;
@@ -1090,11 +1089,6 @@ function fixDateYear(el){
   if(y>0 && y<100){ y+=(y<70?2000:1900); el.value=String(y).padStart(4,'0')+'-'+p[1]+'-'+p[2]; }
 }
 function normEADate(){ const el=document.getElementById('ea-datum'); fixDateYear(el); return el.value || null; }
-function openEADatePicker(){
-  const el=document.getElementById('ea-datum');
-  if(el.showPicker){ try{ el.showPicker(); return; }catch(e){} }
-  el.focus(); el.click();
-}
 function suggestKategorie(){
   const n=normTxt(document.getElementById('ea-text').value);
   if(!katManual){
@@ -1122,8 +1116,8 @@ function checkGWG(){
   const g1=law('gwg1000'), g8=law('gwg800');
   let msg='';
   if(curType==='aus' && assetCats.includes(v)){
-    if(voll>g1) msg='⚠️ Über '+deNum(g1)+' € — kein Sofortabzug. Nur AfA über die Nutzungsdauer (AfA-Tab).';
-    else if(voll>g8) msg='⚠️ Über '+deNum(g8)+' € — kein GWG-Sofortabzug. AfA über die Nutzungsdauer (AfA-Tab) oder Sammelposten — siehe AfA → Wertgrenzen.';
+    if(voll>g1) msg='⚠️ Über '+deNum(g1)+' € — kein Sofortabzug. Im AfA-Tab über die Nutzungsdauer abschreiben (dann hier nicht zusätzlich als volle Ausgabe buchen — sonst doppelt).';
+    else if(voll>g8) msg='⚠️ Über '+deNum(g8)+' € — kein GWG-Sofortabzug. Besser im AfA-Tab abschreiben oder Sammelposten (siehe AfA → Wertgrenzen) — hier dann nicht zusätzlich als volle Ausgabe buchen.';
   }
   document.getElementById('gwg-hint').textContent=msg;
 }
@@ -1603,8 +1597,10 @@ function exportXLSX(){
   toast('Excel-Datei erstellt');
 }
 function exportData(){
-  /* Fahrten bewusst NICHT im Backup: sie leben auf GitHub (versioniert) – so kann ein Import nie neuere Fahrten mit altem Stand überschreiben. */
-  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,angestelltData};
+  /* Fahrten + Tombstones jetzt MIT im Backup — sonst gehen sie bei einem Browser-Reset ohne GitHub-Sync
+     komplett verloren. Risikolos, weil der Import sie nicht stumpf ersetzt, sondern mergt (neuerer
+     „updated" gewinnt): ein alter Backup-Stand kann nie neuere Fahrten überschreiben. */
+  const data={version:SCHEMA_VERSION,exported:new Date().toISOString(),eintraege,fahrten,deletedFahrten,customCats,learnMap,learnPct,belegConfig,homeOrt,routeKm,userAfa,kfzData,settings,angestelltData};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='steuer-backup-'+today+'.json'; a.click(); URL.revokeObjectURL(a.href);
@@ -1621,15 +1617,16 @@ function importData(input){
   const r=new FileReader();
   r.onload=()=>{ try{
     const d=migrate(JSON.parse(r.result));
-    if(!confirm('Backup importieren? Ersetzt E/A, Abschreibungen, Werbungskosten & Einstellungen. Deine Fahrten bleiben unberührt (die liegen auf GitHub).')){ input.value=''; return; }
+    if(!confirm('Backup importieren? Ersetzt E/A, Abschreibungen, Werbungskosten & Einstellungen. Fahrten werden zusammengeführt (neuerer Stand gewinnt, nichts wird überschrieben).')){ input.value=''; return; }
     eintraege=d.eintraege; customCats=d.customCats;
     learnMap=d.learnMap; learnPct=d.learnPct; belegConfig=d.belegConfig||{Gage:{enabled:true,prefix:""},Unterricht:{enabled:true,prefix:"u"}};
     homeOrt=d.homeOrt; routeKm=d.routeKm; userAfa=d.userAfa; kfzData=d.kfzData;
     settings=d.settings; angestelltData=d.angestelltData;
     saveEA(); saveCats(); saveLearn(); saveLearnPct(); saveBelegConfig(); saveHome(); saveRouteKm(); saveUserAfa(); saveKfz(); saveSettings(); saveAngestellt();
     nextId=eintraege.length?Math.max(...eintraege.map(e=>e.id))+1:1;
+    if(Array.isArray(d.fahrten) && d.fahrten.length) mergeFahrten({fahrten:d.fahrten, deleted:d.deletedFahrten||[]});   // Fahrten mergen (neuerer „updated" gewinnt) statt ersetzen
     migrateCats();
-    populateYearOptions(); renderEA(); renderAfA(); renderAngestellt(); fillKfz(); toast('Backup importiert');
+    populateYearOptions(); renderEA(); renderFahrten(); renderAfA(); renderAngestellt(); fillKfz(); toast('Backup importiert');
   }catch(e){ toast('Import fehlgeschlagen: '+e.message,true); } input.value=''; };
   r.readAsText(f);
 }
@@ -1789,11 +1786,7 @@ function fillKfzResults(){
   setT('kfz-r-privat', gkm>0?(privat>=0?privat+' km':'⚠️ km-Stand prüfen'):'—');
   setT('kfz-r-satz', rate>0?deNum(rate)+' €/km':'—');
   setT('kfz-r-absetz', rate>0?fmt(dienst*rate):'—');
-  const aSatz=activeSatz(currentYear), isEin=(d.method==='einzel');
-  const st=document.getElementById('kfz-status');
-  if(st) st.textContent = isEin ? ('Einzelnachweis '+currentYear+': '+(aSatz>0?deNum(aSatz)+' €/km':'Kosten erfassen')) : ('Pauschale '+currentYear+': '+deNum(pauschSatz(currentYear))+' €/km');
 }
-function toggleKfz(){ toggleSetup(); }   /* km-Abrechnung ist Teil des Setup-Bereichs */
 /* ---- Beleg-Foto OCR (optional; lädt Tesseract.js bei Bedarf aus dem Netz, Bild bleibt lokal) ---- */
 function compressImage(file,maxDim,quality){
   return new Promise(function(res){
@@ -2202,10 +2195,7 @@ function renderJahres(){
   const bew=sA(['Bewirtung']);
   const sonst=ey.filter(e=>e.typ==='aus'&&e.ziel!=='angestellt'&&e.ziel!=='sonder'&&(e.kategorie==='Sonstiges'||!FIX_KATS.includes(e.kategorie))).reduce((s,e)=>s+e.betrag,0);
   const austotal=kv+equip+buero+bew+sonst;
-  const km30=fyr.reduce((s,f)=>s+f.km*f.satz,0);
-  const verpfl=fyr.reduce((s,f)=>s+(f.pausch||0),0);
-  const parkzug=fyr.reduce((s,f)=>s+(f.park||0)+(f.zug||0),0);
-  const fahrttotal=fyr.reduce((s,f)=>s+f.kmgeld,0);
+  const fahrttotal=fyr.reduce((s,f)=>s+f.kmgeld,0);   // kmgeld enthält km×Satz + Park + Zug + Verpflegung
   const afa=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
   const ergebnis=eintotal-austotal-fahrttotal-afa;
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
@@ -2305,17 +2295,17 @@ function buildReport(){
   else{
     const kmCount=fy.reduce((s,f)=>s+(f.km||0),0);
     H+='<p style="font-size:10px;color:#333;margin:0 0 5px;">Angewendete Vergütung (Musikfahrten): <b>'+deNum(pauschSatz(year))+' €/km</b> · km-Geld = km × Satz</p>';
-    H+='<table><thead><tr><th>Datum</th><th>Route</th><th>Zweck</th><th class="num">Uhrzeit</th><th class="num">Verpfl.</th><th class="num">Park/Zug</th><th class="num">km</th><th class="num">km-Geld</th><th class="num">Summe</th></tr></thead><tbody>';
+    H+='<div class="gtab"><div class="grow gr-fahrt ghead"><span>Datum</span><span>Route</span><span>Zweck</span><span class="num">Uhrzeit</span><span class="num">Verpfl.</span><span class="num">Park/Zug</span><span class="num">km</span><span class="num">km-Geld</span><span class="num">Summe</span></div>';
     fy.forEach(f=>{
       const pz=(f.park||0)+(f.zug||0);
       const uhr=(f.abUhr!=null&&f.rueckUhr!=null)?(f.abUhr+'–'+f.rueckUhr):'';
       const rRoute=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
-      H+='<tr><td>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</td><td>'+esc(rRoute)+'</td><td>'+esc(f.zweck||'')+'</td>'
-        +'<td class="num">'+uhr+'</td><td class="num">'+M(f.pausch||0)+'</td><td class="num">'+M(pz)+'</td>'
-        +'<td class="num">'+(f.km||0)+'</td><td class="num">'+M((f.km||0)*(f.satz||0))+'</td><td class="num">'+M(f.kmgeld||0)+'</td></tr>';
+      H+='<div class="grow gr-fahrt"><span>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</span><span>'+esc(rRoute)+'</span><span>'+esc(f.zweck||'')+'</span>'
+        +'<span class="num">'+uhr+'</span><span class="num">'+M(f.pausch||0)+'</span><span class="num">'+M(pz)+'</span>'
+        +'<span class="num">'+(f.km||0)+'</span><span class="num">'+M((f.km||0)*(f.satz||0))+'</span><span class="num">'+M(f.kmgeld||0)+'</span></div>';
     });
-    H+='<tr class="grand"><td colspan="4">Gesamt ('+fy.length+' Fahrten)</td><td class="num">'+M(verpfl)+'</td><td class="num">'+M(parkzug)+'</td><td class="num">'+kmCount+'</td><td class="num">'+M(km30)+'</td><td class="num">'+M(fahrttotal)+'</td></tr>';
-    H+='</tbody></table>';
+    H+='<div class="grow gr-fahrt ggrand"><span style="grid-column:1/5">Gesamt ('+fy.length+' Fahrten)</span><span class="num">'+M(verpfl)+'</span><span class="num">'+M(parkzug)+'</span><span class="num">'+kmCount+'</span><span class="num">'+M(km30)+'</span><span class="num">'+M(fahrttotal)+'</span></div>';
+    H+='</div>';
   }
   H+='</div>';
 
@@ -2323,37 +2313,37 @@ function buildReport(){
   H+='<div class="rep-sec rep-break"><h2>Abschreibungen (AfA) '+year+'</h2>';
   if(!afaRows.length){ H+='<p class="empty">Keine Abschreibungsobjekte erfasst.</p>'; }
   else{
-    H+='<table><thead><tr><th>Bezeichnung</th><th>Kaufdatum</th><th class="num">Anschaffung</th><th class="num">Nutzung</th><th class="num">AfA / Jahr</th><th class="num">Monate '+year+'</th><th class="num">AfA '+year+'</th></tr></thead><tbody>';
+    H+='<div class="gtab"><div class="grow gr-afa ghead"><span>Bezeichnung</span><span>Kaufdatum</span><span class="num">Anschaffung</span><span class="num">Nutzung</span><span class="num">AfA / Jahr</span><span class="num">Monate '+year+'</span><span class="num">AfA '+year+'</span></div>';
     afaRows.forEach(o=>{
-      H+='<tr><td>'+esc(o.a.name)+'</td><td>'+fmtDate(o.a.datum)+'</td><td class="num">'+M(o.a.betrag)+'</td><td class="num">'+o.a.jahre+' J.</td>'
-        +'<td class="num">'+M(o.a.jahresbetrag)+'</td><td class="num">'+o.r.months+'/12</td><td class="num">'+(o.r.betrag>0?M(o.r.betrag):'—')+'</td></tr>';
+      H+='<div class="grow gr-afa"><span>'+esc(o.a.name)+'</span><span>'+fmtDate(o.a.datum)+'</span><span class="num">'+M(o.a.betrag)+'</span><span class="num">'+o.a.jahre+' J.</span>'
+        +'<span class="num">'+M(o.a.jahresbetrag)+'</span><span class="num">'+o.r.months+'/12</span><span class="num">'+(o.r.betrag>0?M(o.r.betrag):'—')+'</span></div>';
     });
-    H+='<tr class="grand"><td colspan="6">AfA '+year+' gesamt</td><td class="num">'+M(afaTotal)+'</td></tr>';
-    H+='</tbody></table>';
+    H+='<div class="grow gr-afa ggrand"><span style="grid-column:1/7">AfA '+year+' gesamt</span><span class="num">'+M(afaTotal)+'</span></div>';
+    H+='</div>';
   }
   H+='</div>';
 
   /* Angestellt */
   H+='<div class="rep-sec rep-break"><h2>Angestellt — Werbungskosten (Anlage N) '+year+'</h2>';
-  H+='<table><thead><tr><th>Posten</th><th>Detail</th><th>Zuordnung</th><th class="num">Betrag</th></tr></thead><tbody>';
-  H+='<tr><td>Homeoffice-Pauschale</td><td>'+(ld.hoTage||0)+' Tage × '+M(angestelltHoSatz())+' (max '+law('hoMax')+')</td><td>Angestellt</td><td class="num">'+M(ho)+'</td></tr>';
-  H+='<tr><td>Entfernungspauschale</td><td>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</td><td>Angestellt</td><td class="num">'+M(entf)+'</td></tr>';
-  (ld.positions||[]).forEach(p=>{ H+='<tr><td>'+esc(p.name)+'</td><td>'+(p.datum?fmtDate(p.datum):'')+'</td><td>'+(p.ziel==='selbst'?'Selbständig':'Angestellt')+'</td><td class="num">'+M(p.betrag||0)+'</td></tr>'; });
-  if(lfahrtR>0) H+='<tr><td>Dienstfahrten (Reisekosten)</td><td>aus Fahrt-Tab (→ A)</td><td>Angestellt</td><td class="num">'+M(lfahrtR)+'</td></tr>';
-  eaAItems(year).forEach(e=>{ H+='<tr><td>'+esc(e.text)+'</td><td>aus E/A · '+fmtDate(e.datum)+'</td><td>Angestellt</td><td class="num">'+M(e.betrag)+'</td></tr>'; });
-  H+='<tr class="qsub"><td colspan="3">Werbungskosten gesamt (Angestellt)</td><td class="num">'+M(lwk)+'</td></tr>';
-  H+='<tr><td colspan="3">Arbeitnehmer-Pauschbetrag</td><td class="num">'+M(lpb)+'</td></tr>';
-  H+='<tr class="grand"><td colspan="3">anzusetzen (höherer Wert)</td><td class="num">'+M(leff)+'</td></tr>';
-  H+='</tbody></table></div>';
+  H+='<div class="gtab"><div class="grow gr-ang ghead"><span>Posten</span><span>Detail</span><span>Zuordnung</span><span class="num">Betrag</span></div>';
+  H+='<div class="grow gr-ang"><span>Homeoffice-Pauschale</span><span>'+(ld.hoTage||0)+' Tage × '+M(angestelltHoSatz())+' (max '+law('hoMax')+')</span><span>Angestellt</span><span class="num">'+M(ho)+'</span></div>';
+  H+='<div class="grow gr-ang"><span>Entfernungspauschale</span><span>'+String(ld.kmSchule||0).replace('.',',')+' km × '+(ld.arbeitstage||0)+' Tage</span><span>Angestellt</span><span class="num">'+M(entf)+'</span></div>';
+  (ld.positions||[]).forEach(p=>{ H+='<div class="grow gr-ang"><span>'+esc(p.name)+'</span><span>'+(p.datum?fmtDate(p.datum):'')+'</span><span>'+(p.ziel==='selbst'?'Selbständig':'Angestellt')+'</span><span class="num">'+M(p.betrag||0)+'</span></div>'; });
+  if(lfahrtR>0) H+='<div class="grow gr-ang"><span>Dienstfahrten (Reisekosten)</span><span>aus Fahrt-Tab (→ A)</span><span>Angestellt</span><span class="num">'+M(lfahrtR)+'</span></div>';
+  eaAItems(year).forEach(e=>{ H+='<div class="grow gr-ang"><span>'+esc(e.text)+'</span><span>aus E/A · '+fmtDate(e.datum)+'</span><span>Angestellt</span><span class="num">'+M(e.betrag)+'</span></div>'; });
+  H+='<div class="grow gr-ang gsub"><span style="grid-column:1/4">Werbungskosten gesamt (Angestellt)</span><span class="num">'+M(lwk)+'</span></div>';
+  H+='<div class="grow gr-ang"><span style="grid-column:1/4">Arbeitnehmer-Pauschbetrag</span><span class="num">'+M(lpb)+'</span></div>';
+  H+='<div class="grow gr-ang ggrand"><span style="grid-column:1/4">anzusetzen (höherer Wert)</span><span class="num">'+M(leff)+'</span></div>';
+  H+='</div></div>';
 
   /* Sonderausgaben (separat) */
   const soR=eaSoItems(year), soT=eaSoSum(year);
   if(soR.length){
     H+='<div class="rep-sec"><h2>Sonderausgaben (separat) '+year+'</h2>';
-    H+='<table><thead><tr><th>Posten</th><th>Detail</th><th class="num">Betrag</th></tr></thead><tbody>';
-    soR.forEach(e=>{ H+='<tr><td>'+esc(e.text)+'</td><td>aus E/A · '+fmtDate(e.datum)+'</td><td class="num">'+M(e.betrag)+'</td></tr>'; });
-    H+='<tr class="grand"><td colspan="2">Sonderausgaben gesamt</td><td class="num">'+M(soT)+'</td></tr>';
-    H+='</tbody></table><div class="rep-meta">Nicht in EÜR und nicht in Werbungskosten — gehören in die Anlage Vorsorgeaufwand (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG). Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</div></div>';
+    H+='<div class="gtab"><div class="grow gr-so ghead"><span>Posten</span><span>Detail</span><span class="num">Betrag</span></div>';
+    soR.forEach(e=>{ H+='<div class="grow gr-so"><span>'+esc(e.text)+'</span><span>aus E/A · '+fmtDate(e.datum)+'</span><span class="num">'+M(e.betrag)+'</span></div>'; });
+    H+='<div class="grow gr-so ggrand"><span style="grid-column:1/3">Sonderausgaben gesamt</span><span class="num">'+M(soT)+'</span></div>';
+    H+='</div><div class="rep-meta">Nicht in EÜR und nicht in Werbungskosten — gehören in die Anlage Vorsorgeaufwand (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG). Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</div></div>';
   }
 
   /* Hinweise — nur fallabhängige, für den Steuerberater relevante Punkte (generisches Standardwissen weggelassen) */
