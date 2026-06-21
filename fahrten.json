@@ -267,12 +267,12 @@
     {
       "datum": "2025-04-08",
       "enddatum": "",
-      "route": "Ingolstadt → Stadttheater Ingolstadt → Ingolstadt",
-      "start": "Ingolstadt",
+      "route": "Katharinen-Gymnasium Ingolstadt → Stadttheater Ingolstadt → Katharinen-Gymnasium Ingolstadt",
+      "start": "Katharinen-Gymnasium Ingolstadt",
       "ziel": "Stadttheater Ingolstadt",
-      "rueckort": "Ingolstadt",
+      "rueckort": "Katharinen-Gymnasium Ingolstadt",
       "zweck": "Schulkonzert Aufbau",
-      "km": 10,
+      "km": 3.7,
       "satz": 0.3,
       "park": 0,
       "zug": 0,
@@ -284,8 +284,8 @@
       "abUhr": null,
       "rueckUhr": null,
       "anlage": "selbst",
-      "kmgeld": 3,
-      "updated": 1782044341070,
+      "kmgeld": 1.11,
+      "updated": 1782044416297,
       "id": 14
     }
   ],
