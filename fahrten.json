@@ -647,6 +647,30 @@
       "kmgeld": 2.1,
       "updated": 1782076461067,
       "id": 29
+    },
+    {
+      "datum": "2025-07-12",
+      "enddatum": "2025-07-13",
+      "route": "Ingolstadt → Eisenheimerstraße 15 München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Eisenheimerstraße 15 München",
+      "rueckort": "Ingolstadt",
+      "zweck": "ABBA Gig",
+      "km": 173,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 28,
+      "mehr": true,
+      "tage": 2,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 79.9,
+      "updated": 1782076681394,
+      "id": 30
     }
   ],
   "deleted": []
