@@ -623,6 +623,30 @@
       "kmgeld": 92.89999999999999,
       "updated": 1782076386691,
       "id": 28
+    },
+    {
+      "datum": "2025-07-08",
+      "enddatum": "",
+      "route": "Ingolstadt → Jesuitenstraße 10, Ingolstadt → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Jesuitenstraße 10, Ingolstadt",
+      "rueckort": "Ingolstadt",
+      "zweck": "Raise Your Voice Konzert",
+      "km": 7,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "angestellt",
+      "kmgeld": 2.1,
+      "updated": 1782076461067,
+      "id": 29
     }
   ],
   "deleted": []
