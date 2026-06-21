@@ -551,6 +551,30 @@
       "kmgeld": 75.19999999999999,
       "updated": 1782076106443,
       "id": 25
+    },
+    {
+      "datum": "2025-06-27",
+      "enddatum": "",
+      "route": "Ingolstadt → Adlersberg → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Adlersberg",
+      "rueckort": "Ingolstadt",
+      "zweck": "MATS Gig",
+      "km": 195,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 13,
+      "rueckUhr": 2,
+      "anlage": "selbst",
+      "kmgeld": 72.5,
+      "updated": 1782076261178,
+      "id": 26
     }
   ],
   "deleted": []
