@@ -239,6 +239,30 @@
       "kmgeld": 3,
       "updated": 1782044277049,
       "id": 12
+    },
+    {
+      "datum": "2025-04-08",
+      "enddatum": "",
+      "route": "Ingolstadt → Stadttheater Ingolstadt → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Stadttheater Ingolstadt",
+      "rueckort": "Ingolstadt",
+      "zweck": "Schulkonzert",
+      "km": 10,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 3,
+      "updated": 1782044316760,
+      "id": 13
     }
   ],
   "deleted": []
