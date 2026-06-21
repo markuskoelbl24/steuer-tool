@@ -719,6 +719,30 @@
       "kmgeld": 29,
       "updated": 1782076844645,
       "id": 32
+    },
+    {
+      "datum": "2025-08-30",
+      "enddatum": "2025-08-31",
+      "route": "Ingolstadt → Westerwaldstraße 80, 57299 Burbach → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Westerwaldstraße 80, 57299 Burbach",
+      "rueckort": "Ingolstadt",
+      "zweck": "Candy Tunes Gig",
+      "km": 870,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 28,
+      "mehr": true,
+      "tage": 2,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 289,
+      "updated": 1782077171112,
+      "id": 33
     }
   ],
   "deleted": []
