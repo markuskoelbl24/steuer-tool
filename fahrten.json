@@ -311,6 +311,30 @@
       "kmgeld": 1.11,
       "updated": 1782044461845,
       "id": 15
+    },
+    {
+      "datum": "2025-04-26",
+      "enddatum": "",
+      "route": "Ingolstadt → Martinsweg 3, Fischbachau → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Martinsweg 3, Fischbachau",
+      "rueckort": "Ingolstadt",
+      "zweck": "Trio Madelein Haipt Gig",
+      "km": 300,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 90,
+      "updated": 1782044720382,
+      "id": 16
     }
   ],
   "deleted": []
