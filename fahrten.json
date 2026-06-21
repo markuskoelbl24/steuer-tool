@@ -217,7 +217,7 @@
       "id": 11
     },
     {
-      "datum": "2025-06-21",
+      "datum": "2025-03-31",
       "enddatum": "",
       "route": "Ingolstadt → Stadttheater Ingolstadt → Ingolstadt",
       "start": "Ingolstadt",
@@ -237,7 +237,7 @@
       "rueckUhr": null,
       "anlage": "angestellt",
       "kmgeld": 3,
-      "updated": 1782044259157,
+      "updated": 1782044277049,
       "id": 12
     }
   ],
