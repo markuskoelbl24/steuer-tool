@@ -479,6 +479,30 @@
       "kmgeld": 148.3,
       "updated": 1782075624007,
       "id": 22
+    },
+    {
+      "datum": "2025-06-11",
+      "enddatum": "",
+      "route": "Ingolstadt → Einsteinstraße 42, München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Einsteinstraße 42, München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Weiterbildung Konzert",
+      "km": 166,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 49.8,
+      "updated": 1782075820355,
+      "id": 23
     }
   ],
   "deleted": []
