@@ -815,6 +815,30 @@
       "kmgeld": 37.199999999999996,
       "updated": 1782077654341,
       "id": 36
+    },
+    {
+      "datum": "2025-11-06",
+      "enddatum": "",
+      "route": "Ingolstadt → Zellstraße 4 München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Zellstraße 4 München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Weiterbildung Konzert",
+      "km": 167,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 50.1,
+      "updated": 1782077805383,
+      "id": 37
     }
   ],
   "deleted": []
