@@ -169,7 +169,7 @@
       "id": 9
     },
     {
-      "datum": "2025-06-21",
+      "datum": "2025-03-15",
       "enddatum": "",
       "route": "Ingolstadt → Arcisstraße 12, München → Ingolstadt",
       "start": "Ingolstadt",
@@ -189,7 +189,7 @@
       "rueckUhr": null,
       "anlage": "selbst",
       "kmgeld": 50.4,
-      "updated": 1782036732628,
+      "updated": 1782036741592,
       "id": 10
     }
   ],
