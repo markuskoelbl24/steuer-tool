@@ -25,7 +25,7 @@
       "id": 3
     },
     {
-      "datum": "2025-06-20",
+      "datum": "2025-02-01",
       "enddatum": "",
       "route": "Ingolstadt → Audimax TUM München → Ingolstadt",
       "start": "Ingolstadt",
@@ -45,7 +45,7 @@
       "rueckUhr": null,
       "anlage": "selbst",
       "kmgeld": 49.199999999999996,
-      "updated": 1781978526029,
+      "updated": 1782033220621,
       "id": 4
     }
   ],
