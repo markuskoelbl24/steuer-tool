@@ -84,6 +84,11 @@ body.setup-open .app{padding-bottom:0;}
 .ea-zuord-btn{flex-shrink:0;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer;}
 .ea-zuord-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
 .ea-zuord-info{font-size:11.5px;color:var(--txt-2);}
+/* E/A: Vorschlagszeile unter der Beschreibung — kompletter früherer Eintrag als Vorlage (Enter/Klick übernimmt) */
+.ea-sugg{margin:-2px 0 8px;padding:8px 11px;background:var(--accent-soft);border:0.5px solid var(--accent);border-radius:var(--radius-sm);font-size:12.5px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:7px;line-height:1.3;}
+.ea-sugg b{font-weight:600;}
+.ea-sugg .k{margin-left:auto;font-size:11px;color:var(--txt-2);font-weight:500;white-space:nowrap;}
+.ea-sugg:active{background:#d7e7fb;}
 .pausch-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .pausch-chip{border:0.5px solid var(--border-2);background:var(--card-2);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--txt);cursor:pointer;font-family:inherit;}
 .pausch-chip:active{background:var(--accent-soft);border-color:var(--accent);}
@@ -416,7 +421,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
             </div>
             <div class="form-row"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="ea-betrag" placeholder="0,00" oninput="updateAnteilHint()" onblur="fmtField(this)"></div>
           </div>
-          <div class="form-row"><label>Beschreibung</label><input type="text" id="ea-text" placeholder="z.B. Bandgage / Equipment-Kauf" oninput="suggestKategorie()"></div>
+          <div class="form-row"><label>Beschreibung</label><input type="text" id="ea-text" autocomplete="off" placeholder="z.B. Bandgage / Equipment-Kauf" oninput="eaTextInput()" onblur="eaSuggestBlur()"></div>
+          <div id="ea-sugg" class="ea-sugg no-print" style="display:none;" onclick="acceptEaSuggest()"></div>
           <div class="row2" id="kat-row">
             <div class="form-row"><label>Kategorie</label><select id="ea-kategorie" onchange="userPickedKat()"></select></div>
             <div class="form-row" id="anteil-row"><label>Absetzbar %</label><input type="number" id="ea-anteil" value="100" min="1" max="100" inputmode="numeric" oninput="anteilManual=true;updateAnteilHint()"></div>
@@ -428,8 +434,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
           </div>
           <div class="form-row" id="beleg-row" style="display:none;"><label>Belegnr. (Gage)</label><input type="text" id="ea-belegnr" placeholder="—"></div>
           <div class="bewirtung-fields" id="bew-extra">
-            <div class="form-row"><label>Anlass (Pflicht)</label><input type="text" id="bew-anlass" placeholder="z.B. Probenbesprechung"></div>
-            <div class="form-row"><label>Personen (Pflicht)</label><input type="text" id="bew-personen" placeholder="z.B. Namen der Teilnehmer"></div>
+            <div class="form-row"><label>Anlass <span style="color:var(--txt-3);font-weight:400;">(optional)</span></label><input type="text" id="bew-anlass" placeholder="z.B. Probenbesprechung"></div>
+            <div class="form-row"><label>Personen <span style="color:var(--txt-3);font-weight:400;">(optional)</span></label><input type="text" id="bew-personen" placeholder="z.B. Namen der Teilnehmer"></div>
           </div>
           <button class="btn-primary" id="save-btn" onclick="addEintrag()">Eintrag speichern</button>
           <div id="edit-actions" style="display:none;align-items:center;gap:10px;margin-top:8px;">
@@ -482,28 +488,29 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     <!-- GitHub-Sync ist ein Modal (ov-sync); Setup ist ein ganzseitiger Bereich (#tab-kfz).
          Beide werden über die Symbole ☁ / ⚙ in der Kopfzeile geöffnet. -->
 
-    <div class="card no-print">
+    <div class="card no-print" id="fahrt-form">
       <div class="list-head" style="margin-bottom:0.9rem;">
         <div class="section-title" id="fahrt-form-title" style="margin-bottom:0;">Fahrt erfassen</div>
         <button type="button" class="btn-ghost" onclick="newFahrt()">↺ Neue Fahrt</button>
       </div>
       <div class="seg" id="seg-fanlage" style="margin-bottom:0.7rem;">
-        <button type="button" id="btn-f-selbst" class="on" onclick="setFahrtAnlage('selbst')">Selbständig (EÜR)</button>
-        <button type="button" id="btn-f-angestellt" onclick="setFahrtAnlage('angestellt')">Angestellt (Anlage N)</button>
+        <button type="button" id="btn-f-selbst" class="on" onclick="pickFahrtAnlage('selbst')">Selbständig (EÜR)</button>
+        <button type="button" id="btn-f-angestellt" onclick="pickFahrtAnlage('angestellt')">Angestellt (Anlage N)</button>
       </div>
       <div class="row-dz">
         <div class="form-row"><label>Datum (Abfahrt)</label><input type="date" id="f-datum" onchange="calcPauschale()"></div>
-        <div class="form-row"><label>Zweck der Reise</label><input type="text" id="f-zweck" placeholder="z.B. Clubgig, Festival"></div>
+        <div class="form-row"><label>Zweck der Reise</label><input type="text" id="f-zweck" autocomplete="off" placeholder="z.B. Clubgig, Festival" oninput="zweckInput()" onchange="suggestFromZweck()" onblur="zweckBlur()" onkeydown="if(event.key==='Enter'){event.preventDefault();if(!acceptZweckSugg())addFahrt();}"></div>
       </div>
+      <div id="f-zweck-sugg" class="ea-sugg no-print" style="display:none;margin:-4px 0 10px;" onclick="acceptZweckSugg()"></div>
       <div class="row3">
         <div class="form-row"><label>Start</label>
-          <div class="ig"><input type="text" id="f-start" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-start')" aria-label="Standort als Start" title="Aktueller Standort">📍</button></div>
+          <div class="ig"><input type="text" id="f-start" list="dl-orte" autocomplete="off" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-start')" aria-label="Standort als Start" title="Aktueller Standort">📍</button></div>
         </div>
         <div class="form-row"><label>Ziel</label>
-          <div class="ig"><input type="text" id="f-ziel" placeholder="Auftrittsort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-ziel')" aria-label="Standort als Ziel" title="Aktueller Standort">📍</button></div>
+          <div class="ig"><input type="text" id="f-ziel" list="dl-orte" autocomplete="off" placeholder="Auftrittsort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-ziel')" aria-label="Standort als Ziel" title="Aktueller Standort">📍</button></div>
         </div>
         <div class="form-row"><label>Rückkehr</label>
-          <div class="ig"><input type="text" id="f-rueckort" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-rueckort')" aria-label="Standort als Rückkehr" title="Aktueller Standort">📍</button></div>
+          <div class="ig"><input type="text" id="f-rueckort" list="dl-orte" autocomplete="off" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-rueckort')" aria-label="Standort als Rückkehr" title="Aktueller Standort">📍</button></div>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.5rem;">
@@ -530,10 +537,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="hint" id="f-pausch-hint">Verpflegungspauschale: —</div>
 
       <div class="row3 keep3" style="margin-top:0.5rem;">
-        <div class="form-row"><label>Verpflegung</label><input type="text" id="f-verpfl-ein" readonly value="0,00 €" title="Verpflegungspauschale (automatisch)"></div>
+        <div class="form-row"><label>Verpflegung (€)</label><input type="text" inputmode="decimal" id="f-verpfl-ein" value="0,00 €" oninput="verpflEdited()" onblur="fmtVerpfl()" title="Verpflegungspauschale — Vorschlag automatisch, überschreibbar (z. B. 0 €, wenn Mahlzeiten gestellt wurden). Feld leeren = wieder automatisch."></div>
         <div class="form-row"><label>Parken (€)</label><input type="text" inputmode="decimal" id="f-park" placeholder="0" value="0" oninput="calcFahrt()" onblur="fmtField(this)"></div>
         <div class="form-row"><label>Zug (€)</label><input type="text" inputmode="decimal" id="f-zug" placeholder="0" value="0" oninput="calcFahrt()" onblur="fmtField(this)"></div>
       </div>
+      <div class="hint" style="margin-top:4px;">Verpflegung ist nur eine Pauschale (kein Einzelbeleg) — Vorschlag automatisch, aber überschreibbar: z. B. <b>0 €</b>, wenn Mahlzeiten gestellt wurden. Feld leeren = wieder automatisch.</div>
       <div class="preview-box"><span>Abzugsfähig gesamt</span><strong id="f-preview">0,00 €</strong></div>
       <button class="btn-primary" id="f-save-btn" onclick="addFahrt()">Fahrt speichern</button>
       <button class="btn-ghost" id="f-cancel-edit" style="display:none;width:100%;margin-top:8px;" onclick="newFahrt()">Abbrechen</button>
@@ -722,10 +730,10 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border);color:var(--txt-3);">
       <div style="display:flex;gap:8px;align-items:flex-end;">
         <div class="form-row" style="flex:1;margin:0;"><label>Dateipfad</label><input type="text" id="gh-path" placeholder="fahrten.json" autocomplete="off"></div>
-        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPull()">↓ Pull</button>
-        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPush()">↑ Push</button>
+        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPull()" title="Jetzt Änderungen vom Server holen">↓ Laden</button>
+        <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPush()" title="Jetzt auf den Server hochladen">↑ Hochladen</button>
       </div>
-      <p style="margin:8px 0 0;font-size:12px;">Nur für Fallback &amp; Backup.</p>
+      <p style="margin:8px 0 0;font-size:12px;">Selten nötig — der Abgleich läuft automatisch. <b>↓ Laden</b> holt sofort die Fahrten vom anderen Gerät (sonst erst beim nächsten Start), <b>↑ Hochladen</b> erzwingt das Speichern. Ein echtes lokales Datei-Backup (inkl. Fahrten) machst du mit „⤓ Backup" im Reiter Einnahmen &amp; Ausgaben.</p>
     </div>
   </div>
 </div>
@@ -802,7 +810,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center;">📷 Beleg scannen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanBeleg(this)"></label>
         <button type="button" class="btn-ghost" style="flex:1;" onclick="addKfzBeleg()">+ Beleg hinzufügen</button>
       </div>
-      <div class="hint" style="margin:0 0 0.6rem;">Belege einzeln erfassen. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km werden aus den Fahrten übernommen.</div>
+      <button type="button" id="kb-share" class="btn-ghost no-print" style="display:none;width:100%;margin:-0.1rem 0 0.5rem;" onclick="shareLastScan()">📤 Beleg-Foto sichern (teilen / herunterladen)</button>
+      <div class="hint" style="margin:0 0 0.6rem;">Belege einzeln erfassen. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Das <b>Foto wird nicht gespeichert</b> — mit „📤 sichern" legst du es selbst ab (z. B. an dich mailen / in „Dateien"). Dienstliche km werden aus den Fahrten übernommen.</div>
       <div id="kb-list" style="margin-bottom:0.6rem;"></div>
       <div style="border-top:0.5px dashed var(--border-2);margin:0.2rem 0 0.6rem;padding-top:0.6rem;">
         <div class="hint" style="margin-bottom:0.5rem;">Auto-AfA berechnen (Neuwagen 6 J., Gebraucht = Restnutzungsdauer) und als Jahres-Beleg „AfA/Leasing" übernehmen:</div>
@@ -832,17 +841,21 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
   </div>
 </section>
 
+<!-- Auto-Vervollständigung Fahrt-Felder: native Vorschlagslisten, aus den bisherigen Eingaben gefüllt
+     (E/A nutzt stattdessen eine eigene Vorschlagszeile mit komplettem Eintrag als Vorlage). -->
+<datalist id="dl-orte"></datalist>
+
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 
 /* ====== Sicherer Speicher (fällt auf In-Memory zurück, wenn localStorage blockiert ist) ====== */
-let storageOK=true; const _mem={};
+let storageOK=true, storageWriteFailed=false; const _mem={};
 try{ const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k); }catch(e){ storageOK=false; }
 const store={
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return (k in _mem)?_mem[k]:null; } },
-  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _mem[k]=v; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _mem[k]=v; if(!storageWriteFailed){ storageWriteFailed=true; try{ notifyStorageFull(); }catch(_){} } } },
   del(k){ try{ localStorage.removeItem(k); }catch(e){ delete _mem[k]; } }
 };
 
@@ -974,6 +987,13 @@ const saveRouteKm = ()=>store.set('steuer_routekm', JSON.stringify(routeKm));
 const saveGeoCache = ()=>store.set('steuer_geocache', JSON.stringify(geoCache));
 const saveUserAfa = ()=>store.set('steuer_afa', JSON.stringify(userAfa));
 const saveKfz = ()=>store.set('steuer_kfz', JSON.stringify(kfzData));
+/* Einmalig: alte gespeicherte Beleg-Fotos (img-Blobs aus früheren Scans) entfernen — Fotos werden
+   nicht mehr im Tool gehalten, das gibt localStorage-Platz frei. */
+function stripBelegImages(){
+  let changed=false;
+  for(const y in kfzData){ const bel=kfzData[y]&&kfzData[y].belege; if(Array.isArray(bel)) bel.forEach(b=>{ if(b&&'img' in b){ delete b.img; changed=true; } }); }
+  if(changed) saveKfz();
+}
 const saveSettings = ()=>store.set('steuer_settings', JSON.stringify(settings));
 const saveAngestellt = ()=>store.set('steuer_angestellt', JSON.stringify(angestelltData));
 
@@ -995,6 +1015,15 @@ const monthLabel=k=>{ const a=k.split('-'); return MONTHS[+a[1]-1]+' '+a[0]; };
 const normTxt=s=>s.toLowerCase().replace(/\s+/g,' ').replace(/[0-9%.,]/g,'').trim();
 function toast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(err?' err':''); clearTimeout(t._t); t._t=setTimeout(()=>{t.className='toast'+(err?' err':'');},2200); }
 function allCats(){ return DEFAULT_CATS.concat(customCats.filter(c=>!DEFAULT_CATS.includes(c))); }
+/* Auto-Vervollständigung: füllt ein <datalist> mit den bisherigen Werten (dedupliziert, alphabetisch).
+   Native Vorschläge — weitertippen ignoriert sie, Antippen übernimmt. Läuft auf iPhone & Desktop. */
+function fillDL(id, values){
+  const dl=document.getElementById(id); if(!dl) return;
+  const seen=new Set(), opts=[];
+  for(const raw of values){ const v=(raw||'').trim(); if(!v) continue; const k=v.toLowerCase(); if(seen.has(k)) continue; seen.add(k); opts.push(v); }
+  opts.sort((a,b)=>a.localeCompare(b,'de'));
+  dl.innerHTML=opts.map(v=>'<option value="'+esc(v)+'">').join('');
+}
 
 /* ====== Tabs ====== */
 let lastTab='ea';   // letzter „echter" Reiter, für Rücksprung aus dem Setup
@@ -1103,6 +1132,42 @@ function suggestKategorie(){
   }
   applyPctSuggestion();
 }
+/* ===== E/A Inline-Vorschlag (nur Desktop; E/A ist Laptop-only) =====
+   Tippen zeigt den jüngsten passenden früheren Eintrag als Vorschlagszeile. Enter oder Klick
+   übernimmt ihn als VORLAGE und füllt den ganzen Eintrag (Betrag/Kategorie/Konto/Anteil) — ideal
+   für monatliche Abos (nur das Datum ändern). Weitertippen aktualisiert/verwirft den Vorschlag. */
+let eaSuggest=null;
+function hideEaSuggest(){ eaSuggest=null; const b=document.getElementById('ea-sugg'); if(b) b.style.display='none'; }
+function eaSuggestBlur(){ setTimeout(hideEaSuggest, 200); }   // verzögert, damit ein Klick auf den Vorschlag noch zählt
+function showEaSuggest(){
+  const el=document.getElementById('ea-text'), box=document.getElementById('ea-sugg'); if(!box) return;
+  eaSuggest=null; box.style.display='none';
+  if(editId!=null) return;                       // beim Bearbeiten keinen Vorlagen-Vorschlag
+  const typed=el.value.trim(); if(typed.length<2) return;
+  const tl=typed.toLowerCase(); let best=null;
+  for(const e of eintraege){ const t=(e.text||'').trim();
+    if(t.toLowerCase().startsWith(tl) && (!best || e.id>best.id)) best=e; }
+  if(!best) return;
+  eaSuggest=best;
+  const amt=fmt(best.voll!=null?best.voll:best.betrag);
+  box.innerHTML='💡 <b>'+esc(best.text)+'</b> · '+amt+' · '+esc(best.kategorie)+'<span class="k">↵ übernehmen</span>';
+  box.style.display='flex';
+}
+function eaTextInput(){ suggestKategorie(); showEaSuggest(); }
+function acceptEaSuggest(){
+  if(!eaSuggest) return false;
+  const e=eaSuggest; document.getElementById('ea-text').value=e.text;
+  applyEaTemplate(e); hideEaSuggest(); return true;
+}
+function applyEaTemplate(e){
+  if(e.typ && e.typ!==curType) setType(e.typ);
+  if(e.konto) setKonto(e.konto);
+  document.getElementById('ea-betrag').value=deNum(e.voll!=null?e.voll:e.betrag);
+  katManual=true; buildCatOptions(e.kategorie);
+  document.getElementById('ea-anteil').value=(e.anteil!=null?e.anteil:100); anteilManual=true;
+  refreshKat(); updateAnteilHint();
+  const d=document.getElementById('ea-datum'); if(d) d.focus();   // Abo: meist nur noch das Datum anpassen
+}
 function updateAnteilHint(){
   const voll=num(document.getElementById('ea-betrag').value);
   let anteil=Math.min(100,Math.max(1,Math.round(num(document.getElementById('ea-anteil').value))||100));
@@ -1189,7 +1254,6 @@ function addEintrag(){
   let bewA,bewP;
   if(kategorie==='Bewirtung'){
     bewA=document.getElementById('bew-anlass').value.trim(); bewP=document.getElementById('bew-personen').value.trim();
-    if(!bewA||!bewP){ toast('Bewirtung: Anlass + Personen Pflicht',true); return; }
   }
   if(belegnr && eintraege.some(e=>e.id!==editId && e.belegnr===belegnr)){
     if(!confirm('Belegnummer '+belegnr+' gibt es schon. Trotzdem speichern?')) return;
@@ -1199,6 +1263,7 @@ function addEintrag(){
   const oldZiel=isEdit?(eintraege.find(x=>x.id===editId)||{}).ziel:null;
   const entry={id:isEdit?editId:nextId++,typ:curType,konto:curKonto,datum,betrag,kategorie,text,belegnr};
   if(curType==='aus') entry.ziel=(oldZiel==='angestellt'||oldZiel==='sonder')?oldZiel:'selbst';
+  else if(oldZiel==='sonder') entry.ziel='sonder';   // Einnahme als Sonderausgaben-Minderung (Beitragsrückerstattung) beibehalten
   if(anteil<100){ entry.voll=voll; entry.anteil=anteil; }
   if(kategorie==='Bewirtung'){ entry.bew_anlass=bewA; entry.bew_personen=bewP; }
   if(isEdit){ const i=eintraege.findIndex(x=>x.id===editId); if(i>=0) eintraege[i]=entry; }
@@ -1210,7 +1275,7 @@ function addEintrag(){
   document.getElementById('ea-text').focus();
 }
 function resetForm(){
-  editId=null; editUI(false);
+  editId=null; editUI(false); hideEaSuggest();
   ['ea-betrag','ea-text','ea-belegnr'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ea-anteil').value='100'; anteilManual=false; document.getElementById('anteil-hint').textContent='';
   const ba=document.getElementById('bew-anlass'), bp=document.getElementById('bew-personen');
@@ -1228,7 +1293,7 @@ function editUI(on){
 }
 function editEintrag(id){
   const e=eintraege.find(x=>x.id===id); if(!e) return;
-  editId=id;
+  editId=id; hideEaSuggest();
   setType(e.typ); setKonto(e.konto);
   document.getElementById('ea-datum').value=e.datum;
   document.getElementById('ea-betrag').value=deNum(e.voll!=null?e.voll:e.betrag);
@@ -1239,7 +1304,7 @@ function editEintrag(id){
   document.getElementById('ea-belegnr').value=e.belegnr||'';
   if(e.kategorie==='Bewirtung'){ document.getElementById('bew-anlass').value=e.bew_anlass||''; document.getElementById('bew-personen').value=e.bew_personen||''; }
   updateAnteilHint(); editUI(true);
-  const wm=document.getElementById('wk-move-btn'); if(wm){ wm.style.display=(e.typ==='aus')?'block':'none'; if(e.typ==='aus') updMoveBtn(wm,e.ziel); }
+  const wm=document.getElementById('wk-move-btn'); if(wm){ wm.style.display='block'; updMoveBtn(wm,e.ziel,e.typ); }   // auch bei Einnahmen (S↔So für Beitragsrückerstattung)
   renderEA();
 }
 function cancelEdit(){ resetForm(); renderEA(); }
@@ -1263,40 +1328,46 @@ function setFilter(f){
    Tippen aufs Kürzel zyklisch: S → A → So → S. ===== */
 let eaZuordModus=false;
 function eaIsA(e){ return e.typ==='aus' && e.ziel==='angestellt'; }
-function eaIsSo(e){ return e.typ==='aus' && e.ziel==='sonder'; }
+function eaIsSo(e){ return e.ziel==='sonder'; }   // Ausgabe = Sonderausgabe; Einnahme = Minderung (Beitragsrückerstattung)
 function eaASum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).reduce((s,e)=>s+e.betrag,0); }
 function eaAItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsA(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
-function eaSoSum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).reduce((s,e)=>s+e.betrag,0); }
+function eaSoSum(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).reduce((s,e)=>s+(e.typ==='ein'?-e.betrag:e.betrag),0); }   // Erstattung (Einnahme) mindert
 function eaSoItems(year){ const y=String(year); return eintraege.filter(e=>e.datum.slice(0,4)===y && eaIsSo(e)).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum)); }
 function zielCode(z){ return z==='angestellt'?'A':z==='sonder'?'So':'S'; }
 function zielCls(z){ return z==='angestellt'?'l':z==='sonder'?'so':'s'; }
-function updMoveBtn(wm,z){ wm.textContent=zielCode(z); wm.classList.toggle('on',z==='angestellt'||z==='sonder'); wm.title=z==='angestellt'?'Werbungskosten (A) — tippen: weiter zu So':z==='sonder'?'Sonderausgabe (So) — tippen: zurück auf S':'Selbständig (S) — tippen: zu Werbungskosten (A)'; }
+function updMoveBtn(wm,z,typ){ wm.textContent=zielCode(z); wm.classList.toggle('on',z==='angestellt'||z==='sonder');
+  if(typ==='ein') wm.title=z==='sonder'?'Sonderausgaben-Minderung (So) — tippen: zurück auf Einnahme (S)':'Einnahme (S) — tippen: als Sonderausgaben-Minderung (So)';
+  else wm.title=z==='angestellt'?'Werbungskosten (A) — tippen: weiter zu So':z==='sonder'?'Sonderausgabe (So) — tippen: zurück auf S':'Selbständig (S) — tippen: zu Werbungskosten (A)'; }
 function refreshAfterZiel(){ saveEA(); renderEA(); renderAngestellt(); if(document.getElementById('tab-jahres').classList.contains('active')) renderJahres(); }
-function toggleEAZiel(id){ const e=eintraege.find(x=>x.id===id); if(!e||e.typ!=='aus') return; e.ziel=(e.ziel==='angestellt')?'sonder':(e.ziel==='sonder')?'selbst':'angestellt'; refreshAfterZiel(); }
+function toggleEAZiel(id){ const e=eintraege.find(x=>x.id===id); if(!e) return;
+  if(e.typ==='ein') e.ziel=(e.ziel==='sonder')?'selbst':'sonder';   // Einnahme: nur S ↔ So (Sonderausgaben-Minderung)
+  else e.ziel=(e.ziel==='angestellt')?'sonder':(e.ziel==='sonder')?'selbst':'angestellt';
+  refreshAfterZiel(); }
 function toggleZuordModus(){ eaZuordModus=!eaZuordModus; const b=document.getElementById('ea-zuord-btn'); if(b){ b.classList.toggle('on',eaZuordModus); b.textContent=eaZuordModus?'✓ Zuordnen aktiv':'🔀 Ausgaben zuordnen'; } const ch=document.getElementById('ea-cycle-hint'); if(ch) ch.style.display=eaZuordModus?'block':'none'; setFilter(eaZuordModus?'aus':'alle'); }
 function resetAllZiel(){ const y=String(currentYear); let n=0; eintraege.forEach(e=>{ if(e.datum.slice(0,4)===y && (eaIsA(e)||eaIsSo(e))){ e.ziel='selbst'; n++; } }); if(n){ refreshAfterZiel(); toast(n+' Posten zurück auf S'); } }
-function toggleEditZiel(){ if(editId==null) return; toggleEAZiel(editId); const e=eintraege.find(x=>x.id===editId), wm=document.getElementById('wk-move-btn'); if(wm&&e) updMoveBtn(wm,e.ziel); }
+function toggleEditZiel(){ if(editId==null) return; toggleEAZiel(editId); const e=eintraege.find(x=>x.id===editId), wm=document.getElementById('wk-move-btn'); if(wm&&e) updMoveBtn(wm,e.ziel,e.typ); }
 function renderEA(){
   const yStr=String(currentYear);
   document.getElementById('m-ein-lbl').textContent='Einnahmen '+currentYear;
   document.getElementById('m-aus-lbl').textContent='Ausgaben '+currentYear;
   document.getElementById('m-saldo-lbl').textContent='Saldo E/A '+currentYear;
   const yearItems=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
-  const sumEin=yearItems.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
+  const sumEin=yearItems.filter(e=>e.typ==='ein' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);   // So-Einnahmen (Erstattungen) gehören nicht in den EÜR-Saldo
   const sumAus=yearItems.filter(e=>e.typ==='aus' && e.ziel!=='angestellt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const aSum=yearItems.filter(e=>eaIsA(e)).reduce((s,e)=>s+e.betrag,0);
-  const soSum=yearItems.filter(e=>eaIsSo(e)).reduce((s,e)=>s+e.betrag,0);
+  const soSum=yearItems.filter(e=>eaIsSo(e)).reduce((s,e)=>s+(e.typ==='ein'?-e.betrag:e.betrag),0);
   document.getElementById('m-ein').textContent=fmt(sumEin);
   document.getElementById('m-aus').textContent=fmt(sumAus);
   const saldo=sumEin-sumAus, sEl=document.getElementById('m-saldo');
   sEl.textContent=(saldo>=0?'+':'')+fmt(saldo); sEl.className='metric-value '+(saldo>=0?'green':'red');
+  const aCount=yearItems.filter(e=>eaIsA(e)).length, soCount=yearItems.filter(e=>eaIsSo(e)).length;
   const zi=document.getElementById('ea-zuord-info');
   if(zi){ const parts=[];
-    if(aSum>0) parts.push('Werbungskosten (A): <b>'+fmt(aSum)+'</b>');
-    if(soSum>0) parts.push('Sonderausgaben (So): <b>'+fmt(soSum)+'</b>');
+    if(aCount) parts.push('Werbungskosten (A): <b>'+fmt(aSum)+'</b>');
+    if(soCount) parts.push('Sonderausgaben (So): <b>'+fmt(soSum)+'</b>');
     zi.innerHTML = parts.length ? (parts.join('<br>')+'<br><span style="color:var(--txt-3);">nicht im E/A-Saldo</span>') : '';
   }
-  const rl=document.getElementById('ea-reset-link'); if(rl) rl.style.display=(aSum+soSum>0)?'inline':'none';
+  const rl=document.getElementById('ea-reset-link'); if(rl) rl.style.display=(aCount+soCount>0)?'inline':'none';
   let list=yearItems.filter(e=> eaFilter==='alle'?true:e.typ===eaFilter);
   if(eaSearch) list=list.filter(e=>((e.text||'')+' '+(e.kategorie||'')+' '+(e.belegnr||'')).toLowerCase().includes(eaSearch));
   const el=document.getElementById('ea-list');
@@ -1378,7 +1449,7 @@ function exportXLSX(){
   const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const r2=n=>Math.round((+n||0)*100)/100;
   const colL=i=>{ let s=''; while(i>0){ s=String.fromCharCode(65+((i-1)%26))+s; i=Math.floor((i-1)/26); } return s; };
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='angestellt'||e.ziel==='sonder'))).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.ziel==='angestellt'||e.ziel==='sonder')).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr).slice().sort((a,b)=>a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   /* Stil-Indizes (cellXfs in styles.xml): 0 normal · 1 Titel · 2 Kopf links · 3 Währung ·
      4 Währung fett · 5 fett · 6 zentriert · 7 Kopf zentriert */
@@ -1491,7 +1562,7 @@ function exportXLSX(){
   const jbCols=colDef([2.5,46,15]);
   const eyJ=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
   const fyJ=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt');
-  const sumEin=eyJ.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
+  const sumEin=eyJ.filter(e=>e.typ==='ein' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const sumAus=eyJ.filter(e=>e.typ==='aus' && e.ziel!=='angestellt' && e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
   const fahrttotal=fyJ.reduce((s,f)=>s+(f.kmgeld||0),0);
   const afaTotal=allAfa().reduce((s,a)=>s+afaForYear(a,year).betrag,0);
@@ -1519,7 +1590,7 @@ function exportXLSX(){
     jb.open(); jb.close();
     jb.open(); jb.S(2,'Sonderausgaben (separat, Anlage Vorsorgeaufwand)',2); jb.S(3,'',2); jb.close();
     const jsF=jb.row()+1;
-    soX.forEach(e=>{ jb.open(); jb.S(2,(e.text||'')+' · '+fmtDate(e.datum)); jb.N(3,e.betrag||0,3); jb.close(); });
+    soX.forEach(e=>{ const ref=e.typ==='ein'; jb.open(); jb.S(2,(e.text||'')+(ref?' (Erstattung)':'')+' · '+fmtDate(e.datum)); jb.N(3,(ref?-1:1)*(e.betrag||0),3); jb.close(); });
     const jsL=jb.row();
     jb.open(); jb.S(2,'Sonderausgaben gesamt',5); jb.F(3,'SUM(C'+jsF+':C'+jsL+')',4); jb.close();
   }
@@ -1607,10 +1678,24 @@ function exportData(){
   store.set('steuer_lastbackup',today); updateBackupInfo();
   toast('Backup heruntergeladen');
 }
+/* Dezente Backup-Erinnerung in der bestehenden Fußzeile (kein neuer Reiter):
+   E/A liegt nur lokal (kein GitHub-Sync) → bei altem/fehlendem Backup leicht orange erinnern. */
 function updateBackupInfo(){
   const d=store.get('steuer_lastbackup');
-  const el=document.getElementById('backup-info');
-  if(el) el.textContent=d?('· gesichert '+fmtDate(d)):'· noch kein Backup';
+  const el=document.getElementById('backup-info'); if(!el) return;
+  if(!d){ const due=eintraege.length>0;
+    el.textContent = due ? '· noch kein Backup — bitte ⤓ Backup ziehen' : '· noch kein Backup';
+    el.style.color = due ? 'var(--orange)' : 'var(--txt-3)'; return; }
+  const days=Math.floor((Date.now()-new Date(d+'T00:00:00').getTime())/86400000);
+  if(days>=28){ el.textContent='· letztes Backup vor '+Math.floor(days/7)+' Wochen — Backup ziehen?'; el.style.color='var(--orange)'; }
+  else { el.textContent='· gesichert '+fmtDate(d); el.style.color='var(--txt-3)'; }
+}
+/* Speicher-Schreibfehler (z. B. localStorage voll): einmalig deutlich warnen — sonst landen neue
+   Eingaben still nur im Arbeitsspeicher und sind nach dem Neuladen weg. */
+function notifyStorageFull(){
+  const b=document.getElementById('storage-banner');
+  if(b){ b.innerHTML='⚠️ <b>Speicher voll.</b> Neue Eingaben werden <b>nicht mehr dauerhaft gespeichert</b> (nach dem Neuladen weg). Bitte ein <b>Backup ziehen</b> und Platz schaffen (alte Beleg-Fotos entfernen oder Browser-Speicher leeren).'; b.classList.add('show'); }
+  try{ toast('Speicher voll — bitte Backup ziehen!',true); }catch(_){}
 }
 function importData(input){
   const f=input.files&&input.files[0]; if(!f) return;
@@ -1632,18 +1717,24 @@ function importData(input){
 }
 
 /* ====== Fahrt ====== */
-let curTrip='ein', curFahrtAnlage='selbst', editFahrtId=null;
+let curTrip='ein', curFahrtAnlage='selbst', editFahrtId=null, verpflManual=false, fahrtAnlageManual=false;
 function setFahrtAnlage(m){
   curFahrtAnlage=m;
   document.getElementById('btn-f-selbst').classList.toggle('on',m==='selbst');
   document.getElementById('btn-f-angestellt').classList.toggle('on',m==='angestellt');
 }
+/* manuelles Umschalten merken → der Zweck-Automatismus überschreibt eine bewusste S/A-Wahl nicht */
+function pickFahrtAnlage(m){ fahrtAnlageManual=true; setFahrtAnlage(m); }
 function angestelltFahrtSum(year){ return fahrten.filter(f=>f.anlage==='angestellt' && f.datum.slice(0,4)===String(year)).reduce((s,f)=>s+(f.kmgeld||0),0); }
+/* ISO-Datum (YYYY-MM-DD) um n Tage verschieben — über UTC gerechnet, damit keine Zeitzonen-Verschiebung passiert */
+function addDaysISO(iso,n){ if(!iso) return ''; const p=iso.split('-'); if(p.length!==3) return ''; const d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2])); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
 function setTrip(t){
   curTrip=t;
   document.getElementById('btn-eintag').classList.toggle('on',t==='ein');
   document.getElementById('btn-mehrtag').classList.toggle('on',t==='mehr');
   document.getElementById('trip-mehr').style.display=t==='mehr'?'block':'none';
+  if(t==='mehr'){ const ed=document.getElementById('f-enddatum'), sd=document.getElementById('f-datum');
+    if(ed && sd && sd.value && !ed.value) ed.value=addDaysISO(sd.value,1); }   // Rückkehr-Datum = Folgetag vorbelegen (nur wenn leer; änderbar)
   calcPauschale();
 }
 /* ===== Verpflegungspauschale =====
@@ -1687,11 +1778,16 @@ function pauschalValue(){
   const std=ru>=ab?ru-ab:(24-ab)+ru;
   return {v: std>=8?law('verpfl8'):0, std};
 }
+/* Verpflegung ist überschreibbar: Vorschlag automatisch, aber manuell setzbar (z. B. 0 € bei
+   gestellten Mahlzeiten). Feld leeren = wieder automatischer Vorschlag. */
+function verpflEdited(){ verpflManual=true; calcFahrt(); }
+function fmtVerpfl(){ const el=document.getElementById('f-verpfl-ein'); if(!el) return; const t=el.value.trim();
+  if(!t){ verpflManual=false; calcPauschale(); return; } el.value=fmt(num(t)); calcFahrt(); }
 function calcPauschale(){
   const p=pauschalValue();
   const hintEl=document.getElementById('f-pausch-hint');
   const vf=document.getElementById('f-verpfl-ein');
-  if(vf) vf.value=fmt(p.v);
+  if(vf && !verpflManual) vf.value=fmt(p.v);
   if(curTrip==='mehr'){
     hintEl.textContent = (p.parts && p.parts.length)
       ? 'Verpflegung: '+p.parts.map(x=>x+' €').join(' + ')+' = '+fmt(p.v)+'  ('+p.days+' Tage)'
@@ -1706,7 +1802,7 @@ function calcPauschale(){
 /* km-Satz & Methode. Standard-Satz global (bei Gesetzesänderung anpassbar), Methode pro Jahr.
    Einzelnachweis: Satz = Gesamtkosten / Gesamt-km; absetzbar = dienstliche km × Satz.
    Dienstliche km werden automatisch aus den erfassten Fahrten gezogen. */
-let _scanImg=null;
+let _lastScan=null;   // zuletzt gescanntes Original-Foto (nur im RAM, fürs „Teilen/Sichern") — wird NICHT gespeichert
 function kfzKosten(year){ const d=kfzData[year]; return (d&&d.belege)?d.belege.reduce((s,b)=>s+(b.betrag||0),0):0; }
 function einzelRate(year){ const d=kfzData[year]; if(!d) return 0; const gkm=(d.kmEnd||0)-(d.kmStart||0); return gkm>0 ? kfzKosten(year)/gkm : 0; }
 /* Pauschalsatz (Musikfahrten) jahresabhängig: Override ab Jahr aufwärts, sonst Basis-Satz/0,30. */
@@ -1740,8 +1836,8 @@ function addKfzBeleg(){
   const note=document.getElementById('kb-note').value.trim();
   if(!datum||betrag<=0){ toast('Datum und Betrag nötig',true); return; }
   const d=kfzData[currentYear]||{}; d.belege=d.belege||[];
-  d.belege.push({id:'b'+Date.now(),datum,kat,betrag,note,img:_scanImg||null});
-  kfzData[currentYear]=d; saveKfz(); _scanImg=null;
+  d.belege.push({id:'b'+Date.now(),datum,kat,betrag,note});
+  kfzData[currentYear]=d; saveKfz();
   document.getElementById('kb-betrag').value=''; document.getElementById('kb-note').value='';
   renderKfzBelege(); fillKfzResults(); calcFahrt(); toast('Beleg hinzugefügt');
 }
@@ -1755,7 +1851,6 @@ function renderKfzBelege(){
   const d=kfzData[currentYear]||{}; const bel=(d.belege||[]).slice().sort((a,b)=>a.datum.localeCompare(b.datum));
   if(!bel.length){ el.innerHTML='<div class="hint">Noch keine Belege erfasst.</div>'; return; }
   el.innerHTML=bel.map(b=>'<div class="entry" style="cursor:default;display:flex;align-items:center;gap:8px;padding:6px 0;">'
-    +(b.img?('<img src="'+b.img+'" alt="" style="width:30px;height:30px;object-fit:cover;border-radius:5px;border:0.5px solid var(--border);">'):'<span style="width:30px;text-align:center;color:var(--txt-3);font-size:11px;">—</span>')
     +'<div class="entry-main"><div class="desc">'+esc(b.kat)+(b.note?(' · '+esc(b.note)):'')+'</div><div class="sub">'+fmtDate(b.datum)+'</div></div>'
     +'<span style="font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;">'+fmt(b.betrag)+'</span>'
     +'<button class="del-btn" onclick="delKfzBeleg(\''+b.id+'\')" aria-label="Löschen">×</button></div>').join('');
@@ -1814,8 +1909,24 @@ async function scanBeleg(input){
     const amt=extractAmount((out&&out.data&&out.data.text)||'');
     if(amt>0){ document.getElementById('kb-betrag').value=deNum(amt); toast('Betrag erkannt: '+deNum(amt)+' € – bitte prüfen'); }
     else toast('Kein Betrag erkannt – bitte manuell',true);
-    _scanImg=await compressImage(f,640,0.5);
+    _lastScan=f;   // Original behalten — nur fürs Teilen/Sichern, nicht gespeichert
+    const sb=document.getElementById('kb-share'); if(sb) sb.style.display='block';
   }catch(e){ toast('Scan: '+e.message,true); }
+}
+/* Beleg-Foto sichern: iPhone → natives Teilen (an sich mailen, Fotos, Dateien, AirDrop);
+   Desktop / ohne File-Share → Download. Das Tool speichert das Foto bewusst NICHT. */
+async function shareLastScan(){
+  if(!_lastScan){ toast('Erst einen Beleg scannen',true); return; }
+  const f=_lastScan;
+  if(navigator.canShare && navigator.canShare({files:[f]})){
+    try{ await navigator.share({files:[f], title:'Beleg'}); }
+    catch(e){ /* vom Nutzer abgebrochen → nichts weiter tun */ }
+    return;
+  }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(f);
+  a.download=(f.name && f.name.indexOf('.')>-1) ? f.name : ('Beleg-'+today+'.jpg');
+  a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+  toast('Beleg heruntergeladen');
 }
 /* ---- Auto-AfA-Helfer (Privat-Pkw: Jahres-AfA als Kfz-Kostenbeleg) ---- */
 function carAfaForYear(){
@@ -1835,7 +1946,7 @@ function addCarAfaBeleg(){
   if(r.preis<=0||!r.datum){ toast('Kaufpreis und Kaufdatum nötig',true); return; }
   if(r.betrag<=0){ toast('In '+currentYear+' keine AfA (Zeitraum prüfen)',true); return; }
   const d=kfzData[currentYear]||{}; d.belege=d.belege||[];
-  d.belege.push({id:'b'+Date.now(),datum:currentYear+'-12-31',kat:'AfA/Leasing',betrag:Math.round(r.betrag*100)/100,note:'Auto-AfA',img:null});
+  d.belege.push({id:'b'+Date.now(),datum:currentYear+'-12-31',kat:'AfA/Leasing',betrag:Math.round(r.betrag*100)/100,note:'Auto-AfA'});
   kfzData[currentYear]=d; saveKfz();
   renderKfzBelege(); fillKfzResults(); calcFahrt(); toast('Auto-AfA als Beleg übernommen');
 }
@@ -1844,7 +1955,8 @@ function calcFahrt(){
   const satz=activeSatz(currentYear);
   const park=num(document.getElementById('f-park').value);
   const zug=num(document.getElementById('f-zug').value);
-  document.getElementById('f-preview').textContent=fmt(km*satz+park+zug+pauschalValue().v);
+  const verpfl=num(document.getElementById('f-verpfl-ein').value);   // tatsächlich angesetzte Verpflegung (Vorschlag oder manuell)
+  document.getElementById('f-preview').textContent=fmt(km*satz+park+zug+verpfl);
 }
 function addFahrt(){
   const datum=document.getElementById('f-datum').value;
@@ -1856,7 +1968,7 @@ function addFahrt(){
   const satz=activeSatz(currentYear);
   const park=num(document.getElementById('f-park').value);
   const zug=num(document.getElementById('f-zug').value);
-  const pObj=pauschalValue(), pausch=pObj.v;
+  const pObj=pauschalValue(), pausch=num(document.getElementById('f-verpfl-ein').value);   // angesetzte Verpflegung (Vorschlag oder manuell überschrieben)
   const enddatum=document.getElementById('f-enddatum').value;
   const _ab=document.getElementById('f-ab').value.trim(), _rk=document.getElementById('f-rueck').value.trim();
   const abUhr=_ab!==''?+_ab:null, rueckUhr=_rk!==''?+_rk:null;
@@ -1890,7 +2002,7 @@ function editFahrt(id){
   document.getElementById('f-km').value=f.km!=null?String(f.km).replace('.',','):'';
   document.getElementById('f-park').value=deNum(f.park||0);
   document.getElementById('f-zug').value=deNum(f.zug||0);
-  setFahrtAnlage(f.anlage||'selbst');
+  setFahrtAnlage(f.anlage||'selbst'); fahrtAnlageManual=true;   // beim Bearbeiten die gespeicherte S/A-Wahl nicht automatisch überschreiben
   setTrip(f.mehr?'mehr':'ein');
   document.getElementById('f-enddatum').value=f.enddatum||'';
   document.getElementById('f-ab').value=f.abUhr!=null?f.abUhr:'';
@@ -1900,7 +2012,10 @@ function editFahrt(id){
   document.getElementById('f-save-btn').textContent='Fahrt aktualisieren';
   document.getElementById('f-cancel-edit').style.display='block';
   document.getElementById('fahrt-form-title').textContent='Fahrt bearbeiten';
-  calcPauschale(); calcFahrt();
+  verpflManual=false; calcPauschale();   // Auto-Vorschlag aus den geladenen Daten
+  const autoV=num(document.getElementById('f-verpfl-ein').value);
+  if(Math.abs((f.pausch||0)-autoV)>0.005){ verpflManual=true; document.getElementById('f-verpfl-ein').value=fmt(f.pausch||0); }   // war manuell überschrieben → Wert erhalten
+  calcFahrt();
   renderFahrten();   // markiert den Eintrag in der Liste (editing)
   document.getElementById('f-zweck').scrollIntoView({behavior:'smooth',block:'center'});
 }
@@ -1913,6 +2028,7 @@ function toggleFahrtAnlage(id){
   scheduleAutoPush();
 }
 function clearFahrtFields(full){
+  verpflManual=false; fahrtAnlageManual=false; hideZweckSugg();
   ['f-ziel','f-zweck','f-km','f-ab','f-rueck','f-enddatum'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-park').value='0'; document.getElementById('f-zug').value='0';
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
@@ -1932,6 +2048,8 @@ function newFahrt(){
   toast('Neue Fahrt — Start/Rückkehr auf Heimatort');
   document.getElementById('f-zweck').focus();
 }
+/* Bearbeiten abbrechen durch Klick außerhalb von Formular & Einträgen (wie bei E/A) — still, ohne Toast/Nachfrage */
+function cancelFahrtEdit(){ clearFahrtFields(true); renderFahrten(); }
 function updateHeimat(){
   settings.heimatort=document.getElementById('set-heimat').value.trim();
   const adr=document.getElementById('set-heimat-adr'); if(adr) settings.heimatAdresse=adr.value.trim();
@@ -1956,6 +2074,52 @@ function suggestRouteKm(){
   const km=routeKm[routeKeyFrom(s,z,r)];
   const kmField=document.getElementById('f-km');
   if(km!=null && !kmField.value){ kmField.value=km; calcFahrt(); toast('km aus Routen-Gedächtnis'); }
+}
+/* Aus dem Zweck-Verlauf vorausfüllen — Ziel (+ km) UND S/A. Lernfähig: betrachtet nur die letzten 4
+   Fahrten mit diesem Zweck; der dort ≥2× dominante Wert gewinnt (Gleichstand → der jüngste). So
+   genügen ~2 Besuche am neuen Ort, damit z. B. „Schulkonzert" von Stadthalle auf Halle 9 umlernt.
+   Uneinheitliche Zwecke (z. B. „MATS Gig") lösen keinen Vorschlag aus. Ziel nur wenn leer (nie
+   überschreiben); S/A nur, wenn du nicht selbst umgeschaltet hast (umschalten geht danach jederzeit). */
+function suggestFromZweck(){
+  const zEl=document.getElementById('f-zweck'); if(!zEl) return;
+  const zweck=(zEl.value||'').trim().toLowerCase(); if(!zweck) return;
+  const past=fahrten.filter(f=>(f.zweck||'').trim().toLowerCase()===zweck)
+    .sort((a,b)=> a.datum===b.datum ? b.id-a.id : (a.datum<b.datum?1:-1)).slice(0,4);   // 4 jüngste
+  if(past.length<2) return;
+  const dominant=getRaw=>{ const cnt={}, repr={}, lastId={};
+    past.forEach(f=>{ const raw=getRaw(f); if(raw==null||raw==='') return; const k=String(raw).toLowerCase();
+      cnt[k]=(cnt[k]||0)+1; if(!lastId[k]||f.id>lastId[k]){ lastId[k]=f.id; repr[k]=raw; } });
+    let best=null; for(const k in cnt){ if(cnt[k]>=2 && (!best||cnt[k]>cnt[best]||(cnt[k]===cnt[best]&&lastId[k]>lastId[best]))) best=k; }
+    return best?repr[best]:null; };
+  let did=false;
+  const zielEl=document.getElementById('f-ziel');
+  if(zielEl && !zielEl.value.trim()){ const z=dominant(f=>(f.ziel||'').trim()); if(z){ zielEl.value=z; suggestRouteKm(); did=true; } }
+  if(!fahrtAnlageManual){ const a=dominant(f=>f.anlage||'selbst'); if(a && a!==curFahrtAnlage){ setFahrtAnlage(a); did=true; } }
+  if(did) toast('Aus „Zweck"-Verlauf vorausgefüllt — bitte prüfen');
+}
+/* Zweck-Vorschlag wie bei E/A (statt Datalist, der schon beim Antippen die ganze Liste aufklappt):
+   eine Zeile erscheint erst beim Tippen ab 2 Zeichen mit passenden Anfangsbuchstaben; ↵/Tippen übernimmt. */
+let _zweckSugg=null;
+function hideZweckSugg(){ _zweckSugg=null; const b=document.getElementById('f-zweck-sugg'); if(b) b.style.display='none'; }
+function zweckBlur(){ setTimeout(hideZweckSugg, 200); }   // verzögert, damit ein Tippen auf den Vorschlag noch zählt
+function zweckInput(){
+  const el=document.getElementById('f-zweck'), box=document.getElementById('f-zweck-sugg'); if(!el||!box) return;
+  _zweckSugg=null; box.style.display='none';
+  const typed=(el.value||'').trim(); if(typed.length<2) return;
+  const tl=typed.toLowerCase(); const cnt={}, repr={}, lastId={};
+  fahrten.forEach(f=>{ const z=(f.zweck||'').trim(); if(!z || !z.toLowerCase().startsWith(tl)) return;
+    const k=z.toLowerCase(); cnt[k]=(cnt[k]||0)+1; if(!lastId[k]||f.id>lastId[k]){ lastId[k]=f.id; repr[k]=z; } });
+  let best=null; for(const k in cnt){ if(k===tl) continue; if(!best||cnt[k]>cnt[best]||(cnt[k]===cnt[best]&&lastId[k]>lastId[best])) best=k; }
+  if(!best) return;
+  _zweckSugg=repr[best];
+  box.innerHTML='💡 <b>'+esc(_zweckSugg)+'</b><span class="k">↵ / tippen</span>';
+  box.style.display='flex';
+}
+function acceptZweckSugg(){
+  if(!_zweckSugg) return false;
+  document.getElementById('f-zweck').value=_zweckSugg;
+  hideZweckSugg(); suggestFromZweck();   // danach Ziel/km + S/A nachziehen
+  return true;
 }
 function openMaps(){
   const s=document.getElementById('f-start').value.trim();
@@ -2043,6 +2207,10 @@ function cleanOrtname(s){
 }
 function renderFahrten(){
   document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
+  { const orte=[]; fahrten.forEach(f=>{ orte.push(f.start,f.ziel,f.rueckort); });
+    if(settings.heimatort) orte.push(settings.heimatort);
+    if(homeOrt){ orte.push(homeOrt.start,homeOrt.rueckort); }
+    fillDL('dl-orte', orte.filter(v=>v && !isCoords(v))); }
   { const ks=document.getElementById('f-km-satz'); if(ks) ks.textContent=deNum(pauschSatz(currentYear)); }
   document.getElementById('fahrt-list-title').innerHTML='Fahrten '+currentYear+' <span style="font-weight:400;color:var(--txt-2);font-size:13px;">· angewendet '+deNum(pauschSatz(currentYear))+' €/km</span>';
   fillKfzResults();
@@ -2185,9 +2353,9 @@ function renderJahres(){
   const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr);
   const fyr=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt');   // nur Selbständigkeit in der EÜR
   const sA=kats=>ey.filter(e=>e.typ==='aus'&&kats.includes(e.kategorie)&&e.ziel!=='angestellt'&&e.ziel!=='sonder').reduce((s,e)=>s+e.betrag,0);
-  const gagen=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
-  const unterricht=ey.filter(e=>e.typ==='ein'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
-  const sonstEin=ey.filter(e=>e.typ==='ein'&&e.kategorie!=='Gage'&&e.kategorie!=='Unterricht').reduce((s,e)=>s+e.betrag,0);
+  const gagen=ey.filter(e=>e.typ==='ein'&&e.ziel!=='sonder'&&e.kategorie==='Gage').reduce((s,e)=>s+e.betrag,0);
+  const unterricht=ey.filter(e=>e.typ==='ein'&&e.ziel!=='sonder'&&e.kategorie==='Unterricht').reduce((s,e)=>s+e.betrag,0);
+  const sonstEin=ey.filter(e=>e.typ==='ein'&&e.ziel!=='sonder'&&e.kategorie!=='Gage'&&e.kategorie!=='Unterricht').reduce((s,e)=>s+e.betrag,0);
   const eintotal=gagen+unterricht+sonstEin;
   const kv=sA(['Versicherung']);
   const equip=sA(['Musikzubehör']);
@@ -2213,7 +2381,8 @@ function renderJahres(){
   const soItems=eaSoItems(year), soSum=eaSoSum(year), soBlock=document.getElementById('j-so-block');
   if(soBlock){ soBlock.style.display=soItems.length?'':'none';
     const sl=document.getElementById('j-so-list');
-    if(sl) sl.innerHTML=soItems.map(e=>'<div class="jrow"><span><span style="color:var(--txt-2);font-size:11px;">'+fmtDate(e.datum)+'</span> · '+esc(e.text)+'</span><span class="aus">'+fmt(e.betrag)+'</span></div>').join('');
+    if(sl) sl.innerHTML=soItems.map(e=>{ const ref=e.typ==='ein';
+      return '<div class="jrow"><span><span style="color:var(--txt-2);font-size:11px;">'+fmtDate(e.datum)+'</span> · '+esc(e.text)+(ref?' <span style="color:var(--txt-2);">(Erstattung)</span>':'')+'</span><span class="'+(ref?'ein':'aus')+'">'+(ref?'− ':'')+fmt(e.betrag)+'</span></div>'; }).join('');
     set('j-so-total',fmt(soSum));
   }
   const er=document.getElementById('j-ergebnis');
@@ -2230,7 +2399,7 @@ function buildReport(){
   const year=currentYear, yStr=String(year);
   const M=n=>deNum(n)+' €';
   const sumRow=(l,v,cls)=>'<tr class="'+(cls||'')+'"><td>'+esc(l)+'</td><td class="num">'+v+'</td></tr>';
-  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.typ==='aus'&&(e.ziel==='angestellt'||e.ziel==='sonder'))).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
+  const ey=eintraege.filter(e=>e.datum.slice(0,4)===yStr && !(e.ziel==='angestellt'||e.ziel==='sonder')).slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const fy=fahrten.filter(f=>f.datum.slice(0,4)===yStr && f.anlage!=='angestellt').slice().sort((a,b)=> a.datum===b.datum?a.id-b.id:a.datum.localeCompare(b.datum));
   const afaRows=allAfa().map(a=>({a,r:afaForYear(a,year)}));
   const sumEin=ey.filter(e=>e.typ==='ein').reduce((s,e)=>s+e.betrag,0);
@@ -2341,7 +2510,7 @@ function buildReport(){
   if(soR.length){
     H+='<div class="rep-sec"><h2>Sonderausgaben (separat) '+year+'</h2>';
     H+='<div class="gtab"><div class="grow gr-so ghead"><span>Posten</span><span>Detail</span><span class="num">Betrag</span></div>';
-    soR.forEach(e=>{ H+='<div class="grow gr-so"><span>'+esc(e.text)+'</span><span>aus E/A · '+fmtDate(e.datum)+'</span><span class="num">'+M(e.betrag)+'</span></div>'; });
+    soR.forEach(e=>{ const ref=e.typ==='ein'; H+='<div class="grow gr-so"><span>'+esc(e.text)+(ref?' (Erstattung)':'')+'</span><span>aus E/A · '+fmtDate(e.datum)+'</span><span class="num">'+(ref?'− ':'')+M(e.betrag)+'</span></div>'; });
     H+='<div class="grow gr-so ggrand"><span style="grid-column:1/3">Sonderausgaben gesamt</span><span class="num">'+M(soT)+'</span></div>';
     H+='</div><div class="rep-meta">Nicht in EÜR und nicht in Werbungskosten — gehören in die Anlage Vorsorgeaufwand (z. B. Basis-Kranken-/Pflegeversicherung, §10 EStG). Höchstbeträge/Günstigerprüfung übernimmt das Steuerbüro.</div></div>';
   }
@@ -2755,11 +2924,13 @@ document.addEventListener('keydown',function(ev){
   if(ni!==i){ ev.preventDefault(); editFahrt(ids[ni]); }
 });
 document.getElementById('ea-form').addEventListener('keydown',function(ev){
-  if(ev.key==='Enter' && ev.target.tagName==='INPUT' && ev.target.id!=='newcat-input'){ ev.preventDefault(); addEintrag(); }
+  if(ev.key!=='Enter' || ev.target.tagName!=='INPUT' || ev.target.id==='newcat-input') return;
+  if(ev.target.id==='ea-text' && acceptEaSuggest()){ ev.preventDefault(); return; }   // erst Vorschlag übernehmen, NICHT speichern
+  ev.preventDefault(); addEintrag();
 });
 /* Enter speichert auch in Fahrt / AfA / Kfz-Beleg / Angestellt */
 function bindEnter(ids,fn){ ids.forEach(function(id){ const el=document.getElementById(id); if(el) el.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); fn(); } }); }); }
-bindEnter(['f-zweck','f-start','f-ziel','f-rueckort','f-km','f-ab','f-rueck','f-park','f-zug'], addFahrt);
+bindEnter(['f-km','f-ab','f-rueck','f-park','f-zug'], addFahrt);   // Datalist-Felder (Zweck/Start/Ziel/Rückkehr) bewusst NICHT: Enter wählt dort den Vorschlag, speichert nicht
 bindEnter(['afa-name','afa-betrag','afa-jahre'], addAfa);
 bindEnter(['kb-betrag','kb-note'], addKfzBeleg);
 bindEnter(['lp-name','lp-betrag'], addAngestelltPos);
@@ -2783,13 +2954,21 @@ document.addEventListener('click',function(ev){
   if(ev.target.closest('.entry')) return;
   cancelEdit();
 });
+/* Dasselbe für Fahrten: Klick außerhalb des Fahrt-Formulars UND außerhalb der Fahrt-Einträge beendet den Bearbeiten-Modus. */
+document.addEventListener('click',function(ev){
+  if(editFahrtId==null) return;
+  if(!document.getElementById('tab-fahrt').classList.contains('active')) return;
+  if(ev.target.closest('#fahrt-form')) return;
+  if(ev.target.closest('.fahrt-entry')) return;
+  cancelFahrtEdit();
+});
 const eaDD=eaDefaultDate();
 document.getElementById('ea-datum').value=eaDD;
 document.getElementById('ea-datum').value=eaDD;
 document.getElementById('f-datum').value=eaDD;
 /* Alle nativen Datumsfelder: 2-stelliges Jahr automatisch zu 4-stellig (25 -> 2025) beim Verlassen */
 document.addEventListener('change', function(ev){ if(ev.target && ev.target.matches && ev.target.matches('input[type=date]')) fixDateYear(ev.target); }, true);
-migrateCats();
+migrateCats(); stripBelegImages();
 setType('ein'); setKonto('B'); setTrip('ein'); prefillHome(); fillKfz(); populateYearOptions();
 renderEA(); renderFahrten(); renderAfA(); renderAngestellt(); renderJahres(); syncState(); updateBackupInfo();
 if(window.matchMedia && window.matchMedia('(max-width:600px)').matches) switchTab('fahrt');
