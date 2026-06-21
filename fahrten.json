@@ -337,7 +337,7 @@
       "id": 16
     },
     {
-      "datum": "2025-06-21",
+      "datum": "2025-05-02",
       "enddatum": "",
       "route": "Ingolstadt → Dietersberg 1, Schönsee → Ingolstadt",
       "start": "Ingolstadt",
@@ -357,7 +357,7 @@
       "rueckUhr": 4,
       "anlage": "selbst",
       "kmgeld": 120.2,
-      "updated": 1782044811207,
+      "updated": 1782044820345,
       "id": 17
     }
   ],
