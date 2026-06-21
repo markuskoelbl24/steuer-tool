@@ -366,7 +366,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
     <h1>Steuer-Tool</h1>
     <div class="topbar-actions no-print">
       <button class="icon-btn" id="hdr-sync" onclick="openOv('ov-sync')" aria-label="GitHub-Sync" title="GitHub-Sync">☁<span class="dot" id="hdr-sync-dot"></span></button>
-      <button class="icon-btn" id="hdr-setup" onclick="toggleSetup()" aria-label="Einstellungen" title="Einstellungen (Setup)">⚙</button>
+      <button class="icon-btn" id="hdr-setup" onclick="toggleSetup()" aria-label="Einstellungen" title="Setup">⚙</button>
       <select id="year-sel" class="year-sel" onchange="setYear()">
         <option>2024</option><option selected>2025</option><option>2026</option><option>2027</option><option>2028</option>
       </select>
@@ -377,7 +377,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 
   <div class="tabs no-print">
     <button class="tab active" data-tab="ea" onclick="switchTab('ea')">Einnahmen & Ausgaben</button>
-    <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrtkosten</button>
+    <button class="tab" data-tab="fahrt" onclick="switchTab('fahrt')">Fahrtenbuch</button>
     <button class="tab" data-tab="angestellt" onclick="switchTab('angestellt')">Werbungskosten</button>
     <button class="tab" data-tab="afa" onclick="switchTab('afa')">Abschreibungen</button>
     <button class="tab" data-tab="jahres" onclick="switchTab('jahres')">Jahresübersicht</button>
@@ -700,7 +700,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 <!-- ===== Modal: GitHub-Sync ===== -->
 <div class="ov no-print" id="ov-sync" onclick="if(event.target===this)closeOv('ov-sync')">
   <div class="ov-card">
-    <div class="ov-head"><span class="t">GitHub-Sync (Fahrten)</span><button class="ov-x" onclick="closeOv('ov-sync')" aria-label="Schließen">×</button></div>
+    <div class="ov-head"><span class="t">GitHub-Sync (Fahrtenbuch)</span><button class="ov-x" onclick="closeOv('ov-sync')" aria-label="Schließen">×</button></div>
     <div class="sync-card" style="margin-bottom:0.85rem;">
       <span class="sync-dot off" id="sync-dot"></span>
       <div class="sync-info">
@@ -718,7 +718,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPull()">↓ Pull</button>
         <button class="btn-ghost" style="flex-shrink:0;" onclick="ghPush()">↑ Push</button>
       </div>
-      <p style="margin:8px 0 0;font-size:12px;">Sync läuft automatisch — nur für Fallback &amp; Backup.</p>
+      <p style="margin:8px 0 0;font-size:12px;">Nur für Fallback &amp; Backup.</p>
     </div>
   </div>
 </div>
@@ -726,14 +726,11 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
 <!-- ===== Setup: ganzseitiger Bereich (über ⚙ erreichbar, kein Popup) ===== -->
 <section class="section setup-page no-print" id="tab-kfz">
   <div class="setup-inner">
-    <div class="setup-head"><span class="t">Einstellungen (Setup)</span><button class="btn-ghost" onclick="closeSetup()">← Zurück</button></div>
-    <div class="hint" id="kfz-status" style="margin:0 0 12px;">Pauschale 0,30 €/km</div>
+    <div class="setup-head"><span class="t">Setup</span><button class="btn-ghost" onclick="closeSetup()">← Zurück</button></div>
     <div class="form-row"><label>Standard-Heimatort — Anzeigename</label><input type="text" id="set-heimat" placeholder="z.B. Ingolstadt" oninput="updateHeimat()"></div>
-    <div class="hint" style="margin:-4px 0 10px;">Wird bei neuen Fahrten als <b>Start/Rückkehr</b> eingetragen und genau so angezeigt/gedruckt. Andere Ziele in derselben Stadt tippst du individuell (z. B. „Stadttheater Ingolstadt") — sie werden <b>nicht</b> zusammengeworfen.</div>
     <div class="form-row"><label>Genaue Adresse (nur für „🗺️ in Maps", optional)</label><input type="text" id="set-heimat-adr" placeholder="z.B. Musterstr. 12, 85049 Ingolstadt" oninput="updateHeimat()"></div>
-    <div class="hint" style="margin:-4px 0 12px;">Bleibt im Hintergrund — der Maps-Link nutzt diese Adresse, angezeigt wird trotzdem nur der Anzeigename.</div>
     <div class="form-row"><label>Standard-km-Satz Musikfahrten (€/km) — Jahr <span id="satz-year">2026</span></label><input type="text" inputmode="decimal" id="set-satz" placeholder="0,30" oninput="updateSettings()" onblur="fmtField(this)"></div>
-    <div class="hint" style="margin:-4px 0 12px;">Gilt <b>ab dem oben gewählten Jahr und allen Folgejahren</b>, bis du ein späteres Jahr abweichend einstellst — frühere Jahre bleiben unberührt. Bereits gespeicherte Fahrten behalten ihren Satz.</div>
+    <div class="hint" style="margin:-4px 0 12px;">Gilt für das gewählte Jahr und die Folgejahre; frühere Jahre und gespeicherte Fahrten bleiben unberührt.</div>
 
     <details class="afa-info" id="law-panel" style="margin-bottom:14px;">
       <summary>⚖️ Gesetzliche Werte — Jahr <span id="law-year">2026</span></summary>
@@ -747,8 +744,8 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
           <div class="form-row"><label>Bewirtung absetzbar (%)</label><input type="text" inputmode="numeric" id="law-bewirtung" oninput="updateLawSettings()"></div>
         </div>
         <div class="row2">
-          <div class="form-row"><label>Entfernung €/km (bis 20 km)</label><input type="text" inputmode="decimal" id="law-entf1" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
-          <div class="form-row"><label>Entfernung €/km (ab 21 km)</label><input type="text" inputmode="decimal" id="law-entf2" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Entfernungspauschale €/km (bis 20 km)</label><input type="text" inputmode="decimal" id="law-entf1" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
+          <div class="form-row"><label>Entfernungspauschale €/km (ab 21 km)</label><input type="text" inputmode="decimal" id="law-entf2" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
         </div>
         <div class="row2">
           <div class="form-row"><label>Verpflegung €/Tag (≥8 h / An-/Abreise)</label><input type="text" inputmode="decimal" id="law-verpfl8" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
@@ -759,7 +756,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
           <div class="form-row"><label>AfA-Pflicht ab (€)</label><input type="text" inputmode="decimal" id="law-gwg1000" oninput="updateLawSettings()" onblur="fmtField(this)"></div>
         </div>
         <button type="button" class="btn-ghost" style="width:100%;margin-top:8px;" onclick="resetLaw()">↺ Werte dieses Jahres auf Standard zurücksetzen</button>
-        <p style="margin-top:8px;">Werte gelten <b>für das oben gewählte Jahr und alle Folgejahre</b>, bis du ein späteres Jahr abweichend einstellst — frühere Jahre bleiben unberührt. Leeres Feld = gesetzlicher Standard. Beispiel: Pendlerpauschale 2025 = 0,30 €/km bis 20 km, ab 2026 = 0,38 €/km ab dem 1. km. Den km-Satz (Musikfahrten) stellst du oben separat ein.</p>
+        <p style="margin-top:8px;">Gilt für das gewählte Jahr und die Folgejahre; frühere Jahre und bereits gespeicherte Einträge bleiben unberührt.</p>
       </div>
     </details>
 
@@ -777,18 +774,15 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
       <div class="afa-info-body">
         <div id="stichwort-list" style="margin-bottom:8px;"></div>
         <button type="button" class="btn-ghost" style="width:100%;" onclick="addStichwort()">+ Neue Zuordnung hinzufügen</button>
-        <p style="margin-top:8px;font-size:10px;color:var(--txt-2);">Wenn du eine Beschreibung mit einem Stichwort eingibst (z.B. „Gage"), wird die Kategorie automatisch erkannt. Hier kannst du diese Zuordnungen verwalten.</p>
       </div>
     </details>
 
-    <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span></label>
+    <label style="display:block;font-size:12px;color:var(--txt-2);margin-bottom:5px;">Methode <span id="kfz-year2" style="color:var(--txt-3);"></span> <span style="color:var(--txt-3);font-weight:400;">(gilt für das komplette Kalenderjahr)</span></label>
     <div class="seg" id="seg-method">
       <button type="button" id="btn-pausch" class="on" onclick="setMethod('pauschal')">Pauschale</button>
       <button type="button" id="btn-einzel" onclick="setMethod('einzel')">Einzelnachweis</button>
     </div>
-    <div class="hint" style="margin:-2px 0 10px;">Einzelnachweis gilt für das <b>komplette Kalenderjahr</b>; der errechnete Satz (und sein halber Wert) steht dann bei jeder Fahrt zur Auswahl.</div>
     <div id="einzel-sheet" style="display:none;">
-      <div class="hint" style="margin-bottom:0.6rem;">Belege <b>einzeln</b> erfassen — das Tool summiert automatisch. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km kommen aus den Fahrten; privat ergibt sich aus dem km-Stand.</div>
       <div class="row2">
         <div class="form-row"><label>Datum</label><input type="date" id="kb-datum"></div>
         <div class="form-row"><label>Kostenart</label><select id="kb-kat"><option>Sprit</option><option>Versicherung</option><option>Kfz-Steuer</option><option>Reparatur</option><option>AfA/Leasing</option><option>Sonstiges</option></select></div>
@@ -801,6 +795,7 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center;">📷 Beleg scannen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanBeleg(this)"></label>
         <button type="button" class="btn-ghost" style="flex:1;" onclick="addKfzBeleg()">+ Beleg hinzufügen</button>
       </div>
+      <div class="hint" style="margin:0 0 0.6rem;">Belege einzeln erfassen. „📷 Scan" liest den Betrag aus einem Foto (Vorschlag, bitte prüfen). Dienstliche km werden aus den Fahrten übernommen.</div>
       <div id="kb-list" style="margin-bottom:0.6rem;"></div>
       <div style="border-top:0.5px dashed var(--border-2);margin:0.2rem 0 0.6rem;padding-top:0.6rem;">
         <div class="hint" style="margin-bottom:0.5rem;">Auto-AfA berechnen (Neuwagen 6 J., Gebraucht = Restnutzungsdauer) und als Jahres-Beleg „AfA/Leasing" übernehmen:</div>
@@ -2621,7 +2616,7 @@ function syncState(){
   set('sync-dot', el=>el.className='sync-dot '+(on?'on':'off'));
   set('hdr-sync-dot', el=>el.className='dot '+(on?'on':''));
   set('sync-title', el=>el.textContent=on?'Verbunden':'Nicht verbunden');
-  set('sync-sub', el=>el.textContent=on?(c.repo+' · läuft automatisch (Laden + Upload)'):'Fahrtkosten lokal — kein GitHub-Sync');
+  set('sync-sub', el=>el.textContent=on?(c.repo+' · läuft automatisch (Laden + Upload)'):'Fahrtenbuch lokal — kein GitHub-Sync');
 }
 /* Auto-Upload: immer aktiv — nach jeder Fahrt automatisch hochladen (gepuffert), sobald verbunden */
 function autoPushEnabled(){ return true; }
