@@ -1055,6 +1055,30 @@
       "kmgeld": 37.199999999999996,
       "updated": 1782078711143,
       "id": 46
+    },
+    {
+      "datum": "2025-05-03",
+      "enddatum": "",
+      "route": "Ingolstadt → München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "München",
+      "rueckort": "Ingolstadt",
+      "zweck": "TSB Probe",
+      "km": 166,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 49.8,
+      "updated": 1782078788126,
+      "id": 47
     }
   ],
   "deleted": []
