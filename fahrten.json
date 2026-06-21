@@ -911,6 +911,30 @@
       "kmgeld": 58.8,
       "updated": 1782078312747,
       "id": 40
+    },
+    {
+      "datum": "2025-06-18",
+      "enddatum": "",
+      "route": "Ingolstadt → München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Blind Date Probe",
+      "km": 166,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 49.8,
+      "updated": 1782078380554,
+      "id": 41
     }
   ],
   "deleted": []
