@@ -359,6 +359,30 @@
       "kmgeld": 120.2,
       "updated": 1782044820345,
       "id": 17
+    },
+    {
+      "datum": "2025-05-06",
+      "enddatum": "",
+      "route": "Ingolstadt → Arnulfstraße 17, München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Arnulfstraße 17, München",
+      "rueckort": "Ingolstadt",
+      "zweck": "TSB Gig",
+      "km": 171,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 15,
+      "rueckUhr": 1,
+      "anlage": "selbst",
+      "kmgeld": 65.3,
+      "updated": 1782044893760,
+      "id": 18
     }
   ],
   "deleted": []
