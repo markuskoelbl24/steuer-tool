@@ -599,6 +599,30 @@
       "kmgeld": 125.3,
       "updated": 1782076304415,
       "id": 27
+    },
+    {
+      "datum": "2025-07-05",
+      "enddatum": "",
+      "route": "Ingolstadt → Wallenburger Berg 79G, Miesbach → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Wallenburger Berg 79G, Miesbach",
+      "rueckort": "Ingolstadt",
+      "zweck": "TSB Gig",
+      "km": 263,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 16,
+      "rueckUhr": 4,
+      "anlage": "selbst",
+      "kmgeld": 92.89999999999999,
+      "updated": 1782076386691,
+      "id": 28
     }
   ],
   "deleted": []
