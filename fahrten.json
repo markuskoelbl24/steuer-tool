@@ -959,6 +959,30 @@
       "kmgeld": 49.8,
       "updated": 1782078465435,
       "id": 42
+    },
+    {
+      "datum": "2025-08-29",
+      "enddatum": "",
+      "route": "Ingolstadt → München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Candy Tunes Probe",
+      "km": 166,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 49.8,
+      "updated": 1782078563468,
+      "id": 43
     }
   ],
   "deleted": []
