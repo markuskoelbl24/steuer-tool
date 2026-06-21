@@ -839,6 +839,30 @@
       "kmgeld": 50.1,
       "updated": 1782077805383,
       "id": 37
+    },
+    {
+      "datum": "2025-11-29",
+      "enddatum": "",
+      "route": "Ingolstadt → Gutenbergstraße 4 Schwandorf → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Gutenbergstraße 4 Schwandorf",
+      "rueckort": "Ingolstadt",
+      "zweck": "MATS Gig",
+      "km": 253,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 14,
+      "rueckUhr": 3,
+      "anlage": "selbst",
+      "kmgeld": 89.89999999999999,
+      "updated": 1782077893808,
+      "id": 38
     }
   ],
   "deleted": []
