@@ -455,6 +455,30 @@
       "kmgeld": 79.9,
       "updated": 1782074688086,
       "id": 21
+    },
+    {
+      "datum": "2025-06-21",
+      "enddatum": "2025-06-22",
+      "route": "Ingolstadt → Eisenthaler Straße 15 Grafenau → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Eisenthaler Straße 15 Grafenau",
+      "rueckort": "Ingolstadt",
+      "zweck": "ABBA Gig",
+      "km": 401,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 28,
+      "mehr": true,
+      "tage": 2,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 14,
+      "rueckUhr": 15,
+      "anlage": "selbst",
+      "kmgeld": 148.3,
+      "updated": 1782075624007,
+      "id": 22
     }
   ],
   "deleted": []
