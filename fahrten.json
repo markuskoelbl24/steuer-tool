@@ -887,6 +887,30 @@
       "kmgeld": 52.4,
       "updated": 1782078145933,
       "id": 39
+    },
+    {
+      "datum": "2025-06-21",
+      "enddatum": "",
+      "route": "Ingolstadt → Peter-Roseggerstraße 11 Nittendorf → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Peter-Roseggerstraße 11 Nittendorf",
+      "rueckort": "Ingolstadt",
+      "zweck": "MATS Probe",
+      "km": 196,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 58.8,
+      "updated": 1782078312747,
+      "id": 40
     }
   ],
   "deleted": []
