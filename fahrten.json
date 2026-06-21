@@ -335,6 +335,30 @@
       "kmgeld": 90,
       "updated": 1782044720382,
       "id": 16
+    },
+    {
+      "datum": "2025-06-21",
+      "enddatum": "",
+      "route": "Ingolstadt → Dietersberg 1, Schönsee → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Dietersberg 1, Schönsee",
+      "rueckort": "Ingolstadt",
+      "zweck": "MATS Gig",
+      "km": 354,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 14,
+      "rueckUhr": 4,
+      "anlage": "selbst",
+      "kmgeld": 120.2,
+      "updated": 1782044811207,
+      "id": 17
     }
   ],
   "deleted": []
