@@ -695,6 +695,30 @@
       "kmgeld": 37.199999999999996,
       "updated": 1782076782497,
       "id": 31
+    },
+    {
+      "datum": "2025-06-21",
+      "enddatum": "",
+      "route": "Ingolstadt → Birkenheide 1, Geisenfeld → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Birkenheide 1, Geisenfeld",
+      "rueckort": "Ingolstadt",
+      "zweck": "Candy Tunes Gig",
+      "km": 50,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 14,
+      "rueckUhr": 1,
+      "anlage": "selbst",
+      "kmgeld": 29,
+      "updated": 1782076844645,
+      "id": 32
     }
   ],
   "deleted": []
