@@ -119,6 +119,30 @@
       "kmgeld": 37.199999999999996,
       "updated": 1782036472907,
       "id": 7
+    },
+    {
+      "datum": "2025-03-13",
+      "enddatum": "",
+      "route": "Ingolstadt → Arcisstraße 12 München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Arcisstraße 12 München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Schulmusikertage München",
+      "km": 168,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 7,
+      "rueckUhr": 17,
+      "anlage": "selbst",
+      "kmgeld": 64.4,
+      "updated": 1782036672010,
+      "id": 8
     }
   ],
   "deleted": []
