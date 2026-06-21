@@ -575,6 +575,30 @@
       "kmgeld": 72.5,
       "updated": 1782076261178,
       "id": 26
+    },
+    {
+      "datum": "2025-06-21",
+      "enddatum": "",
+      "route": "Ingolstadt → Am Kirchberg 20, Hofkirchen → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Am Kirchberg 20, Hofkirchen",
+      "rueckort": "Ingolstadt",
+      "zweck": "RAB Gig",
+      "km": 371,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 15,
+      "rueckUhr": 2,
+      "anlage": "selbst",
+      "kmgeld": 125.3,
+      "updated": 1782076304415,
+      "id": 27
     }
   ],
   "deleted": []
