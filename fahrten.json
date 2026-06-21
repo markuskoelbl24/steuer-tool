@@ -47,6 +47,30 @@
       "kmgeld": 49.199999999999996,
       "updated": 1782033220621,
       "id": 4
+    },
+    {
+      "datum": "2025-02-07",
+      "enddatum": "2025-02-09",
+      "route": "Ingolstadt → JuFa Hotel, Bad Aussee → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "JuFa Hotel, Bad Aussee",
+      "rueckort": "Ingolstadt",
+      "zweck": "Schulinterne Fortbildung",
+      "km": 613,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 56,
+      "mehr": true,
+      "tage": 3,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "angestellt",
+      "kmgeld": 239.9,
+      "updated": 1782035690920,
+      "id": 5
     }
   ],
   "deleted": []
