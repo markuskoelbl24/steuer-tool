@@ -407,6 +407,30 @@
       "kmgeld": 49.8,
       "updated": 1782045042513,
       "id": 19
+    },
+    {
+      "datum": "2025-05-18",
+      "enddatum": "",
+      "route": "Ingolstadt → Weinmillerstraße 8 Freising → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Weinmillerstraße 8 Freising",
+      "rueckort": "Ingolstadt",
+      "zweck": "2iT Probe",
+      "km": 124,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 37.199999999999996,
+      "updated": 1782045088972,
+      "id": 20
     }
   ],
   "deleted": []
