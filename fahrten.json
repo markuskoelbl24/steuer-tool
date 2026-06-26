@@ -1079,6 +1079,30 @@
       "kmgeld": 49.8,
       "updated": 1782078788126,
       "id": 47
+    },
+    {
+      "datum": "2026-06-26",
+      "enddatum": "",
+      "route": "Ingolstadt → Rauwöhrstraße 27 → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Rauwöhrstraße 27",
+      "rueckort": "Ingolstadt",
+      "zweck": "Brass Tacks Gig",
+      "km": 310,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 14,
+      "rueckUhr": 3,
+      "anlage": "selbst",
+      "kmgeld": 107,
+      "updated": 1782513734171,
+      "id": 48
     }
   ],
   "deleted": []
