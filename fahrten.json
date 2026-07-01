@@ -1103,6 +1103,30 @@
       "kmgeld": 107,
       "updated": 1782513734171,
       "id": 48
+    },
+    {
+      "datum": "2026-06-27",
+      "enddatum": "",
+      "route": "Ingolstadt → Buchberg 2 brennberg → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Buchberg 2 brennberg",
+      "rueckort": "Ingolstadt",
+      "zweck": "Duo Claudi Gig",
+      "km": 241,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 72.3,
+      "updated": 1782942052330,
+      "id": 49
     }
   ],
   "deleted": []
