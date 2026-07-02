@@ -1130,31 +1130,12 @@
       "stops": [
         "Dominikanerinnenstraße 2-3, 93186 Pettendorf"
       ]
-    },
-    {
-      "datum": "2026-06-27",
-      "enddatum": "",
-      "route": "Ingolstadt → Dominikanerinnenstraße 2-3, 93186 Pettendorf → Ingolstadt",
-      "start": "Ingolstadt",
-      "ziel": "Dominikanerinnenstraße 2-3, 93186 Pettendorf",
-      "rueckort": "Ingolstadt",
-      "zweck": "MATS Gig",
-      "km": 195,
-      "satz": 0.3,
-      "park": 0,
-      "zug": 0,
-      "pausch": 0,
-      "mehr": false,
-      "tage": 1,
-      "anreiseNacht": false,
-      "heimMitternacht": false,
-      "abUhr": null,
-      "rueckUhr": null,
-      "anlage": "selbst",
-      "kmgeld": 58.5,
-      "updated": 1782942170773,
-      "id": 50
     }
   ],
-  "deleted": []
+  "deleted": [
+    {
+      "id": 50,
+      "ts": 1783022513822
+    }
+  ]
 }
