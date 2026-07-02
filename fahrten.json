@@ -1083,9 +1083,9 @@
     {
       "datum": "2026-06-26",
       "enddatum": "",
-      "route": "Ingolstadt → Rauwöhrstraße 27 → Ingolstadt",
+      "route": "Ingolstadt → Rauwöhrstraße 27, Neubeuern → Ingolstadt",
       "start": "Ingolstadt",
-      "ziel": "Rauwöhrstraße 27",
+      "ziel": "Rauwöhrstraße 27, Neubeuern",
       "rueckort": "Ingolstadt",
       "zweck": "Brass Tacks Gig",
       "km": 310,
@@ -1101,8 +1101,9 @@
       "rueckUhr": 3,
       "anlage": "selbst",
       "kmgeld": 107,
-      "updated": 1782513734171,
-      "id": 48
+      "updated": 1783022564398,
+      "id": 48,
+      "stops": []
     },
     {
       "datum": "2026-06-27",
