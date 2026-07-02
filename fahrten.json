@@ -1107,12 +1107,12 @@
     {
       "datum": "2026-06-27",
       "enddatum": "",
-      "route": "Ingolstadt → Buchberg 2 brennberg → Ingolstadt",
+      "route": "Ingolstadt → Buchberg 2 brennberg → Dominikanerinnenstraße 2-3, 93186 Pettendorf → Ingolstadt",
       "start": "Ingolstadt",
       "ziel": "Buchberg 2 brennberg",
       "rueckort": "Ingolstadt",
-      "zweck": "Duo Claudi Gig",
-      "km": 241,
+      "zweck": "Duo Claudi & MATS Gig",
+      "km": 281,
       "satz": 0.3,
       "park": 0,
       "zug": 0,
@@ -1124,9 +1124,12 @@
       "abUhr": null,
       "rueckUhr": null,
       "anlage": "selbst",
-      "kmgeld": 72.3,
-      "updated": 1782942052330,
-      "id": 49
+      "kmgeld": 84.3,
+      "updated": 1783022506798,
+      "id": 49,
+      "stops": [
+        "Dominikanerinnenstraße 2-3, 93186 Pettendorf"
+      ]
     },
     {
       "datum": "2026-06-27",
