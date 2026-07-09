@@ -1133,7 +1133,7 @@
       ]
     },
     {
-      "datum": "2025-07-05",
+      "datum": "2026-07-05",
       "enddatum": "",
       "route": "Ingolstadt → Isarauen 8, München → Ingolstadt",
       "start": "Ingolstadt",
@@ -1153,7 +1153,7 @@
       "rueckUhr": null,
       "anlage": "selbst",
       "kmgeld": 52.8,
-      "updated": 1783621098104,
+      "updated": 1783621126194,
       "id": 50
     }
   ],
