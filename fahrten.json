@@ -1131,6 +1131,30 @@
       "stops": [
         "Dominikanerinnenstraße 2-3, 93186 Pettendorf"
       ]
+    },
+    {
+      "datum": "2025-07-05",
+      "enddatum": "",
+      "route": "Ingolstadt → Isarauen 8, München → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Isarauen 8, München",
+      "rueckort": "Ingolstadt",
+      "zweck": "Mathias Achatz OFK Gig",
+      "km": 176,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 0,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": null,
+      "rueckUhr": null,
+      "anlage": "selbst",
+      "kmgeld": 52.8,
+      "updated": 1783621098104,
+      "id": 50
     }
   ],
   "deleted": [
