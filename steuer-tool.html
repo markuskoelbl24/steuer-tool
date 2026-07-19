@@ -270,6 +270,9 @@ input[type=date]:disabled{background:var(--card-2);color:var(--txt-3);-webkit-te
 .ig input{flex:1;min-width:0;}
 .ig-btn{flex-shrink:0;width:46px;border:0.5px solid var(--border-2);background:var(--card);border-radius:var(--radius-sm);cursor:pointer;font-size:16px;color:var(--txt);line-height:1;}
 .ig-btn:active{background:var(--card-2);}
+.btn-addstop{margin-top:6px;width:100%;padding:7px;background:none;border:0.5px dashed var(--border-2);color:var(--txt-2);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;}
+.btn-addstop:active{background:var(--card-2);}
+#f-stops .ig{margin-top:6px;}
 /* Datums-Eingaben auf allen Geräten gleich hoch wie Textfelder */
 input[type=date]{-webkit-appearance:none;appearance:none;}
 
@@ -506,8 +509,10 @@ input[type=date]{-webkit-appearance:none;appearance:none;}
         <div class="form-row"><label>Start</label>
           <div class="ig"><input type="text" id="f-start" list="dl-orte" autocomplete="off" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-start')" aria-label="Standort als Start" title="Aktueller Standort">📍</button></div>
         </div>
-        <div class="form-row"><label>Ziel</label>
+        <div class="form-row"><label>Ziel(e)</label>
           <div class="ig"><input type="text" id="f-ziel" list="dl-orte" autocomplete="off" placeholder="Auftrittsort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-ziel')" aria-label="Standort als Ziel" title="Aktueller Standort">📍</button></div>
+          <div id="f-stops"></div>
+          <button type="button" class="btn-addstop no-print" id="f-add-stop" onclick="addStopField()" title="Weiterer Auftrittsort am selben Tag (Weiterfahrt statt heim)">+ weiteres Ziel</button>
         </div>
         <div class="form-row"><label>Rückkehr</label>
           <div class="ig"><input type="text" id="f-rueckort" list="dl-orte" autocomplete="off" placeholder="Heimatort" onchange="suggestRouteKm()"><button type="button" class="ig-btn" tabindex="-1" onclick="gpsTo('f-rueckort')" aria-label="Standort als Rückkehr" title="Aktueller Standort">📍</button></div>
@@ -923,7 +928,7 @@ let baseLearnPct = {};
 let homeOrt    = JSON.parse(store.get('steuer_fahrt_home') || '{"start":"","rueckort":""}');
 let routeKm    = JSON.parse(store.get('steuer_routekm') || '{}');
 let geoCache   = JSON.parse(store.get('steuer_geocache') || '{}');   // Koordinaten → Ortsname (reverseGeo, gecacht)
-let currentYear=2025, shownMonthSums=new Set(), anteilManual=false, editId=null, eaSearch='';
+let currentYear=new Date().getFullYear(), shownMonthSums=new Set(), anteilManual=false, editId=null, eaSearch='';
 let userAfa = JSON.parse(store.get('steuer_afa') || '[]');
 let kfzData = JSON.parse(store.get('steuer_kfz') || '{}');
 let settings = JSON.parse(store.get('steuer_settings') || '{"standardSatz":0.30}');
@@ -1187,7 +1192,7 @@ function checkGWG(){
   document.getElementById('gwg-hint').textContent=msg;
 }
 function setYear(){
-  currentYear=parseInt(document.getElementById('year-sel').value,10)||2025;
+  currentYear=parseInt(document.getElementById('year-sel').value,10)||new Date().getFullYear();
   shownMonthSums.clear();
   if(editId==null){ const dd=eaDefaultDate(); document.getElementById('ea-datum').value=dd; document.getElementById('ea-belegnr').value=''; refreshKat(); }
   document.getElementById('f-datum').value=eaDefaultDate();
@@ -1506,7 +1511,7 @@ function exportXLSX(){
   fy.forEach(f=>{ fa.open(); const rr=fa.row();
     fa.S(2, f.anlage==='angestellt'?'A':'S', 6);
     fa.S(3, fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):''));
-    fa.S(4, cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):''));
+    fa.S(4, fahrtRoute(f));
     fa.S(5, f.zweck||''); fa.N(6, f.km||0); fa.N(7, f.satz||0, 3);
     fa.F(8, 'F'+rr+'*G'+rr, 3); fa.N(9, f.pausch||0, 3); fa.N(10, f.park||0, 3); fa.N(11, f.zug||0, 3);
     fa.F(12, 'H'+rr+'+I'+rr+'+J'+rr+'+K'+rr, 3); fa.close(); });
@@ -1976,10 +1981,11 @@ function addFahrt(){
   if(curTrip==='mehr' && (!enddatum || pObj.days<2)){ toast('Mehrtägig: gültiges Rückkehr-Datum nötig',true); return; }
   if(kfzData[currentYear] && kfzData[currentYear].method==='einzel' && satz<=0){ toast('Einzelnachweis: erst Kfz-Kosten + km-Stand erfassen',true); return; }
   if(!rueckort) rueckort=start;
-  routeKm[routeKeyFrom(start,ziel,rueckort)]=km; saveRouteKm();
-  const route=start+' → '+ziel+(rueckort?(' → '+rueckort):'');
+  const stops=collectStops();
+  routeKm[routeKeyFrom(start,ziel,rueckort,stops)]=km; saveRouteKm();
+  const route=[start,ziel].concat(stops).concat(rueckort?[rueckort]:[]).join(' → ');
   const kmgeld=km*satz+park+zug+pausch;
-  const rec={datum,enddatum,route,start,ziel,rueckort,zweck,km,satz,park,zug,pausch,mehr:curTrip==='mehr',tage:pObj.days||1,anreiseNacht:!!pObj.bA,heimMitternacht:!!pObj.bH,abUhr,rueckUhr,anlage:curFahrtAnlage,kmgeld,updated:Date.now()};
+  const rec={datum,enddatum,route,start,ziel,stops,rueckort,zweck,km,satz,park,zug,pausch,mehr:curTrip==='mehr',tage:pObj.days||1,anreiseNacht:!!pObj.bA,heimMitternacht:!!pObj.bH,abUhr,rueckUhr,anlage:curFahrtAnlage,kmgeld,updated:Date.now()};
   const isEdit=editFahrtId!=null;
   if(isEdit){ const f=fahrten.find(x=>x.id===editFahrtId); if(f) Object.assign(f,rec); }
   else { rec.id=nextFahrtId++; fahrten.push(rec); }
@@ -1999,6 +2005,7 @@ function editFahrt(id){
   document.getElementById('f-start').value=f.start||'';
   document.getElementById('f-ziel').value=f.ziel||'';
   document.getElementById('f-rueckort').value=f.rueckort||'';
+  setStops(f.stops||[]);
   document.getElementById('f-km').value=f.km!=null?String(f.km).replace('.',','):'';
   document.getElementById('f-park').value=deNum(f.park||0);
   document.getElementById('f-zug').value=deNum(f.zug||0);
@@ -2030,6 +2037,7 @@ function toggleFahrtAnlage(id){
 function clearFahrtFields(full){
   verpflManual=false; fahrtAnlageManual=false; hideZweckSugg();
   ['f-ziel','f-zweck','f-km','f-ab','f-rueck','f-enddatum'].forEach(id=>document.getElementById(id).value='');
+  clearStops();
   document.getElementById('f-park').value='0'; document.getElementById('f-zug').value='0';
   document.getElementById('f-anreise-nacht').checked=false; document.getElementById('f-heim-mitternacht').checked=false;
   document.getElementById('f-datum').value=eaDefaultDate();
@@ -2042,7 +2050,7 @@ function clearFahrtFields(full){
   document.getElementById('f-preview').textContent='0,00 €';
 }
 function newFahrt(){
-  const dirty=['f-zweck','f-ziel','f-km'].some(id=>document.getElementById(id).value.trim());
+  const dirty=['f-zweck','f-ziel','f-km'].some(id=>document.getElementById(id).value.trim())||collectStops().length>0;
   if(dirty && !confirm('Aktuelle Eingaben verwerfen und neue Fahrt beginnen?')) return;
   clearFahrtFields(true);
   toast('Neue Fahrt — Start/Rückkehr auf Heimatort');
@@ -2065,13 +2073,41 @@ function prefillHome(){
   if(s && !s.value) s.value = h || homeOrt.start || '';
   if(r && !r.value) r.value = h || homeOrt.rueckort || '';
 }
-function routeKeyFrom(s,z,r){ return (s+'|'+z+'|'+(r||s)).toLowerCase().replace(/\s+/g,' ').trim(); }
+function routeKeyFrom(s,z,r,stops){
+  const mid=(stops&&stops.length)?('|'+stops.join('|')):'';
+  return (s+'|'+z+mid+'|'+(r||s)).toLowerCase().replace(/\s+/g,' ').trim();
+}
+/* Zwischenziele (weitere Auftrittsorte am selben Tag, zwischen Ziel und Rückkehr).
+   Datenmodell: f.stops = []  (fehlt bei Alt-Fahrten → wie leer, verhält sich wie bisher). */
+function collectStops(){ return Array.from(document.querySelectorAll('#f-stops .f-stop')).map(i=>i.value.trim()).filter(Boolean); }
+function clearStops(){ const w=document.getElementById('f-stops'); if(w) w.innerHTML=''; }
+function setStops(arr){ clearStops(); (arr||[]).forEach(v=>addStopField(v)); }
+function addStopField(value){
+  const wrap=document.getElementById('f-stops'); if(!wrap) return;
+  const row=document.createElement('div'); row.className='ig';
+  const inp=document.createElement('input');
+  inp.type='text'; inp.className='f-stop'; inp.setAttribute('list','dl-orte'); inp.autocomplete='off';
+  inp.placeholder='weiterer Auftrittsort'; inp.value=value||''; inp.onchange=suggestRouteKm;
+  const gps=document.createElement('button');
+  gps.type='button'; gps.className='ig-btn'; gps.tabIndex=-1; gps.title='Aktueller Standort'; gps.textContent='📍';
+  gps.onclick=function(){ gpsTo(inp); };
+  const rm=document.createElement('button');
+  rm.type='button'; rm.className='ig-btn'; rm.tabIndex=-1; rm.title='Ziel entfernen'; rm.textContent='×';
+  rm.onclick=function(){ row.remove(); suggestRouteKm(); };
+  row.appendChild(inp); row.appendChild(gps); row.appendChild(rm);
+  wrap.appendChild(row);
+  if(value==null) inp.focus();   // nur beim „+"-Klick fokussieren, nicht beim Befüllen aus editFahrt
+  return inp;
+}
+/* Wegpunkte einer Fahrt in Reihenfolge Start → Ziel → Zwischenziele → Rückkehr (für Anzeige/PDF/Excel). */
+function fahrtPts(f){ const st=Array.isArray(f.stops)?f.stops.filter(x=>x&&x.trim()):[]; const p=[f.start,f.ziel].concat(st); if(f.rueckort) p.push(f.rueckort); return p; }
+function fahrtRoute(f){ return fahrtPts(f).map(cleanOrtname).join(' → '); }
 function suggestRouteKm(){
   const s=document.getElementById('f-start').value.trim();
   const z=document.getElementById('f-ziel').value.trim();
   const r=document.getElementById('f-rueckort').value.trim();
   if(!s||!z) return;
-  const km=routeKm[routeKeyFrom(s,z,r)];
+  const km=routeKm[routeKeyFrom(s,z,r,collectStops())];
   const kmField=document.getElementById('f-km');
   if(km!=null && !kmField.value){ kmField.value=km; calcFahrt(); toast('km aus Routen-Gedächtnis'); }
 }
@@ -2126,7 +2162,8 @@ function openMaps(){
   const z=document.getElementById('f-ziel').value.trim();
   const r=document.getElementById('f-rueckort').value.trim()||s;
   if(!s||!z){ toast('Start und Ziel eingeben',true); return; }
-  const url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(mapsAddr(s))+'&destination='+encodeURIComponent(mapsAddr(r))+'&waypoints='+encodeURIComponent(mapsAddr(z))+'&travelmode=driving';
+  const wps=[z].concat(collectStops()).map(w=>encodeURIComponent(mapsAddr(w))).join('%7C');   // Ziel + Zwischenziele als Wegpunkte
+  const url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(mapsAddr(s))+'&destination='+encodeURIComponent(mapsAddr(r))+'&waypoints='+wps+'&travelmode=driving';
   const w=window.open(url,'_blank');
   if(w){
     /* Hilfs-Tab automatisch schließen, sobald das Fahrtenbuch wieder sichtbar/fokussiert ist */
@@ -2146,12 +2183,13 @@ async function reverseGeo(lat,lon){
   const d=await r.json(), a=d.address||{};
   return a.city||a.town||a.village||a.municipality||a.suburb||a.county||(d.display_name||'').split(',')[0]||'';
 }
-function gpsTo(fieldId){
+function gpsTo(field){
   if(!navigator.geolocation){ toast('GPS nicht verfügbar',true); return; }
+  const fld=(typeof field==='string')?document.getElementById(field):field;
+  if(!fld) return;
   toast('Standort wird ermittelt…');
   navigator.geolocation.getCurrentPosition(function(p){
     const lat=p.coords.latitude, lon=p.coords.longitude;
-    const fld=document.getElementById(fieldId);
     fld.value=lat.toFixed(5)+', '+lon.toFixed(5);   // Fallback, bis der Ortsname geladen ist
     reverseGeo(lat,lon).then(function(name){ if(name) fld.value=name; suggestRouteKm(); toast('Standort: '+fld.value); })
       .catch(function(){ toast('Ortsname nicht ladbar — Koordinaten gesetzt',true); });
@@ -2203,11 +2241,14 @@ function cleanOrtname(s){
   let parts=v.split(',').map(p=>p.trim()).filter(Boolean);
   const land=/^(deutschland|germany|österreich|oesterreich|austria|schweiz|switzerland)$/i;
   while(parts.length>1 && land.test(parts[parts.length-1])) parts.pop();
+  // Straßenzeile am Anfang (endet auf Hausnummer, z. B. „Buchberg 2", „Hauptstr. 12a") wegwerfen,
+  // wenn ein Ort folgt — greift auch bei Dorfadressen OHNE „-straße"-Stichwort.
+  if(parts.length>1 && /\s\d+\s*[a-zA-Z]?$/.test(parts[0])) parts.shift();
   return parts.join(', ');
 }
 function renderFahrten(){
   document.getElementById('m-fcount-lbl').textContent='Fahrten '+currentYear;
-  { const orte=[]; fahrten.forEach(f=>{ orte.push(f.start,f.ziel,f.rueckort); });
+  { const orte=[]; fahrten.forEach(f=>{ orte.push(f.start,f.ziel,f.rueckort); (f.stops||[]).forEach(s=>orte.push(s)); });
     if(settings.heimatort) orte.push(settings.heimatort);
     if(homeOrt){ orte.push(homeOrt.start,homeOrt.rueckort); }
     fillDL('dl-orte', orte.filter(v=>v && !isCoords(v))); }
@@ -2232,10 +2273,11 @@ function renderFahrten(){
       if(f.pausch>0) meta.push('Verpfl. '+fmt(f.pausch)+(f.mehr?(' ('+f.tage+' T.)'):''));
       if(f.park>0) meta.push('Park '+fmt(f.park));
       if(f.zug>0) meta.push('Zug '+fmt(f.zug));
-      const hinRueck=f.rueckort&&f.start&&f.start.trim()===f.rueckort.trim();
+      const stArr=Array.isArray(f.stops)?f.stops.filter(x=>x&&x.trim()):[];
+      const hinRueck=!stArr.length&&f.rueckort&&f.start&&f.start.trim()===f.rueckort.trim();
       const route=hinRueck
         ? cleanOrtname(f.start)+' ↔ '+cleanOrtname(f.ziel)
-        : cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+        : fahrtRoute(f);
       const dateStr=fmtDate(f.datum)+(f.mehr&&f.enddatum?(' – '+fmtDate(f.enddatum)):'');
       const badge='<span class="fahrt-anlage '+(isL?'l':'s')+'" onclick="event.stopPropagation();toggleFahrtAnlage('+f.id+')" title="S ↔ A umschalten">'+(isL?'A':'S')+'</span>';
       const l1='<span class="fahrt-date">'+esc(dateStr)+'</span>'+(f.zweck?('<span class="fahrt-zweck">'+esc(f.zweck)+'</span>'):'');
@@ -2468,7 +2510,7 @@ function buildReport(){
     fy.forEach(f=>{
       const pz=(f.park||0)+(f.zug||0);
       const uhr=(f.abUhr!=null&&f.rueckUhr!=null)?(f.abUhr+'–'+f.rueckUhr):'';
-      const rRoute=cleanOrtname(f.start)+' → '+cleanOrtname(f.ziel)+(f.rueckort?(' → '+cleanOrtname(f.rueckort)):'');
+      const rRoute=fahrtRoute(f);
       H+='<div class="grow gr-fahrt"><span>'+fmtDate(f.datum)+(f.mehr&&f.enddatum?('–'+fmtDate(f.enddatum)):'')+'</span><span>'+esc(rRoute)+'</span><span>'+esc(f.zweck||'')+'</span>'
         +'<span class="num">'+uhr+'</span><span class="num">'+M(f.pausch||0)+'</span><span class="num">'+M(pz)+'</span>'
         +'<span class="num">'+(f.km||0)+'</span><span class="num">'+M((f.km||0)*(f.satz||0))+'</span><span class="num">'+M(f.kmgeld||0)+'</span></div>';
