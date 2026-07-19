@@ -1155,6 +1155,31 @@
       "kmgeld": 52.8,
       "updated": 1783621126194,
       "id": 50
+    },
+    {
+      "datum": "2026-07-18",
+      "enddatum": "",
+      "route": "Ingolstadt → Junkers-Ring 17, 85098 Großmehring → Ingolstadt",
+      "start": "Ingolstadt",
+      "ziel": "Junkers-Ring 17, 85098 Großmehring",
+      "stops": [],
+      "rueckort": "Ingolstadt",
+      "zweck": "Candy Tunes Gig",
+      "km": 25,
+      "satz": 0.3,
+      "park": 0,
+      "zug": 0,
+      "pausch": 14,
+      "mehr": false,
+      "tage": 1,
+      "anreiseNacht": false,
+      "heimMitternacht": false,
+      "abUhr": 16,
+      "rueckUhr": 3,
+      "anlage": "selbst",
+      "kmgeld": 21.5,
+      "updated": 1784449263278,
+      "id": 51
     }
   ],
   "deleted": [
